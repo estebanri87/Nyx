@@ -174,6 +174,30 @@ export const ConfigProvider = ({ children }) => {
     }
   });
 
+  const [textPrimaryColor, setTextPrimaryColor] = useState(() => {
+    try {
+      return localStorage.getItem('nyx_text_primary_color') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const [textSecondaryColor, setTextSecondaryColor] = useState(() => {
+    try {
+      return localStorage.getItem('nyx_text_secondary_color') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const [textMutedColor, setTextMutedColor] = useState(() => {
+    try {
+      return localStorage.getItem('nyx_text_muted_color') || '';
+    } catch {
+      return '';
+    }
+  });
+
   const [cardMaterial, setCardMaterial] = useState(() => {
     try {
       return localStorage.getItem('nyx_card_material') || 'glass';
@@ -326,6 +350,17 @@ export const ConfigProvider = ({ children }) => {
       console.error('Failed to save theme to localStorage:', error);
     }
   }, [currentTheme]);
+
+  // Apply text color overrides on top of the theme (runs after the theme-apply
+  // effect above so a custom color always wins over the theme's own value).
+  useEffect(() => {
+    const themeKey = themes[currentTheme] ? currentTheme : 'dark';
+    const theme = themes[themeKey].colors;
+    const root = document.documentElement;
+    root.style.setProperty('--text-primary', textPrimaryColor || theme['--text-primary']);
+    root.style.setProperty('--text-secondary', textSecondaryColor || theme['--text-secondary']);
+    root.style.setProperty('--text-muted', textMutedColor || theme['--text-muted']);
+  }, [textPrimaryColor, textSecondaryColor, textMutedColor, currentTheme]);
 
   // Apply background based on bgMode
   useEffect(() => {
@@ -508,6 +543,36 @@ export const ConfigProvider = ({ children }) => {
 
   useEffect(() => {
     try {
+      if (textPrimaryColor) {
+        localStorage.setItem('nyx_text_primary_color', textPrimaryColor);
+      } else {
+        localStorage.removeItem('nyx_text_primary_color');
+      }
+    } catch {}
+  }, [textPrimaryColor]);
+
+  useEffect(() => {
+    try {
+      if (textSecondaryColor) {
+        localStorage.setItem('nyx_text_secondary_color', textSecondaryColor);
+      } else {
+        localStorage.removeItem('nyx_text_secondary_color');
+      }
+    } catch {}
+  }, [textSecondaryColor]);
+
+  useEffect(() => {
+    try {
+      if (textMutedColor) {
+        localStorage.setItem('nyx_text_muted_color', textMutedColor);
+      } else {
+        localStorage.removeItem('nyx_text_muted_color');
+      }
+    } catch {}
+  }, [textMutedColor]);
+
+  useEffect(() => {
+    try {
       localStorage.setItem('nyx_card_material', cardMaterial);
     } catch {}
     if (cardMaterial && cardMaterial !== 'glass') {
@@ -645,6 +710,12 @@ export const ConfigProvider = ({ children }) => {
     setCardBorderOpacity,
     cardBgColor,
     setCardBgColor,
+    textPrimaryColor,
+    setTextPrimaryColor,
+    textSecondaryColor,
+    setTextSecondaryColor,
+    textMutedColor,
+    setTextMutedColor,
     cardMaterial,
     setCardMaterial,
     density,
@@ -674,6 +745,9 @@ export const ConfigProvider = ({ children }) => {
     cardTransparency,
     cardBorderOpacity,
     cardBgColor,
+    textPrimaryColor,
+    textSecondaryColor,
+    textMutedColor,
     cardMaterial,
     density,
     cardScale,

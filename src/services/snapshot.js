@@ -89,6 +89,9 @@ export function collectSnapshot() {
       bgGradient: localStorage.getItem('nyx_bg_gradient') || 'midnight',
       bgImage: localStorage.getItem('nyx_bg_image') || '',
       cardBgColor: localStorage.getItem('nyx_card_bg_color') || '',
+      textPrimaryColor: localStorage.getItem('nyx_text_primary_color') || '',
+      textSecondaryColor: localStorage.getItem('nyx_text_secondary_color') || '',
+      textMutedColor: localStorage.getItem('nyx_text_muted_color') || '',
       cardTransparency: readNumber('nyx_card_transparency', 40),
       cardBorderOpacity: readNumber('nyx_card_border_opacity', 5),
       inactivityTimeout: readNumber('nyx_inactivity_timeout', 60),
@@ -166,6 +169,27 @@ export function applySnapshot(snapshot, contextSetters = {}) {
       localStorage.removeItem('nyx_card_bg_color');
     }
   }
+  if (appearance.textPrimaryColor !== undefined) {
+    if (appearance.textPrimaryColor) {
+      localStorage.setItem('nyx_text_primary_color', appearance.textPrimaryColor);
+    } else {
+      localStorage.removeItem('nyx_text_primary_color');
+    }
+  }
+  if (appearance.textSecondaryColor !== undefined) {
+    if (appearance.textSecondaryColor) {
+      localStorage.setItem('nyx_text_secondary_color', appearance.textSecondaryColor);
+    } else {
+      localStorage.removeItem('nyx_text_secondary_color');
+    }
+  }
+  if (appearance.textMutedColor !== undefined) {
+    if (appearance.textMutedColor) {
+      localStorage.setItem('nyx_text_muted_color', appearance.textMutedColor);
+    } else {
+      localStorage.removeItem('nyx_text_muted_color');
+    }
+  }
   if (appearance.cardTransparency !== undefined)
     localStorage.setItem('nyx_card_transparency', String(appearance.cardTransparency));
   if (appearance.cardBorderOpacity !== undefined)
@@ -217,6 +241,12 @@ export function applySnapshot(snapshot, contextSetters = {}) {
   if (s.setBgImage && appearance.bgImage !== undefined) s.setBgImage(appearance.bgImage);
   if (s.setCardBgColor && appearance.cardBgColor !== undefined)
     s.setCardBgColor(appearance.cardBgColor);
+  if (s.setTextPrimaryColor && appearance.textPrimaryColor !== undefined)
+    s.setTextPrimaryColor(appearance.textPrimaryColor);
+  if (s.setTextSecondaryColor && appearance.textSecondaryColor !== undefined)
+    s.setTextSecondaryColor(appearance.textSecondaryColor);
+  if (s.setTextMutedColor && appearance.textMutedColor !== undefined)
+    s.setTextMutedColor(appearance.textMutedColor);
   if (s.setCardTransparency && appearance.cardTransparency !== undefined)
     s.setCardTransparency(appearance.cardTransparency);
   if (s.setCardBorderOpacity && appearance.cardBorderOpacity !== undefined)

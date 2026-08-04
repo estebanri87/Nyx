@@ -117,6 +117,44 @@ describe('snapshot service', () => {
     expect(setCardBgColor).toHaveBeenCalledWith('#445566');
   });
 
+  it('collectSnapshot includes text color overrides from storage', () => {
+    localStorage.setItem('nyx_text_primary_color', '#111111');
+    localStorage.setItem('nyx_text_secondary_color', '#222222');
+    localStorage.setItem('nyx_text_muted_color', '#333333');
+
+    const snapshot = collectSnapshot();
+
+    expect(snapshot.appearance.textPrimaryColor).toBe('#111111');
+    expect(snapshot.appearance.textSecondaryColor).toBe('#222222');
+    expect(snapshot.appearance.textMutedColor).toBe('#333333');
+  });
+
+  it('applySnapshot persists and applies text color overrides', () => {
+    const setTextPrimaryColor = vi.fn();
+    const setTextSecondaryColor = vi.fn();
+    const setTextMutedColor = vi.fn();
+
+    applySnapshot(
+      {
+        version: 1,
+        layout: {},
+        appearance: {
+          textPrimaryColor: '#444444',
+          textSecondaryColor: '#555555',
+          textMutedColor: '#666666',
+        },
+      },
+      { setTextPrimaryColor, setTextSecondaryColor, setTextMutedColor }
+    );
+
+    expect(localStorage.getItem('nyx_text_primary_color')).toBe('#444444');
+    expect(localStorage.getItem('nyx_text_secondary_color')).toBe('#555555');
+    expect(localStorage.getItem('nyx_text_muted_color')).toBe('#666666');
+    expect(setTextPrimaryColor).toHaveBeenCalledWith('#444444');
+    expect(setTextSecondaryColor).toHaveBeenCalledWith('#555555');
+    expect(setTextMutedColor).toHaveBeenCalledWith('#666666');
+  });
+
   it('collectSnapshot includes app font from storage', () => {
     localStorage.setItem('nyx_app_font', 'Montserrat');
 

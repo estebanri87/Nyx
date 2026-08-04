@@ -59,6 +59,12 @@ export default function ThemeSidebar({
   setBgGradient,
   bgImage,
   setBgImage,
+  textPrimaryColor,
+  setTextPrimaryColor,
+  textSecondaryColor,
+  setTextSecondaryColor,
+  textMutedColor,
+  setTextMutedColor,
   inactivityTimeout,
   setInactivityTimeout,
 }) {
@@ -93,6 +99,50 @@ export default function ThemeSidebar({
     setBgGradient('midnight');
     setBgImage('');
   };
+
+  const resetTextColors = () => {
+    setTextPrimaryColor('');
+    setTextSecondaryColor('');
+    setTextMutedColor('');
+  };
+
+  const ResetButton = ({ onClick }) => (
+    <button
+      onClick={onClick}
+      className="rounded-full p-1.5 transition-all hover:bg-white/10"
+      style={{ color: 'var(--text-secondary)' }}
+      title={t('settings.reset')}
+    >
+      <RefreshCw className="h-3.5 w-3.5" />
+    </button>
+  );
+
+  const themeKeyForColors = themes[currentTheme] ? currentTheme : 'dark';
+  const themeColors = themes[themeKeyForColors].colors;
+
+  const textColorFields = [
+    {
+      key: 'textPrimaryColor',
+      label: t('settings.textColorPrimary'),
+      value: textPrimaryColor,
+      setValue: setTextPrimaryColor,
+      themeDefault: themeColors['--text-primary'],
+    },
+    {
+      key: 'textSecondaryColor',
+      label: t('settings.textColorSecondary'),
+      value: textSecondaryColor,
+      setValue: setTextSecondaryColor,
+      themeDefault: themeColors['--text-secondary'],
+    },
+    {
+      key: 'textMutedColor',
+      label: t('settings.textColorMuted'),
+      value: textMutedColor,
+      setValue: setTextMutedColor,
+      themeDefault: themeColors['--text-muted'],
+    },
+  ];
 
   const handleEnableLock = () => {
     if (!isValidPin(newPin) || !isValidPin(confirmPin)) {
@@ -392,6 +442,89 @@ export default function ThemeSidebar({
               </div>
             </div>
           )}
+        </div>
+
+        <div className="h-px" style={{ backgroundColor: 'var(--glass-border)' }} />
+
+        {/* Text Colors */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p
+              className="pl-1 text-xs font-bold tracking-widest uppercase"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              {t('settings.textColors')}
+            </p>
+            <button
+              type="button"
+              onClick={resetTextColors}
+              className="rounded-sm px-2 py-1 text-[10px] font-bold tracking-wider text-[var(--text-secondary)] uppercase transition-colors hover:bg-[var(--glass-bg-hover)]"
+            >
+              {t('settings.reset')}
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {textColorFields.map(({ key, label, value, setValue, themeDefault }) => {
+              const effectiveColor = value || themeDefault;
+              const pickerColor = /^#[0-9a-fA-F]{6}$/.test(effectiveColor)
+                ? effectiveColor
+                : '#94a3b8';
+              return (
+                <div key={key}>
+                  <div className="mb-2 flex items-center justify-between">
+                    <span
+                      className="text-[11px] font-bold tracking-wider uppercase"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      {label}
+                    </span>
+                    {value && <ResetButton onClick={() => setValue('')} />}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="group relative h-12 w-12 shrink-0 cursor-pointer overflow-hidden rounded-xl border shadow-lg"
+                      style={{ borderColor: 'var(--glass-border)' }}
+                    >
+                      <input
+                        type="color"
+                        value={pickerColor}
+                        onChange={(e) => setValue(e.target.value)}
+                        className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                      />
+                      <div
+                        className="h-full w-full transition-colors"
+                        style={{ backgroundColor: effectiveColor }}
+                      />
+                    </div>
+                    <div className="flex-1 space-y-0.5">
+                      <input
+                        type="text"
+                        value={value}
+                        onChange={(e) => {
+                          const val = e.target.value.trim();
+                          if (val === '' || /^#[0-9a-fA-F]{0,6}$/.test(val)) setValue(val);
+                        }}
+                        className="w-full rounded-xl border px-3 py-2.5 font-mono text-sm uppercase transition-colors outline-none focus:border-[var(--glass-border)]"
+                        style={{
+                          backgroundColor: 'var(--glass-bg)',
+                          borderColor: 'var(--glass-border)',
+                          color: 'var(--text-primary)',
+                        }}
+                        placeholder={pickerColor}
+                        maxLength={7}
+                      />
+                      {!value && (
+                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                          {t('settings.useThemeDefault')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div className="h-px" style={{ backgroundColor: 'var(--glass-border)' }} />
