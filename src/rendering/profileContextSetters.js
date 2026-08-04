@@ -26,6 +26,9 @@ export function buildProfilesContextSetters({ page, layout, appearance, setLangu
     setCardTransparency: appearance.setCardTransparency,
     setCardBorderOpacity: appearance.setCardBorderOpacity,
     setCardBgColor: appearance.setCardBgColor,
+    setTextPrimaryColor: appearance.setTextPrimaryColor,
+    setTextSecondaryColor: appearance.setTextSecondaryColor,
+    setTextMutedColor: appearance.setTextMutedColor,
     setInactivityTimeout: appearance.setInactivityTimeout,
   };
 }
