@@ -54,6 +54,8 @@ export function ModalSettingsSlice({
     setTextSecondaryColor,
     textMutedColor,
     setTextMutedColor,
+    textContrast,
+    setTextContrast,
     cardMaterial,
     setCardMaterial,
     density,
@@ -187,6 +189,8 @@ export function ModalSettingsSlice({
             setTextSecondaryColor={setTextSecondaryColor}
             textMutedColor={textMutedColor}
             setTextMutedColor={setTextMutedColor}
+            textContrast={textContrast}
+            setTextContrast={setTextContrast}
             inactivityTimeout={inactivityTimeout}
             setInactivityTimeout={setInactivityTimeout}
           />

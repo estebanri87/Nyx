@@ -55,3 +55,13 @@ html.custom-bg-active body::before {
     scrollbar-width: none; /* Firefox */
   }
 }
+
+/* Text contrast levels — many small labels combine a dim --text-secondary /
+   --text-muted color with a Tailwind opacity-* class, which dims them twice.
+   On small wall-mounted displays that is hard to read, so the high/max levels
+   drop that extra dimming. Limited to text elements so the opacity-based
+   dimming of whole cards (e.g. unavailable entities) stays intact. */
+html[data-text-contrast='high'] :is(p, span, h1, h2, h3, h4, label):is(.opacity-40, .opacity-50, .opacity-60, .opacity-70),
+html[data-text-contrast='max'] :is(p, span, h1, h2, h3, h4, label):is(.opacity-20, .opacity-30, .opacity-40, .opacity-50, .opacity-60, .opacity-70, .opacity-80, .opacity-90) {
+  opacity: 1;
+}

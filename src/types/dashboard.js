@@ -53,6 +53,8 @@
  * @property {import('react').Dispatch<import('react').SetStateAction<string>>} setTextSecondaryColor
  * @property {string} textMutedColor
  * @property {import('react').Dispatch<import('react').SetStateAction<string>>} setTextMutedColor
+ * @property {'standard'|'high'|'max'} textContrast
+ * @property {import('react').Dispatch<import('react').SetStateAction<string>>} setTextContrast
  * @property {string} appFont
  * @property {import('react').Dispatch<import('react').SetStateAction<string>>} setAppFont
  * @property {HomeAssistantConfig} config

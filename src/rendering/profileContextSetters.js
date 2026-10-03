@@ -29,6 +29,7 @@ export function buildProfilesContextSetters({ page, layout, appearance, setLangu
     setTextPrimaryColor: appearance.setTextPrimaryColor,
     setTextSecondaryColor: appearance.setTextSecondaryColor,
     setTextMutedColor: appearance.setTextMutedColor,
+    setTextContrast: appearance.setTextContrast,
     setInactivityTimeout: appearance.setInactivityTimeout,
   };
 }
