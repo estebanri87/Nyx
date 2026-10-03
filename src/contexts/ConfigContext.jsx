@@ -198,6 +198,15 @@ export const ConfigProvider = ({ children }) => {
     }
   });
 
+  const [textContrast, setTextContrast] = useState(() => {
+    try {
+      const stored = localStorage.getItem('nyx_text_contrast');
+      return stored === 'high' || stored === 'max' ? stored : 'standard';
+    } catch {
+      return 'standard';
+    }
+  });
+
   const [cardMaterial, setCardMaterial] = useState(() => {
     try {
       return localStorage.getItem('nyx_card_material') || 'glass';
@@ -353,14 +362,32 @@ export const ConfigProvider = ({ children }) => {
 
   // Apply text color overrides on top of the theme (runs after the theme-apply
   // effect above so a custom color always wins over the theme's own value).
+  // The contrast level then lifts the secondary/muted tones towards the primary
+  // one; an explicit override for a field always wins and is never mixed.
   useEffect(() => {
     const themeKey = themes[currentTheme] ? currentTheme : 'dark';
     const theme = themes[themeKey].colors;
     const root = document.documentElement;
-    root.style.setProperty('--text-primary', textPrimaryColor || theme['--text-primary']);
-    root.style.setProperty('--text-secondary', textSecondaryColor || theme['--text-secondary']);
-    root.style.setProperty('--text-muted', textMutedColor || theme['--text-muted']);
-  }, [textPrimaryColor, textSecondaryColor, textMutedColor, currentTheme]);
+    const primary = textPrimaryColor || theme['--text-primary'];
+    const secondary = textSecondaryColor || theme['--text-secondary'];
+    const muted = textMutedColor || theme['--text-muted'];
+
+    let effectiveSecondary = secondary;
+    let effectiveMuted = muted;
+    if (textContrast === 'high') {
+      // Drop the extra-dim muted tone, it becomes the secondary one.
+      if (!textMutedColor) effectiveMuted = secondary;
+    } else if (textContrast === 'max') {
+      if (!textSecondaryColor)
+        effectiveSecondary = `color-mix(in srgb, ${secondary} 45%, ${primary})`;
+      if (!textMutedColor) effectiveMuted = `color-mix(in srgb, ${secondary} 70%, ${primary})`;
+    }
+
+    root.style.setProperty('--text-primary', primary);
+    root.style.setProperty('--text-secondary', effectiveSecondary);
+    root.style.setProperty('--text-muted', effectiveMuted);
+    root.dataset.textContrast = textContrast;
+  }, [textPrimaryColor, textSecondaryColor, textMutedColor, textContrast, currentTheme]);
 
   // Apply background based on bgMode
   useEffect(() => {
@@ -573,6 +600,12 @@ export const ConfigProvider = ({ children }) => {
 
   useEffect(() => {
     try {
+      localStorage.setItem('nyx_text_contrast', textContrast);
+    } catch {}
+  }, [textContrast]);
+
+  useEffect(() => {
+    try {
       localStorage.setItem('nyx_card_material', cardMaterial);
     } catch {}
     if (cardMaterial && cardMaterial !== 'glass') {
@@ -716,6 +749,8 @@ export const ConfigProvider = ({ children }) => {
     setTextSecondaryColor,
     textMutedColor,
     setTextMutedColor,
+    textContrast,
+    setTextContrast,
     cardMaterial,
     setCardMaterial,
     density,
@@ -748,6 +783,7 @@ export const ConfigProvider = ({ children }) => {
     textPrimaryColor,
     textSecondaryColor,
     textMutedColor,
+    textContrast,
     cardMaterial,
     density,
     cardScale,

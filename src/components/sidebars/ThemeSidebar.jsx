@@ -65,6 +65,8 @@ export default function ThemeSidebar({
   setTextSecondaryColor,
   textMutedColor,
   setTextMutedColor,
+  textContrast,
+  setTextContrast,
   inactivityTimeout,
   setInactivityTimeout,
 }) {
@@ -104,7 +106,14 @@ export default function ThemeSidebar({
     setTextPrimaryColor('');
     setTextSecondaryColor('');
     setTextMutedColor('');
+    setTextContrast('standard');
   };
+
+  const textContrastLevels = [
+    { key: 'standard', label: t('settings.textContrastStandard') },
+    { key: 'high', label: t('settings.textContrastHigh') },
+    { key: 'max', label: t('settings.textContrastMax') },
+  ];
 
   const ResetButton = ({ onClick }) => (
     <button
@@ -462,6 +471,37 @@ export default function ThemeSidebar({
             >
               {t('settings.reset')}
             </button>
+          </div>
+
+          <div>
+            <span
+              className="mb-2 block text-[11px] font-bold tracking-wider uppercase"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              {t('settings.textContrast')}
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              {textContrastLevels.map((level) => {
+                const active = (textContrast || 'standard') === level.key;
+                return (
+                  <button
+                    key={level.key}
+                    type="button"
+                    onClick={() => setTextContrast(level.key)}
+                    className={`rounded-xl border p-2 text-center transition-all ${
+                      active
+                        ? 'border-[var(--accent-color)] bg-[var(--accent-bg)] text-[var(--accent-color)]'
+                        : 'border-transparent text-[var(--text-secondary)] hover:bg-white/10'
+                    }`}
+                    style={!active ? { backgroundColor: 'var(--glass-bg)' } : {}}
+                  >
+                    <span className="text-[9px] leading-tight font-bold tracking-wider uppercase">
+                      {level.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="space-y-4">

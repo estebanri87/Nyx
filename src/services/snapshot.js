@@ -92,6 +92,7 @@ export function collectSnapshot() {
       textPrimaryColor: localStorage.getItem('nyx_text_primary_color') || '',
       textSecondaryColor: localStorage.getItem('nyx_text_secondary_color') || '',
       textMutedColor: localStorage.getItem('nyx_text_muted_color') || '',
+      textContrast: localStorage.getItem('nyx_text_contrast') || 'standard',
       cardTransparency: readNumber('nyx_card_transparency', 40),
       cardBorderOpacity: readNumber('nyx_card_border_opacity', 5),
       inactivityTimeout: readNumber('nyx_inactivity_timeout', 60),
@@ -190,6 +191,8 @@ export function applySnapshot(snapshot, contextSetters = {}) {
       localStorage.removeItem('nyx_text_muted_color');
     }
   }
+  if (appearance.textContrast !== undefined)
+    localStorage.setItem('nyx_text_contrast', appearance.textContrast);
   if (appearance.cardTransparency !== undefined)
     localStorage.setItem('nyx_card_transparency', String(appearance.cardTransparency));
   if (appearance.cardBorderOpacity !== undefined)
@@ -247,6 +250,8 @@ export function applySnapshot(snapshot, contextSetters = {}) {
     s.setTextSecondaryColor(appearance.textSecondaryColor);
   if (s.setTextMutedColor && appearance.textMutedColor !== undefined)
     s.setTextMutedColor(appearance.textMutedColor);
+  if (s.setTextContrast && appearance.textContrast !== undefined)
+    s.setTextContrast(appearance.textContrast);
   if (s.setCardTransparency && appearance.cardTransparency !== undefined)
     s.setCardTransparency(appearance.cardTransparency);
   if (s.setCardBorderOpacity && appearance.cardBorderOpacity !== undefined)

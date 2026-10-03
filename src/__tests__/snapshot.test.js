@@ -155,6 +155,26 @@ describe('snapshot service', () => {
     expect(setTextMutedColor).toHaveBeenCalledWith('#666666');
   });
 
+  it('collectSnapshot defaults the text contrast level and reads it from storage', () => {
+    expect(collectSnapshot().appearance.textContrast).toBe('standard');
+
+    localStorage.setItem('nyx_text_contrast', 'max');
+
+    expect(collectSnapshot().appearance.textContrast).toBe('max');
+  });
+
+  it('applySnapshot persists and applies the text contrast level', () => {
+    const setTextContrast = vi.fn();
+
+    applySnapshot(
+      { version: 1, layout: {}, appearance: { textContrast: 'high' } },
+      { setTextContrast }
+    );
+
+    expect(localStorage.getItem('nyx_text_contrast')).toBe('high');
+    expect(setTextContrast).toHaveBeenCalledWith('high');
+  });
+
   it('collectSnapshot includes app font from storage', () => {
     localStorage.setItem('nyx_app_font', 'Montserrat');
 

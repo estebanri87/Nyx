@@ -76,6 +76,8 @@ const makeParams = (overrides = {}) => ({
   setTextSecondaryColor: vi.fn(),
   textMutedColor: '',
   setTextMutedColor: vi.fn(),
+  textContrast: 'standard',
+  setTextContrast: vi.fn(),
   inactivityTimeout: 0,
   setInactivityTimeout: vi.fn(),
   setGridGapH: vi.fn(),
