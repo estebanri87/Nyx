@@ -1,12 +1,17 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { getForecast } from '../services';
+
+const WEATHER_FEATURE_FORECAST_DAILY = 1;
+const WEATHER_FEATURE_FORECAST_HOURLY = 2;
 
 /**
  * Hook to map multiple weather entities to forecast data
  * Returns [forecastsById, setForecastsById]
  */
-export default function useWeatherForecast(conn, cardSettings) {
+export default function useWeatherForecast(conn, cardSettings, entities, entitiesLoaded) {
   const [forecastsById, setForecastsById] = useState({});
+  const entitiesRef = useRef(entities);
+  entitiesRef.current = entities;
 
   // Derive a stable list of weather entity IDs used across cards
   const weatherIds = useMemo(() => {
@@ -36,9 +41,18 @@ export default function useWeatherForecast(conn, cardSettings) {
       await Promise.all(
         weatherIds.map(async (entityId) => {
           if (cancelled) return;
+          const supportedFeatures = Number(
+            entitiesRef.current?.[entityId]?.attributes?.supported_features || 0
+          );
+          const supportsHourly = (supportedFeatures & WEATHER_FEATURE_FORECAST_HOURLY) !== 0;
+          const supportsDaily = (supportedFeatures & WEATHER_FEATURE_FORECAST_DAILY) !== 0;
+          // Entities that advertise neither flag (e.g. a KNX weather entity built
+          // from bus sensors) reject weather.get_forecasts outright, logging a
+          // server-side error on every call. Skip them instead of asking.
+          if (!supportsHourly && !supportsDaily) return;
           try {
-            let data = await getForecast(conn, { entityId, type: 'hourly' });
-            if (!data || data.length === 0) {
+            let data = supportsHourly ? await getForecast(conn, { entityId, type: 'hourly' }) : null;
+            if ((!data || data.length === 0) && supportsDaily) {
               data = await getForecast(conn, { entityId, type: 'daily' });
             }
             if (!cancelled && data && data.length > 0) {
@@ -71,7 +85,10 @@ export default function useWeatherForecast(conn, cardSettings) {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [conn, weatherIds]);
+    // entitiesLoaded (not entities) is the dependency: it flips once when the
+    // initial state snapshot arrives, so supported_features is known before
+    // the first fetch without re-running this effect on every state update.
+  }, [conn, weatherIds, entitiesLoaded]);
 
   return [forecastsById, setForecastsById];
 }
