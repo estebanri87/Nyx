@@ -247,7 +247,7 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
   const { activePage, setActivePage } = usePageRouting();
 
   const [tempHistoryById, _setTempHistoryById] = useTempHistory(conn, cardSettings);
-  const [forecastsById, _setForecastsById] = useWeatherForecast(conn, cardSettings);
+  const [forecastsById, _setForecastsById] = useWeatherForecast(conn, cardSettings, entities, entitiesLoaded);
 
   const {
     showPinLockModal,
