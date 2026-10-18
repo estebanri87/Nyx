@@ -1772,5 +1772,9 @@
   "sensor.pressAction.turnOn": "Allumer",
   "sensor.pressAction.turnOff": "Éteindre",
   "sensor.pressActionHint": "Allumer / Éteindre n’envoie que cette commande et affiche un seul bouton de déclenchement.",
-  "sensor.trigger": "Déclencher"
+  "sensor.trigger": "Déclencher",
+  "energyFlow.status.importing": "Soutirage",
+  "energyFlow.status.exporting": "Injection",
+  "energyFlow.status.producing": "Production",
+  "energyFlow.status.inactive": "Inactif"
 }

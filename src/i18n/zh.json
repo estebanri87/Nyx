@@ -1673,5 +1673,9 @@
   "sensor.pressAction.turnOn": "打开",
   "sensor.pressAction.turnOff": "关闭",
   "sensor.pressActionHint": "打开 / 关闭只发送该命令，并显示单个触发按钮。",
-  "sensor.trigger": "触发"
+  "sensor.trigger": "触发",
+  "energyFlow.status.importing": "取电",
+  "energyFlow.status.exporting": "馈电",
+  "energyFlow.status.producing": "发电中",
+  "energyFlow.status.inactive": "未启用"
 }

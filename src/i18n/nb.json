@@ -1772,5 +1772,9 @@
   "sensor.pressAction.turnOn": "Slå på",
   "sensor.pressAction.turnOff": "Slå av",
   "sensor.pressActionHint": "Slå på / Slå av sender bare den kommandoen og viser én enkelt utløserknapp.",
-  "sensor.trigger": "Utløs"
+  "sensor.trigger": "Utløs",
+  "energyFlow.status.importing": "Import",
+  "energyFlow.status.exporting": "Eksport",
+  "energyFlow.status.producing": "Produserer",
+  "energyFlow.status.inactive": "Inaktiv"
 }

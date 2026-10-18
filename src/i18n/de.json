@@ -1772,5 +1772,9 @@
   "sensor.pressAction.turnOn": "Einschalten",
   "sensor.pressAction.turnOff": "Ausschalten",
   "sensor.pressActionHint": "Einschalten / Ausschalten sendet nur diesen Befehl und zeigt einen einzelnen Auslöse-Button.",
-  "sensor.trigger": "Auslösen"
+  "sensor.trigger": "Auslösen",
+  "energyFlow.status.importing": "Bezug",
+  "energyFlow.status.exporting": "Einspeisung",
+  "energyFlow.status.producing": "Erzeugt",
+  "energyFlow.status.inactive": "Inaktiv"
 }
