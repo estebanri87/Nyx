@@ -64,6 +64,80 @@ describe('EnergyFlowCard', () => {
     expect(screen.queryByText('energyFlow.grid')).not.toBeInTheDocument();
   });
 
+  describe('compact layout status lines', () => {
+    const compactProps = (items, entities) =>
+      baseProps({
+        entities,
+        settings: { size: 'large', layout: 'compact', items },
+        t: (key) =>
+          ({ 'energyFlow.status.heating': 'Heizen', 'energyFlow.home': 'Haus' })[key] || key,
+      });
+
+    it('shows the translated mode below a heat pump item', () => {
+      render(
+        <EnergyFlowCard
+          {...compactProps(
+            [
+              {
+                id: 'hp',
+                label: 'Wärmepumpe',
+                entityId: 'sensor.hp_power',
+                statusEntityId: 'sensor.hp_mode',
+              },
+            ],
+            {
+              'sensor.hp_power': { state: '587.6', attributes: { unit_of_measurement: 'W' } },
+              'sensor.hp_mode': { state: 'HEATING', attributes: {} },
+            }
+          )}
+        />
+      );
+
+      expect(screen.getByText('Wärmepumpe')).toBeInTheDocument();
+      expect(screen.getByText('Heizen')).toBeInTheDocument();
+    });
+
+    it('shows an arrow and the power for a discharging battery', () => {
+      render(
+        <EnergyFlowCard
+          {...compactProps(
+            [
+              {
+                id: 'bat',
+                label: 'Batterie',
+                entityId: 'sensor.bat_soc',
+                statusEntityId: 'sensor.bat_power',
+              },
+            ],
+            {
+              'sensor.bat_soc': { state: '15', attributes: { unit_of_measurement: '%' } },
+              'sensor.bat_power': { state: '1200', attributes: { unit_of_measurement: 'W' } },
+            }
+          )}
+        />
+      );
+
+      expect(screen.getByText('▼ 1.2 kW')).toBeInTheDocument();
+    });
+
+    it('renders a calculated house ring without its own sensor', () => {
+      render(
+        <EnergyFlowCard
+          {...compactProps(
+            [{ id: 'home', source: 'home', homeSolarId: 'sensor.pv', homeGridId: 'sensor.grid' }],
+            {
+              'sensor.pv': { state: '1000', attributes: { unit_of_measurement: 'W' } },
+              'sensor.grid': { state: '250', attributes: { unit_of_measurement: 'W' } },
+            }
+          )}
+        />
+      );
+
+      expect(screen.getByText('Haus')).toBeInTheDocument();
+      expect(screen.getByText('1250.0')).toBeInTheDocument();
+    });
+  });
+
   it('renders -- for unavailable entity state', () => {
     const entities = makeEntities({ grid: 500, solar: 1200, battery: -200, home: 1500 });
     entities['sensor.grid_power'] = { state: 'unavailable' };

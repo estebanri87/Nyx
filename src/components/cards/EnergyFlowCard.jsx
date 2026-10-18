@@ -1,21 +1,56 @@
 import { memo } from 'react';
-import { ArrowLeftRight, Battery, Home, Sun, Zap } from '../../icons';
+import {
+  ArrowDown,
+  ArrowLeftRight,
+  ArrowUp,
+  Battery,
+  Droplets,
+  Flame,
+  Home,
+  Moon,
+  Snowflake,
+  Sun,
+  Zap,
+} from '../../icons';
 import { getIconComponent } from '../../icons';
 import {
+  ENERGY_SOURCE_HOME,
   formatEnergyValue,
   getEnergyItemColor,
   getEnergyItemRatio,
   getEntityNumericValue,
+  getItemStatus,
   getRenderableEnergyItems,
+  resolveEnergyItemEntity,
+  STATUS_BADGE_ICONS,
 } from './energyItems';
 
+const BADGE_ICONS = { Flame, Droplets, Moon, Snowflake, ArrowUp, ArrowDown };
+
 /* -- Compact layout: icon ring with value and free label ---------------- */
-const EnergyItemRing = ({ item, entity, color, dense, size: ringSize }) => {
+const EnergyItemRing = ({
+  item,
+  entity,
+  statusEntity,
+  translate,
+  color,
+  dense,
+  size: ringSize,
+}) => {
   const value = getEntityNumericValue(entity);
   const ratio = getEnergyItemRatio(value, item);
   const { text, unit } = formatEnergyValue(entity, item);
   const isIdle = value === null;
   const ItemIcon = item.icon ? getIconComponent(item.icon) : null;
+  const status = statusEntity ? getItemStatus(statusEntity, item, translate) : null;
+  const BadgeIcon =
+    item.showBadge && status?.statusKey ? BADGE_ICONS[STATUS_BADGE_ICONS[status.statusKey]] : null;
+  const statusColor = status?.color || color;
+  const label =
+    item.label ||
+    (item.source === ENERGY_SOURCE_HOME
+      ? translate('energyFlow.home')
+      : entity?.attributes?.friendly_name || item.entityId);
 
   const size = ringSize;
   const stroke = 3;
@@ -55,6 +90,18 @@ const EnergyItemRing = ({ item, entity, color, dense, size: ringSize }) => {
         >
           {ItemIcon && <ItemIcon className={dense ? 'h-5 w-5' : 'h-6 w-6'} strokeWidth={1.5} />}
         </div>
+        {BadgeIcon && (
+          <div
+            className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full border"
+            style={{
+              backgroundColor: 'var(--modal-bg, var(--glass-bg))',
+              borderColor: 'var(--glass-border)',
+              color: statusColor,
+            }}
+          >
+            <BadgeIcon className="h-2.5 w-2.5" strokeWidth={2} />
+          </div>
+        )}
       </div>
       <div className="flex items-baseline gap-1">
         <span
@@ -68,10 +115,19 @@ const EnergyItemRing = ({ item, entity, color, dense, size: ringSize }) => {
       <span
         className={`${dense ? 'text-[9px]' : 'text-[10px]'} max-w-full truncate text-center leading-tight`}
         style={{ color: 'var(--text-secondary)' }}
-        title={item.label || entity?.attributes?.friendly_name || item.entityId}
+        title={label}
       >
-        {item.label || entity?.attributes?.friendly_name || item.entityId}
+        {label}
       </span>
+      {status && (
+        <span
+          className={`${dense ? 'text-[9px]' : 'text-[10px]'} -mt-0.5 max-w-full truncate text-center leading-tight font-semibold`}
+          style={{ color: statusColor }}
+          title={status.text}
+        >
+          {status.text}
+        </span>
+      )}
     </div>
   );
 };
@@ -213,7 +269,8 @@ const EnergyFlowCard = memo(
       const items = getRenderableEnergyItems(settings?.items, entities);
       // The card height is fixed by the grid, so the rings shrink as readouts
       // are added; otherwise the label below them gets clipped off.
-      const ringSize = isDenseMobile || items.length > 5 ? 44 : items.length > 3 ? 52 : 60;
+      const baseRingSize = isDenseMobile || items.length > 5 ? 44 : items.length > 3 ? 52 : 60;
+      const ringSize = items.some((item) => item.statusEntityId) ? baseRingSize - 4 : baseRingSize;
 
       return (
         <div
@@ -260,12 +317,14 @@ const EnergyFlowCard = memo(
           {items.length > 0 ? (
             <div className="relative z-10 flex min-h-0 flex-1 flex-wrap items-center justify-around gap-x-3 gap-y-3">
               {items.map((item) => {
-                const itemEntity = entities[item.entityId];
+                const itemEntity = resolveEnergyItemEntity(item, entities);
                 return (
                   <EnergyItemRing
                     key={item.id}
                     item={item}
                     entity={itemEntity}
+                    statusEntity={item.statusEntityId ? entities[item.statusEntityId] : null}
+                    translate={translate}
                     dense={isDenseMobile}
                     size={ringSize}
                     color={getEnergyItemColor(getEntityNumericValue(itemEntity), item, settings)}

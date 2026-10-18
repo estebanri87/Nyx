@@ -14,16 +14,160 @@ import {
   createCustomItemId,
   formatItemValue,
   getEntityNumericValue,
-  getRenderableCustomItems,
   normalizeCustomItems,
 } from './customItems';
 
 // Re-exported under the names the energy card already uses.
 export const createEnergyItemId = createCustomItemId;
 export const normalizeEnergyItems = normalizeCustomItems;
-export const getRenderableEnergyItems = getRenderableCustomItems;
 export const formatEnergyValue = formatItemValue;
 export { getEntityNumericValue };
+
+/** An item with `source: 'home'` has no sensor of its own; see `resolveHomeItemEntity`. */
+export const ENERGY_SOURCE_HOME = 'home';
+
+/** Below this magnitude a power readout counts as idle rather than flowing. */
+export const POWER_IDLE_THRESHOLD_W = 10;
+
+export const ENERGY_CHARGE_COLOR = '#22c55e';
+export const ENERGY_DISCHARGE_COLOR = '#f97316';
+
+/**
+ * Raw status strings (Vaillant, GoodWe, ...) -> status key. Compared lower-cased
+ * with spaces and dashes folded to underscores.
+ */
+const STATUS_KEY_MAP = {
+  heating: 'heating',
+  heat: 'heating',
+  central_heating: 'heating',
+  domestic_hot_water: 'dhw',
+  hot_water: 'dhw',
+  dhw: 'dhw',
+  warm_water: 'dhw',
+  standby: 'standby',
+  stand_by: 'standby',
+  idle: 'standby',
+  off: 'standby',
+  cooling: 'cooling',
+  cool: 'cooling',
+  defrost: 'defrost',
+  defrosting: 'defrost',
+  charge: 'charging',
+  charging: 'charging',
+  discharge: 'discharging',
+  discharging: 'discharging',
+};
+
+/** Status key -> badge icon name (resolved by the card from the icon set). */
+export const STATUS_BADGE_ICONS = {
+  heating: 'Flame',
+  dhw: 'Droplets',
+  standby: 'Moon',
+  cooling: 'Snowflake',
+  defrost: 'Snowflake',
+  charging: 'ArrowUp',
+  discharging: 'ArrowDown',
+};
+
+const normalizeStatusValue = (value) =>
+  String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+
+/**
+ * Charge/discharge direction of a signed power value. By default a positive
+ * value means discharging (GoodWe and the energy card's own convention);
+ * `invert` flips it for sensors that report the other way round.
+ */
+export const getPowerDirection = (power, invert = false) => {
+  if (power === null || Math.abs(power) < POWER_IDLE_THRESHOLD_W) return 'idle';
+  const discharging = invert ? power < 0 : power > 0;
+  return discharging ? 'discharging' : 'charging';
+};
+
+/**
+ * Second line below an item's label.
+ *
+ * A numeric status entity is read as signed power: arrow plus magnitude, so a
+ * battery shows "▼ 1.2 kW" while discharging. Anything else is a text state
+ * mapped to a translated label; unknown values are shown as they are.
+ *
+ * @returns {{ text: string, statusKey: string | null, color: string | null } | null}
+ */
+export const getItemStatus = (statusEntity, item, translate) => {
+  const raw = statusEntity?.state;
+  if (raw === undefined || raw === null || raw === 'unavailable' || raw === 'unknown') return null;
+
+  const power = getEntityNumericValue(statusEntity);
+  if (power !== null) {
+    const direction = getPowerDirection(power, !!item?.statusInvert);
+    if (direction === 'idle') {
+      return { text: translate('energyFlow.status.idle'), statusKey: 'standby', color: null };
+    }
+    const unit = statusEntity.attributes?.unit_of_measurement || '';
+    const magnitude =
+      unit === 'W' && Math.abs(power) >= 1000
+        ? `${(Math.abs(power) / 1000).toFixed(1)} kW`
+        : `${Math.round(Math.abs(power))} ${unit}`.trim();
+    return {
+      text: `${direction === 'charging' ? '▲' : '▼'} ${magnitude}`,
+      statusKey: direction,
+      color: direction === 'charging' ? ENERGY_CHARGE_COLOR : ENERGY_DISCHARGE_COLOR,
+    };
+  }
+
+  const statusKey = STATUS_KEY_MAP[normalizeStatusValue(raw)] || null;
+  if (!statusKey) return { text: String(raw), statusKey: null, color: null };
+  const key = `energyFlow.status.${statusKey}`;
+  const translated = translate(key);
+  return {
+    text: translated && translated !== key ? translated : String(raw),
+    statusKey,
+    color: null,
+  };
+};
+
+/**
+ * House consumption from the three power flows: PV + grid + battery, where grid
+ * is positive when importing and battery positive when discharging. Missing
+ * flows count as zero; with none at all there is nothing to calculate.
+ */
+export const computeHomeConsumption = ({ grid, solar, battery }) => {
+  if (grid === null && solar === null && battery === null) return null;
+  return Math.max(0, (solar ?? 0) + (grid ?? 0) + (battery ?? 0));
+};
+
+/**
+ * Stand-in entity for a calculated house-consumption item, shaped like a real
+ * power sensor so the ring renders it like any other item.
+ */
+export const resolveHomeItemEntity = (item, entities) => {
+  const value = computeHomeConsumption({
+    grid: getEntityNumericValue(entities?.[item.homeGridId]),
+    solar: getEntityNumericValue(entities?.[item.homeSolarId]),
+    battery: getEntityNumericValue(entities?.[item.homeBatteryId]),
+  });
+  return {
+    entity_id: `calculated.${item.id}`,
+    state: value === null ? 'unavailable' : String(Math.round(value)),
+    attributes: { unit_of_measurement: 'W', friendly_name: item.label || '' },
+  };
+};
+
+/** The entity an item reads: its sensor, or the calculated house stand-in. */
+export const resolveEnergyItemEntity = (item, entities) =>
+  item.source === ENERGY_SOURCE_HOME
+    ? resolveHomeItemEntity(item, entities)
+    : entities?.[item.entityId];
+
+/** Items ready to render; calculated house items need no sensor of their own. */
+export const getRenderableEnergyItems = (items, entities) =>
+  normalizeCustomItems(items).filter((item) =>
+    item.source === ENERGY_SOURCE_HOME
+      ? !!(item.homeGridId || item.homeSolarId || item.homeBatteryId)
+      : item.entityId && entities?.[item.entityId]
+  );
 
 export const MAX_ENERGY_ITEMS = 8;
 export const MAX_ENERGY_HEADER_ITEMS = 2;

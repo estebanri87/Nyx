@@ -1138,6 +1138,19 @@ export default function EditCardModal({
       ),
     [entityEntries, sortByName]
   );
+  const toggleStatusEntityOptions = React.useMemo(
+    () =>
+      sortByName(
+        entityEntries
+          .filter(([id]) =>
+            ['binary_sensor', 'sensor', 'cover', 'lock', 'input_boolean', 'switch'].includes(
+              id.split('.')[0]
+            )
+          )
+          .map(([id]) => id)
+      ),
+    [entityEntries, sortByName]
+  );
   const cameraMotionSensorOptions = React.useMemo(
     () =>
       sortByName(
@@ -2993,6 +3006,56 @@ export default function EditCardModal({
                               className={`absolute top-1 h-4 w-4 rounded-full bg-[var(--text-primary)] transition-all ${editSettings.showControls ? 'left-7' : 'left-1'}`}
                             />
                           </button>
+                        </div>
+                      )}
+
+                      {['input_boolean', 'switch', 'automation'].includes(domain) && (
+                        <div className="space-y-3">
+                          <SearchableSelect
+                            label={t('sensor.statusEntity')}
+                            value={editSettings.statusEntityId || null}
+                            options={toggleStatusEntityOptions}
+                            onChange={(id) =>
+                              editSettingsKey &&
+                              saveCardSetting(editSettingsKey, 'statusEntityId', id)
+                            }
+                            placeholder={t('dropdown.noneSelected')}
+                            entities={entities}
+                            t={t}
+                          />
+                          <span className="block px-1 text-[10px] text-[var(--text-muted)]">
+                            {t('sensor.statusEntityHint')}
+                          </span>
+                          <div className="space-y-1">
+                            <span className="block text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                              {t('sensor.pressAction')}
+                            </span>
+                            <div className="grid grid-cols-3 gap-2">
+                              {[
+                                { key: 'toggle', label: t('sensor.pressAction.toggle') },
+                                { key: 'turn_on', label: t('sensor.pressAction.turnOn') },
+                                { key: 'turn_off', label: t('sensor.pressAction.turnOff') },
+                              ].map((option) => (
+                                <button
+                                  key={option.key}
+                                  onClick={() =>
+                                    editSettingsKey &&
+                                    saveCardSetting(editSettingsKey, 'pressAction', option.key)
+                                  }
+                                  className={`rounded-xl border py-2 text-center text-[10px] font-bold tracking-wider uppercase transition-all duration-200 ${
+                                    (editSettings.pressAction || 'toggle') === option.key
+                                      ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
+                                      : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                                  }`}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                            <span className="block px-1 text-[10px] text-[var(--text-muted)]">
+                              {t('sensor.pressActionHint')}
+                            </span>
+                          </div>
                         </div>
                       )}
 

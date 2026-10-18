@@ -248,6 +248,76 @@ describe('SensorCard', () => {
     expect(screen.getByText('Bioabfall')).not.toBeNull();
   });
 
+  describe('separate status entity', () => {
+    const garageProps = (statusState, overrides = {}) =>
+      baseProps({
+        entity: {
+          entity_id: 'switch.garagentor_offner',
+          state: 'on',
+          attributes: { friendly_name: 'Garagentor' },
+        },
+        entities: {
+          'binary_sensor.turkontakt_garagentor': {
+            entity_id: 'binary_sensor.turkontakt_garagentor',
+            state: statusState,
+            attributes: { device_class: 'garage_door' },
+          },
+        },
+        settings: {
+          size: 'small',
+          showControls: true,
+          statusEntityId: 'binary_sensor.turkontakt_garagentor',
+        },
+        name: 'Garagentor',
+        t: (key) =>
+          ({
+            'binary.garageDoor.open': 'Offen',
+            'binary.garageDoor.closed': 'Geschlossen',
+            'status.on': 'An',
+            'status.off': 'Aus',
+          })[key] || key,
+        ...overrides,
+      });
+
+    it('shows the status entity state instead of the switch state', () => {
+      render(<SensorCard {...garageProps('on')} />);
+      expect(screen.getByText('Offen')).not.toBeNull();
+      expect(screen.queryByText('An')).toBeNull();
+    });
+
+    it('shows closed when the contact reports off even though the switch is on', () => {
+      render(<SensorCard {...garageProps('off')} />);
+      expect(screen.getByText('Geschlossen')).not.toBeNull();
+    });
+
+    it('shows the raw state when the status entity is unavailable', () => {
+      render(<SensorCard {...garageProps('unavailable')} />);
+      expect(screen.getByText('unavailable')).not.toBeNull();
+    });
+  });
+
+  it('renders a single trigger button for turn_on actions in the large layout', () => {
+    const onControl = vi.fn();
+    render(
+      <SensorCard
+        {...baseProps({
+          onControl,
+          entity: {
+            entity_id: 'switch.garagentor_offner',
+            state: 'off',
+            attributes: { friendly_name: 'Garagentor' },
+          },
+          settings: { size: 'large', showControls: true, pressAction: 'turn_on' },
+          t: (key) => ({ 'sensor.trigger': 'Trigger' })[key] || key,
+        })}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Trigger'));
+    expect(onControl).toHaveBeenCalledWith('toggle');
+    expect(screen.queryByText('common.on')).toBeNull();
+  });
+
   it('falls back to the unknown label for trash pickup states that cannot be parsed', () => {
     render(
       <SensorCard

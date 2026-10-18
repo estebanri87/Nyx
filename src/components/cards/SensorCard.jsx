@@ -71,11 +71,24 @@ const SensorCard = memo(
       isNumeric && !isBinaryNumeric && inferredUnitKind
         ? getDisplayUnitForKind(inferredUnitKind, effectiveUnitMode)
         : unit;
-    const isActiveState = isOnOffState
-      ? state === 'on'
-      : isBinaryNumeric
-        ? numericState === 1
-        : false;
+    // An actuator often cannot report what it did (a garage door opener only
+    // pulses a relay), so the shown state can come from a separate sensor.
+    const statusEntity = settings?.statusEntityId ? entities?.[settings.statusEntityId] : null;
+    const statusState = statusEntity?.state;
+    const hasStatusState =
+      !!statusEntity &&
+      statusState !== undefined &&
+      !['unavailable', 'unknown'].includes(statusState);
+    const isActiveState = statusEntity
+      ? ['on', 'open', 'opening', 'unlocked'].includes(statusState)
+      : isOnOffState
+        ? state === 'on'
+        : isBinaryNumeric
+          ? numericState === 1
+          : false;
+    // "trigger" actions send one fixed service call instead of toggling.
+    const pressAction = settings?.pressAction || 'toggle';
+    const isTriggerAction = pressAction === 'turn_on' || pressAction === 'turn_off';
     const binaryStateKeys = {
       door: { on: 'binary.door.open', off: 'binary.door.closed' },
       window: { on: 'binary.window.open', off: 'binary.window.closed' },
@@ -97,13 +110,22 @@ const SensorCard = memo(
       isOnOffState && ['automation', 'input_boolean', 'switch', 'input_number'].includes(domain)
         ? translate(state === 'on' ? 'status.on' : 'status.off')
         : null;
+    const statusDisplayState = !statusEntity
+      ? null
+      : hasStatusState && ['on', 'off'].includes(statusState)
+        ? translate(
+            binaryStateKeys[statusEntity.attributes?.device_class]?.[statusState] ||
+              (statusState === 'on' ? 'status.on' : 'status.off')
+          )
+        : (statusState ?? null);
     const sceneDisplayState = domain === 'scene' ? translate('sensor.scene.label') : null;
     const scriptDisplayState = domain === 'script' ? translate('sensor.script.label') : null;
     const isSelectDomain = domain === 'select' || domain === 'input_select';
     const selectOptions = isSelectDomain ? entity?.attributes?.options || [] : [];
     const displayState = isNumeric
       ? formatUnitValue(convertedNumericState, { fallback: '--' })
-      : binaryDisplayState ||
+      : statusDisplayState ||
+        binaryDisplayState ||
         toggleDisplayState ||
         sceneDisplayState ||
         scriptDisplayState ||
@@ -460,7 +482,7 @@ const SensorCard = memo(
           <div className="grid w-full grid-cols-3 items-center gap-2">
             <div className="flex min-w-0 items-center justify-center">
               <span
-                className={`font-black leading-none text-[var(--text-primary)] ${isSmall ? 'text-3xl' : 'text-6xl'}`}
+                className={`leading-none font-black text-[var(--text-primary)] ${isSmall ? 'text-3xl' : 'text-6xl'}`}
               >
                 {hasValidDays ? trashDays : '–'}
               </span>
@@ -477,9 +499,7 @@ const SensorCard = memo(
                 <div
                   className={`flex flex-shrink-0 items-center justify-center rounded-xl ${isSmall ? 'h-8 w-8' : 'h-10 w-10'} ${iconToneClass}`}
                 >
-                  <TrashIcon
-                    className={`${isSmall ? 'h-4 w-4' : 'h-5 w-5'} stroke-[1.5px]`}
-                  />
+                  <TrashIcon className={`${isSmall ? 'h-4 w-4' : 'h-5 w-5'} stroke-[1.5px]`} />
                 </div>
               )}
               {wasteType && (
@@ -505,7 +525,7 @@ const SensorCard = memo(
     const useCompactDesktopSelectLayout = useCompactSelectLayout && !useDenseMobileLargeLayout;
     const compactToggleStateTone = isUnavailable
       ? 'border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)]'
-      : state === 'on'
+      : isActiveState
         ? 'border-transparent bg-[var(--accent-bg)] text-[var(--accent-color)]'
         : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]';
 
@@ -944,7 +964,17 @@ const SensorCard = memo(
               </div>
             )}
 
-          {showToggleControls ? (
+          {showToggleControls && isTriggerAction ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onControl('toggle');
+              }}
+              className={`${useDenseMobileLargeLayout ? `${useCompactMobileToggleLayout ? 'mt-0 h-9 text-[9px]' : 'mt-3 h-10 text-[10px]'} flex w-full items-center justify-center rounded-xl px-3 py-2` : 'mt-4 w-fit rounded-full px-5 py-2 text-xs'} bg-[var(--glass-bg-hover)] font-bold tracking-widest text-[var(--text-primary)] uppercase transition-all active:scale-95`}
+            >
+              {translate('sensor.trigger')}
+            </button>
+          ) : showToggleControls ? (
             <div
               className={`${useDenseMobileLargeLayout ? `${useCompactMobileToggleLayout ? 'mt-0 gap-1.5' : 'mt-3 gap-2'} grid w-full grid-cols-2 bg-transparent p-0` : 'mt-4 flex w-fit items-center gap-2 rounded-full bg-[var(--glass-bg)] p-1'}`}
             >
