@@ -6,6 +6,7 @@ import { getIconComponent } from '../../icons';
 import {
   DEFAULT_ENERGY_COLOR_THRESHOLDS,
   ENERGY_COLOR_SWATCHES,
+  ENERGY_SOURCE_HOME,
   MAX_ENERGY_HEADER_ITEMS,
   MAX_ENERGY_ITEMS,
   MAX_THRESHOLD_STEPS,
@@ -164,11 +165,33 @@ const NumberField = ({ label, value, placeholder, onChange }) => (
  * Editor for one readout. `showRange` is false for the two header values,
  * which render as plain numbers without a ring.
  */
+const ToggleRow = ({ label, hint, enabled, onToggle }) => (
+  <div className="flex items-center justify-between gap-3">
+    <div>
+      <span className="block text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
+        {label}
+      </span>
+      {hint && (
+        <span className="mt-1 block text-[10px] text-[var(--text-muted)] opacity-70">{hint}</span>
+      )}
+    </div>
+    <button
+      onClick={onToggle}
+      className={`relative h-6 w-12 flex-shrink-0 rounded-full transition-colors ${enabled ? 'border border-[var(--glass-border)] bg-[var(--glass-bg-hover)]' : 'bg-[var(--glass-bg-hover)]'}`}
+    >
+      <div
+        className={`absolute top-1 h-4 w-4 rounded-full bg-[var(--text-primary)] transition-all ${enabled ? 'left-7' : 'left-1'}`}
+      />
+    </button>
+  </div>
+);
+
 const EnergyItemEditor = ({
   item,
   index,
   entities,
   entityOptions,
+  statusOptions,
   t,
   onUpdate,
   onRemove,
@@ -178,6 +201,7 @@ const EnergyItemEditor = ({
   cardSettings,
 }) => {
   const [showIcons, setShowIcons] = React.useState(false);
+  const isHome = item.source === ENERGY_SOURCE_HOME;
   const SelectedIcon = item.icon ? getIconComponent(item.icon) : null;
   const { useThresholds, thresholds } = resolveItemThresholds(item, cardSettings);
   const steps = normalizeEnergyThresholds(thresholds);
@@ -225,19 +249,95 @@ const EnergyItemEditor = ({
         />
       </div>
 
-      <SearchableSelect
-        label={t('energyFlow.itemEntity')}
-        value={item.entityId}
-        options={entityOptions}
-        onChange={(value) => onUpdate({ entityId: value })}
-        placeholder={t('dropdown.noneSelected')}
-        entities={entities}
-        t={t}
-        maxOptions={150}
-      />
+      {showRange && (
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { key: 'sensor', label: t('energyFlow.sourceSensor') },
+            { key: ENERGY_SOURCE_HOME, label: t('energyFlow.sourceHome') },
+          ].map((option) => (
+            <button
+              key={option.key}
+              onClick={() => onUpdate({ source: option.key })}
+              className={`rounded-xl border py-2 text-center text-[10px] font-bold tracking-wider uppercase transition-all duration-200 ${
+                isHome === (option.key === ENERGY_SOURCE_HOME)
+                  ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
+                  : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {isHome ? (
+        <div className="space-y-3">
+          <span className="block px-1 text-[11px] text-[var(--text-muted)] opacity-70">
+            {t('energyFlow.homeHint')}
+          </span>
+          {[
+            { field: 'homeSolarId', label: t('energyFlow.homeSolar') },
+            { field: 'homeGridId', label: t('energyFlow.homeGrid') },
+            { field: 'homeBatteryId', label: t('energyFlow.homeBattery') },
+          ].map(({ field, label }) => (
+            <SearchableSelect
+              key={field}
+              label={label}
+              value={item[field]}
+              options={entityOptions}
+              onChange={(value) => onUpdate({ [field]: value })}
+              placeholder={t('dropdown.noneSelected')}
+              entities={entities}
+              t={t}
+              maxOptions={150}
+            />
+          ))}
+        </div>
+      ) : (
+        <SearchableSelect
+          label={t('energyFlow.itemEntity')}
+          value={item.entityId}
+          options={entityOptions}
+          onChange={(value) => onUpdate({ entityId: value })}
+          placeholder={t('dropdown.noneSelected')}
+          entities={entities}
+          t={t}
+          maxOptions={150}
+        />
+      )}
 
       {showRange && (
         <>
+          <SearchableSelect
+            label={t('energyFlow.itemStatusEntity')}
+            value={item.statusEntityId}
+            options={statusOptions || entityOptions}
+            onChange={(value) => onUpdate({ statusEntityId: value })}
+            placeholder={t('dropdown.noneSelected')}
+            entities={entities}
+            t={t}
+            maxOptions={150}
+          />
+          {item.statusEntityId && (
+            <div className="space-y-3 rounded-xl bg-[var(--glass-bg)] p-3">
+              <span className="block text-[10px] text-[var(--text-muted)] opacity-70">
+                {t('energyFlow.itemStatusHint')}
+              </span>
+              <ToggleRow
+                label={t('energyFlow.statusInvert')}
+                hint={t('energyFlow.statusInvertHint')}
+                enabled={!!item.statusInvert}
+                onToggle={() => onUpdate({ statusInvert: !item.statusInvert })}
+              />
+              <ToggleRow
+                label={t('energyFlow.showBadge')}
+                hint={t('energyFlow.showBadgeHint')}
+                enabled={!!item.showBadge}
+                onToggle={() => onUpdate({ showBadge: !item.showBadge })}
+              />
+            </div>
+          )}
+
           <div>
             <button
               onClick={() => setShowIcons((prev) => !prev)}
@@ -337,6 +437,22 @@ export function EnergyFlowSettingsSection({
           const domain = id.split('.')[0];
           return ['sensor', 'input_number', 'number', 'counter'].includes(domain);
         })
+        .sort((a, b) => {
+          const nameA = entities[a]?.attributes?.friendly_name || a;
+          const nameB = entities[b]?.attributes?.friendly_name || b;
+          return nameA.localeCompare(nameB);
+        }),
+    [entities]
+  );
+
+  const statusOptions = React.useMemo(
+    () =>
+      Object.keys(entities || {})
+        .filter((id) =>
+          ['sensor', 'input_number', 'number', 'select', 'input_select', 'binary_sensor'].includes(
+            id.split('.')[0]
+          )
+        )
         .sort((a, b) => {
           const nameA = entities[a]?.attributes?.friendly_name || a;
           const nameB = entities[b]?.attributes?.friendly_name || b;
@@ -486,6 +602,7 @@ export function EnergyFlowSettingsSection({
                   index={index}
                   entities={entities}
                   entityOptions={sensorOptions}
+                  statusOptions={statusOptions}
                   t={t}
                   showRange
                   cardSettings={editSettings}

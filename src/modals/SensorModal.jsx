@@ -447,6 +447,12 @@ export default function SensorModal({
   let displayState = isNumeric
     ? formatUnitValue(convertedNumericState, { fallback: '--' })
     : formatStateLabel(state, deviceClass);
+  // A separate status entity (e.g. a door contact for a garage door opener) wins
+  // over the actuator's own state, matching the card.
+  const statusEntity = settings?.statusEntityId ? entities?.[settings.statusEntityId] : null;
+  if (statusEntity && !isNumeric) {
+    displayState = formatStateLabel(statusEntity.state, statusEntity.attributes?.device_class);
+  }
   // Add prefix for Scene timestamps
   if (domain === 'scene' && String(state).match(/^\d{4}-\d{2}-\d{2}T/)) {
     displayState = `${t('state.sceneSet')} ${formatRelativeTime(state, t)}`;

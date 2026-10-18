@@ -65,7 +65,13 @@ export function renderSensorCard(cardId, dragProps, getControls, cardStyle, sett
       domain === 'light' ||
       domain === 'automation'
     ) {
-      if (action === 'toggle') callService(domain, 'toggle', { entity_id: cardId });
+      if (action === 'toggle') {
+        // Impulse actuators (garage door) only react to one direction.
+        const service = ['turn_on', 'turn_off'].includes(settings?.pressAction)
+          ? settings.pressAction
+          : 'toggle';
+        callService(domain, service, { entity_id: cardId });
+      }
     }
     if (domain === 'script' || domain === 'scene') {
       if (action === 'turn_on') callService(domain, 'turn_on', { entity_id: cardId });
