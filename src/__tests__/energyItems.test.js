@@ -62,6 +62,20 @@ describe('getItemStatus', () => {
     });
   });
 
+  it('maps GoodWe grid and PV modes', () => {
+    const t = (key) => ({ 'energyFlow.status.importing': 'Bezug' })[key] || key;
+    expect(getItemStatus({ state: 'Importing' }, {}, t)).toMatchObject({
+      text: 'Bezug',
+      statusKey: 'importing',
+    });
+    expect(getItemStatus({ state: 'Exporting' }, {}, t).statusKey).toBe('exporting');
+    expect(getItemStatus({ state: 'Idle' }, {}, t).statusKey).toBe('idle');
+    expect(getItemStatus({ state: 'PV panels connected, producing power' }, {}, t).statusKey).toBe(
+      'producing'
+    );
+    expect(getItemStatus({ state: 'PV panels not connected' }, {}, t).statusKey).toBe('inactive');
+  });
+
   it('passes unknown text states through unchanged', () => {
     expect(getItemStatus({ state: 'Sparbetrieb' }, {}, translate)).toMatchObject({
       text: 'Sparbetrieb',

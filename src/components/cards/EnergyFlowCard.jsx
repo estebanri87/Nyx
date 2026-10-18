@@ -25,7 +25,7 @@ import {
   STATUS_BADGE_ICONS,
 } from './energyItems';
 
-const BADGE_ICONS = { Flame, Droplets, Moon, Snowflake, ArrowUp, ArrowDown };
+const BADGE_ICONS = { Flame, Droplets, Moon, Snowflake, ArrowUp, ArrowDown, Sun };
 
 /* -- Compact layout: icon ring with value and free label ---------------- */
 const EnergyItemRing = ({

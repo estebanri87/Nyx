@@ -1772,5 +1772,9 @@
   "sensor.pressAction.turnOn": "Turn on",
   "sensor.pressAction.turnOff": "Turn off",
   "sensor.pressActionHint": "Turn on / off sends only that command and shows a single trigger button.",
-  "sensor.trigger": "Trigger"
+  "sensor.trigger": "Trigger",
+  "energyFlow.status.importing": "Import",
+  "energyFlow.status.exporting": "Export",
+  "energyFlow.status.producing": "Producing",
+  "energyFlow.status.inactive": "Inactive"
 }
