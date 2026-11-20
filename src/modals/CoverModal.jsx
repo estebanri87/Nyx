@@ -193,6 +193,107 @@ const ControlButton = ({ onClick, disabled, label, active, children }) => (
   </button>
 );
 
+/* -- Tilt Visual ----------------------------------------------------- */
+// Slats drawn at the current tilt angle. Dragging sideways sets the tilt (left = closed),
+// arrow keys step it; changes go through the modal's debounced tilt handler.
+const TiltVisual = ({ tilt, onTiltChange, accent, disabled, translate }) => {
+  const containerRef = useRef(null);
+  const isDragging = useRef(false);
+  const slatAngle = ((tilt ?? 0) / 100) * 80 - 40;
+
+  const calcTiltFromEvent = useCallback((clientX) => {
+    if (!containerRef.current) return null;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    return Math.round(Math.max(0, Math.min(100, (x / rect.width) * 100)));
+  }, []);
+
+  const handlePointerDown = useCallback(
+    (e) => {
+      if (disabled) return;
+      isDragging.current = true;
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+      const val = calcTiltFromEvent(e.clientX);
+      if (val !== null) onTiltChange(val);
+    },
+    [disabled, calcTiltFromEvent, onTiltChange]
+  );
+
+  const handlePointerMove = useCallback(
+    (e) => {
+      if (!isDragging.current || disabled) return;
+      const val = calcTiltFromEvent(e.clientX);
+      if (val !== null) onTiltChange(val);
+    },
+    [disabled, calcTiltFromEvent, onTiltChange]
+  );
+
+  const handlePointerUp = useCallback(() => {
+    isDragging.current = false;
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (disabled) return;
+      const current = Number.isFinite(tilt) ? tilt : 0;
+      const next = {
+        ArrowRight: Math.min(100, current + 5),
+        ArrowUp: Math.min(100, current + 5),
+        ArrowLeft: Math.max(0, current - 5),
+        ArrowDown: Math.max(0, current - 5),
+        Home: 0,
+        End: 100,
+      }[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      onTiltChange(next);
+    },
+    [disabled, onTiltChange, tilt]
+  );
+
+  return (
+    <div
+      ref={containerRef}
+      className={`relative flex h-20 w-full touch-none flex-col justify-center gap-1 overflow-hidden rounded-xl border px-3 py-2 select-none ${disabled ? 'opacity-50' : 'cursor-ew-resize'}`}
+      style={{ borderColor: accent.border, backgroundColor: 'var(--glass-bg)' }}
+      role="slider"
+      aria-label={translate('cover.tilt')}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={tilt ?? 0}
+      aria-valuetext={`${tilt ?? 0}%`}
+      tabIndex={disabled ? -1 : 0}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onKeyDown={handleKeyDown}
+    >
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="h-2 w-full rounded-sm transition-all duration-300"
+          style={{
+            backgroundColor: accent.slat,
+            transform: `perspective(80px) rotateX(${slatAngle}deg)`,
+            borderBottom: `1px solid ${accent.slatBorder}`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+/* -- Segmented presets ----------------------------------------------- */
+const SEGMENT_BAR =
+  'flex gap-1 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-1';
+const segmentClass = (active) =>
+  `min-w-0 flex-1 truncate rounded-lg py-2 text-center text-[11px] font-bold tracking-wider uppercase transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
+    active
+      ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm'
+      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+  }`;
+
 export default function CoverModal({
   show,
   onClose,
@@ -640,22 +741,15 @@ export default function CoverModal({
                   <label className="px-1 text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase">
                     {translate('cover.presets')}
                   </label>
-                  <div
-                    className="grid gap-2"
-                    style={{
-                      gridTemplateColumns: `repeat(${Math.min(presets.length, 5)}, minmax(0, 1fr))`,
-                    }}
-                  >
+                  <div className={SEGMENT_BAR} role="group" aria-label={translate('cover.presets')}>
                     {presets.map((preset) => (
                       <button
                         key={preset.value}
+                        type="button"
+                        aria-pressed={localPosition === preset.value}
                         onClick={() => !isUnavailable && handleSetPosition(preset.value)}
                         disabled={isUnavailable}
-                        className={`rounded-xl border py-2.5 text-center text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
-                          localPosition === preset.value
-                            ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm'
-                            : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
-                        }`}
+                        className={segmentClass(localPosition === preset.value)}
                       >
                         {preset.label}
                       </button>
@@ -676,22 +770,22 @@ export default function CoverModal({
                         {localDisplayTilt}%
                       </span>
                     </div>
-                    <div
-                      className="grid gap-2"
-                      style={{
-                        gridTemplateColumns: `repeat(${Math.min(tiltPresets.length, 4)}, minmax(0, 1fr))`,
-                      }}
-                    >
+                    <TiltVisual
+                      tilt={localTilt}
+                      onTiltChange={handleSetTilt}
+                      accent={accent}
+                      disabled={isUnavailable}
+                      translate={translate}
+                    />
+                    <div className={SEGMENT_BAR} role="group" aria-label={translate('cover.tilt')}>
                       {tiltPresets.map((preset) => (
                         <button
                           key={preset.value}
+                          type="button"
+                          aria-pressed={localTilt === preset.value}
                           onClick={() => !isUnavailable && handleSetTilt(preset.value)}
                           disabled={isUnavailable}
-                          className={`rounded-xl border py-2 text-center text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
-                            localTilt === preset.value
-                              ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm'
-                              : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
-                          }`}
+                          className={segmentClass(localTilt === preset.value)}
                         >
                           {preset.label}
                         </button>
