@@ -1783,5 +1783,22 @@
   "energyFlow.status.importing": "Soutirage",
   "energyFlow.status.exporting": "Injection",
   "energyFlow.status.producing": "Production",
-  "energyFlow.status.inactive": "Inactif"
+  "energyFlow.status.inactive": "Inactif",
+  "sensor.graphStyle": "Type de graphique",
+  "sensor.graphStyleLine": "Ligne",
+  "sensor.graphStyleBar": "Barres",
+  "sensor.graphRange": "Période",
+  "sensor.graphRange1h": "1 h",
+  "sensor.graphRange6h": "6 h",
+  "sensor.graphRange12h": "12 h",
+  "sensor.graphRange24h": "24 h",
+  "sensor.graphRange48h": "48 h",
+  "sensor.graphRange7d": "7 j",
+  "sensor.graphRange30d": "30 j",
+  "sensor.graphStat": "Valeur par barre",
+  "sensor.graphStatMean": "Moyenne",
+  "sensor.graphStatMin": "Min",
+  "sensor.graphStatMax": "Max",
+  "sensor.graphStatChange": "Variation",
+  "sensor.graphStatChangeHint": "Pour les compteurs comme les kWh : affiche la consommation par barre"
 }

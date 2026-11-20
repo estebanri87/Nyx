@@ -1783,5 +1783,22 @@
   "energyFlow.status.importing": "Import",
   "energyFlow.status.exporting": "Export",
   "energyFlow.status.producing": "Producerar",
-  "energyFlow.status.inactive": "Inaktiv"
+  "energyFlow.status.inactive": "Inaktiv",
+  "sensor.graphStyle": "Diagramtyp",
+  "sensor.graphStyleLine": "Linje",
+  "sensor.graphStyleBar": "Staplar",
+  "sensor.graphRange": "Tidsperiod",
+  "sensor.graphRange1h": "1 h",
+  "sensor.graphRange6h": "6 h",
+  "sensor.graphRange12h": "12 h",
+  "sensor.graphRange24h": "24 h",
+  "sensor.graphRange48h": "48 h",
+  "sensor.graphRange7d": "7 d",
+  "sensor.graphRange30d": "30 d",
+  "sensor.graphStat": "Värde per stapel",
+  "sensor.graphStatMean": "Medel",
+  "sensor.graphStatMin": "Min",
+  "sensor.graphStatMax": "Max",
+  "sensor.graphStatChange": "Förändring",
+  "sensor.graphStatChangeHint": "För mätare som kWh: visar förbrukningen per stapel"
 }

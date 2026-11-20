@@ -1783,5 +1783,22 @@
   "energyFlow.status.importing": "Import",
   "energyFlow.status.exporting": "Eksport",
   "energyFlow.status.producing": "Produserer",
-  "energyFlow.status.inactive": "Inaktiv"
+  "energyFlow.status.inactive": "Inaktiv",
+  "sensor.graphStyle": "Graftype",
+  "sensor.graphStyleLine": "Linje",
+  "sensor.graphStyleBar": "Søyler",
+  "sensor.graphRange": "Tidsrom",
+  "sensor.graphRange1h": "1 t",
+  "sensor.graphRange6h": "6 t",
+  "sensor.graphRange12h": "12 t",
+  "sensor.graphRange24h": "24 t",
+  "sensor.graphRange48h": "48 t",
+  "sensor.graphRange7d": "7 d",
+  "sensor.graphRange30d": "30 d",
+  "sensor.graphStat": "Verdi per søyle",
+  "sensor.graphStatMean": "Snitt",
+  "sensor.graphStatMin": "Min",
+  "sensor.graphStatMax": "Maks",
+  "sensor.graphStatChange": "Endring",
+  "sensor.graphStatChangeHint": "For målere som kWh: viser forbruket per søyle"
 }

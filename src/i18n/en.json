@@ -1783,5 +1783,22 @@
   "energyFlow.status.importing": "Import",
   "energyFlow.status.exporting": "Export",
   "energyFlow.status.producing": "Producing",
-  "energyFlow.status.inactive": "Inactive"
+  "energyFlow.status.inactive": "Inactive",
+  "sensor.graphStyle": "Graph type",
+  "sensor.graphStyleLine": "Line",
+  "sensor.graphStyleBar": "Bars",
+  "sensor.graphRange": "Time range",
+  "sensor.graphRange1h": "1 h",
+  "sensor.graphRange6h": "6 h",
+  "sensor.graphRange12h": "12 h",
+  "sensor.graphRange24h": "24 h",
+  "sensor.graphRange48h": "48 h",
+  "sensor.graphRange7d": "7 d",
+  "sensor.graphRange30d": "30 d",
+  "sensor.graphStat": "Value per bar",
+  "sensor.graphStatMean": "Average",
+  "sensor.graphStatMin": "Min",
+  "sensor.graphStatMax": "Max",
+  "sensor.graphStatChange": "Change",
+  "sensor.graphStatChangeHint": "For meters such as kWh: shows consumption per bar"
 }

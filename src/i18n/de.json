@@ -1783,5 +1783,22 @@
   "energyFlow.status.importing": "Bezug",
   "energyFlow.status.exporting": "Einspeisung",
   "energyFlow.status.producing": "Erzeugt",
-  "energyFlow.status.inactive": "Inaktiv"
+  "energyFlow.status.inactive": "Inaktiv",
+  "sensor.graphStyle": "Diagrammtyp",
+  "sensor.graphStyleLine": "Linie",
+  "sensor.graphStyleBar": "Balken",
+  "sensor.graphRange": "Zeitraum",
+  "sensor.graphRange1h": "1 Std.",
+  "sensor.graphRange6h": "6 Std.",
+  "sensor.graphRange12h": "12 Std.",
+  "sensor.graphRange24h": "24 Std.",
+  "sensor.graphRange48h": "48 Std.",
+  "sensor.graphRange7d": "7 T.",
+  "sensor.graphRange30d": "30 T.",
+  "sensor.graphStat": "Wert pro Balken",
+  "sensor.graphStatMean": "Mittel",
+  "sensor.graphStatMin": "Min",
+  "sensor.graphStatMax": "Max",
+  "sensor.graphStatChange": "Änderung",
+  "sensor.graphStatChangeHint": "Für Zähler wie kWh: zeigt den Verbrauch pro Balken"
 }

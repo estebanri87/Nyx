@@ -23,6 +23,9 @@ import {
   isConditionConfigured,
   matchCarEntities,
   normalizeVisibilityConditionConfig,
+  resolveSensorGraphRange,
+  SENSOR_GRAPH_RANGES,
+  SENSOR_GRAPH_STATS,
 } from '../utils';
 
 const MIN_POPUP_TRIGGER_COOLDOWN_SECONDS = 10;
@@ -3113,6 +3116,107 @@ export default function EditCardModal({
                               className={`absolute top-1 h-4 w-4 rounded-full bg-[var(--text-primary)] transition-all ${editSettings.showGraph !== false ? 'left-7' : 'left-1'}`}
                             />
                           </button>
+                        </div>
+                      )}
+
+                      {canGraph && variant === 'default' && editSettings.showGraph !== false && (
+                        <div className="space-y-4 rounded-xl bg-[var(--glass-bg)] p-3">
+                          <div className="space-y-2">
+                            <span className="block px-1 text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                              {t('sensor.graphStyle')}
+                            </span>
+                            <div className="grid grid-cols-2 gap-2">
+                              {[
+                                { key: 'line', label: t('sensor.graphStyleLine') },
+                                { key: 'bar', label: t('sensor.graphStyleBar') },
+                              ].map((option) => (
+                                <button
+                                  key={option.key}
+                                  type="button"
+                                  onClick={() =>
+                                    editSettingsKey &&
+                                    saveCardSetting(editSettingsKey, 'graphStyle', option.key)
+                                  }
+                                  className={`rounded-xl border py-2 text-center text-[10px] font-bold tracking-wider uppercase transition-all duration-200 ${
+                                    (editSettings.graphStyle === 'bar' ? 'bar' : 'line') ===
+                                    option.key
+                                      ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
+                                      : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                                  }`}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <span className="block px-1 text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                              {t('sensor.graphRange')}
+                            </span>
+                            <div className="grid grid-cols-4 gap-2">
+                              {Object.keys(SENSOR_GRAPH_RANGES)
+                                .map((key) => ({
+                                  key,
+                                  label: t(`sensor.graphRange${key}`),
+                                }))
+                                .map((option) => (
+                                  <button
+                                    key={option.key}
+                                    type="button"
+                                    onClick={() =>
+                                      editSettingsKey &&
+                                      saveCardSetting(editSettingsKey, 'graphRange', option.key)
+                                    }
+                                    className={`rounded-xl border py-2 text-center text-[10px] font-bold tracking-wider uppercase transition-all duration-200 ${
+                                      resolveSensorGraphRange(editSettings.graphRange) ===
+                                      option.key
+                                        ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
+                                        : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                                    }`}
+                                  >
+                                    {option.label}
+                                  </button>
+                                ))}
+                            </div>
+                          </div>
+                          {editSettings.graphStyle === 'bar' && (
+                            <div className="space-y-2">
+                              <span className="block px-1 text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                                {t('sensor.graphStat')}
+                              </span>
+                              <div className="grid grid-cols-4 gap-2">
+                                {SENSOR_GRAPH_STATS.map((key) => ({
+                                  key,
+                                  label: t(
+                                    `sensor.graphStat${key[0].toUpperCase()}${key.slice(1)}`
+                                  ),
+                                })).map((option) => (
+                                  <button
+                                    key={option.key}
+                                    type="button"
+                                    onClick={() =>
+                                      editSettingsKey &&
+                                      saveCardSetting(editSettingsKey, 'graphStat', option.key)
+                                    }
+                                    className={`rounded-xl border py-2 text-center text-[10px] font-bold tracking-wider uppercase transition-all duration-200 ${
+                                      (SENSOR_GRAPH_STATS.includes(editSettings.graphStat)
+                                        ? editSettings.graphStat
+                                        : 'mean') === option.key
+                                        ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
+                                        : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                                    }`}
+                                  >
+                                    {option.label}
+                                  </button>
+                                ))}
+                              </div>
+                              {editSettings.graphStat === 'change' && (
+                                <span className="block px-1 text-[10px] text-[var(--text-muted)]">
+                                  {t('sensor.graphStatChangeHint')}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

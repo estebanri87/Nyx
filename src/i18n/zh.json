@@ -1684,5 +1684,22 @@
   "energyFlow.status.importing": "取电",
   "energyFlow.status.exporting": "馈电",
   "energyFlow.status.producing": "发电中",
-  "energyFlow.status.inactive": "未启用"
+  "energyFlow.status.inactive": "未启用",
+  "sensor.graphStyle": "图表类型",
+  "sensor.graphStyleLine": "折线",
+  "sensor.graphStyleBar": "柱状",
+  "sensor.graphRange": "时间范围",
+  "sensor.graphRange1h": "1小时",
+  "sensor.graphRange6h": "6小时",
+  "sensor.graphRange12h": "12小时",
+  "sensor.graphRange24h": "24小时",
+  "sensor.graphRange48h": "48小时",
+  "sensor.graphRange7d": "7天",
+  "sensor.graphRange30d": "30天",
+  "sensor.graphStat": "每柱数值",
+  "sensor.graphStatMean": "平均",
+  "sensor.graphStatMin": "最小",
+  "sensor.graphStatMax": "最大",
+  "sensor.graphStatChange": "变化量",
+  "sensor.graphStatChangeHint": "适用于 kWh 等计量表：显示每柱的用量"
 }
