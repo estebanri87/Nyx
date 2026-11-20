@@ -183,7 +183,9 @@ const LightCard = ({
         <div
           className={`flex items-center rounded-full border transition-all ${isUnavailable ? 'border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)]' : isOn ? 'border-amber-500/20 bg-amber-500/10 text-amber-500' : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'} ${isDenseMobile ? 'gap-1 px-2.5 py-1' : 'gap-1.5 px-3 py-1'}`}
         >
-          <span className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}>
+          <span
+            className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}
+          >
             {isUnavailable
               ? t('status.unavailable')
               : totalCount > 0
@@ -202,7 +204,9 @@ const LightCard = ({
             {String(name || t('common.light'))}
           </p>
         )}
-        <div className={`flex items-baseline gap-1 leading-none ${isDenseMobile ? 'mt-0.5' : 'mt-1'}`}>
+        <div
+          className={`flex items-baseline gap-1 leading-none ${isDenseMobile ? 'mt-0.5' : 'mt-1'}`}
+        >
           {isDimmable ? (
             <>
               <span
@@ -214,7 +218,9 @@ const LightCard = ({
                     ? Math.round(((optimisticLightBrightness[cardId] ?? br) / 255) * 100)
                     : '0'}
               </span>
-              <span className={`${isDenseMobile ? 'text-lg' : 'ml-1 text-xl'} font-light text-[var(--text-muted)]`}>
+              <span
+                className={`${isDenseMobile ? 'text-lg' : 'ml-1 text-xl'} font-light text-[var(--text-muted)]`}
+              >
                 %
               </span>
             </>
@@ -233,7 +239,9 @@ const LightCard = ({
           </p>
         )}
         {/* Helper to keep layout consistent. For non-dimmable, we keep the empty space where slider would be. */}
-        <div className={`flex w-full items-center ${isDenseMobile ? 'mt-2' : 'mt-3'} ${isDimmable ? '' : isDenseMobile ? 'h-8' : 'h-12'}`}>
+        <div
+          className={`flex w-full items-center ${isDenseMobile ? 'mt-2' : 'mt-3'} ${isDimmable ? '' : isDenseMobile ? 'h-8' : 'h-12'}`}
+        >
           {isDimmable && (
             <M3Slider
               variant={isDenseMobile ? 'thinLg' : 'default'}
