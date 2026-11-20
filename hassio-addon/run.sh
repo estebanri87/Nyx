@@ -10,6 +10,17 @@ export NYX_TRUST_SUPERVISOR_INGRESS=1
 # so a large Home Assistant instance (many entities/profiles) doesn't
 # crash-loop against an arbitrary default.
 export NODE_OPTIONS="--max-old-space-size=2560"
+# Keep the SQLite database (profiles, settings) in the add-on's persistent /data
+# folder. The image default, /app/data, lives inside the container and is
+# replaced on every add-on update or rebuild.
+export DATA_DIR=/data
+
+if bashio::config.has_value 'internal_ha_url'; then
+	export NYX_INTERNAL_HA_URL="$(bashio::config 'internal_ha_url')"
+fi
+if bashio::config.has_value 'internal_ha_fallback_url'; then
+	export NYX_INTERNAL_HA_FALLBACK_URL="$(bashio::config 'internal_ha_fallback_url')"
+fi
 
 if bashio::config.has_value 'data_encryption_mode'; then
 	export NYX_ENCRYPTION_MODE="$(bashio::config 'data_encryption_mode')"
