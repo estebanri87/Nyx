@@ -9,8 +9,10 @@ function getMowerStateLabel(state, battery, t) {
   const normalized = String(state || '').toLowerCase();
   if (!normalized) return t('mower.unknown');
   if (ACTIVE_STATES.includes(normalized)) return t('mower.mowing');
-  if (['returning', 'going_home', 'return_to_base'].includes(normalized)) return t('mower.returning');
-  if ((normalized === 'charging' || normalized === 'docked') && battery === 100) return t('mower.docked');
+  if (['returning', 'going_home', 'return_to_base'].includes(normalized))
+    return t('mower.returning');
+  if ((normalized === 'charging' || normalized === 'docked') && battery === 100)
+    return t('mower.docked');
   if (normalized === 'docked') return t('mower.charging');
   if (normalized === 'idle' || normalized === 'ready') return t('mower.idle');
   if (normalized === 'paused' || normalized === 'pause') return t('mower.pause');
@@ -41,7 +43,8 @@ export default function MowerModal({ show, onClose, entities, callService, getA,
   const isActive = ACTIVE_STATES.includes(normalized);
   const isError = ERROR_STATES.includes(normalized);
   const isUnavailable = state === 'unavailable' || state === 'unknown' || !state;
-  const zone = getA(mowerId, 'current_zone') || getA(mowerId, 'zone') || getA(mowerId, 'current_room');
+  const zone =
+    getA(mowerId, 'current_zone') || getA(mowerId, 'zone') || getA(mowerId, 'current_room');
   const friendlyName = entity?.attributes?.friendly_name || mowerId;
   const stateLabel = getMowerStateLabel(state, battery, t);
 
@@ -148,9 +151,7 @@ export default function MowerModal({ show, onClose, entities, callService, getA,
             </div>
 
             <div className={`grid gap-4 ${zone ? 'grid-cols-2' : 'grid-cols-1'}`}>
-              <div
-                className="flex flex-col items-center gap-2 rounded-2xl bg-[var(--glass-bg)] p-4"
-              >
+              <div className="flex flex-col items-center gap-2 rounded-2xl bg-[var(--glass-bg)] p-4">
                 <Battery
                   className={`h-6 w-6 ${battery != null && battery < 20 ? 'text-[var(--status-error-fg)]' : 'text-[var(--status-success-fg)]'}`}
                 />
@@ -164,7 +165,10 @@ export default function MowerModal({ show, onClose, entities, callService, getA,
               {zone && (
                 <div className="flex flex-col items-center gap-2 rounded-2xl bg-[var(--glass-bg)] p-4">
                   <MapPin className="h-6 w-6 text-[var(--accent-color)]" />
-                  <span className="max-w-full truncate px-2 text-xl font-light text-[var(--text-primary)]" title={zone}>
+                  <span
+                    className="max-w-full truncate px-2 text-xl font-light text-[var(--text-primary)]"
+                    title={zone}
+                  >
                     {zone}
                   </span>
                   <span className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
