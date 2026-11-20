@@ -83,7 +83,7 @@ describe('AccessibleModalShell Back button and stack', () => {
     render(<Popup onClose={onClose} />);
     await settleHistory();
     await pressBack();
-    expect(onClose).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(depth()).toBe(0);
     expect(window.location.hash).toBe(START_URL);
@@ -110,17 +110,15 @@ describe('AccessibleModalShell Back button and stack', () => {
     );
     await settleHistory();
     fireEvent.click(screen.getByRole('button', { name: 'open inner' }));
-    await settleHistory();
-    expect(depth()).toBe(2);
+    await vi.waitFor(() => expect(depth()).toBe(2));
 
     await pressBack();
-    expect(innerClose).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(innerClose).toHaveBeenCalledTimes(1));
     expect(outerClose).not.toHaveBeenCalled();
     expect(screen.getByText('outer')).toBeInTheDocument();
 
     fireEvent.keyDown(document, { key: 'Escape' });
-    await settleHistory();
-    expect(outerClose).toHaveBeenCalledTimes(1);
-    expect(depth()).toBe(0);
+    await vi.waitFor(() => expect(outerClose).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(depth()).toBe(0));
   });
 });
