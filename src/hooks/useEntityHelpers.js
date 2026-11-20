@@ -1,7 +1,8 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { ENTITY_UPDATE_THRESHOLD, MEDIA_TIMEOUT } from '../config/constants';
 import { callService as haCallService } from '../services';
 import { logger } from '../utils/logger';
+import { getUnavailableServiceTargets } from '../utils/entityState';
 import { useToast } from '../contexts/ToastContext';
 
 /**
@@ -46,11 +47,27 @@ export function useEntityHelpers({ entities, conn, activeUrl, now, t }) {
   );
 
   // ── Service calls ──────────────────────────────────────────────────────
+  // Read through a ref so callService keeps one identity across entity updates.
+  const entitiesRef = useRef(entities);
+  entitiesRef.current = entities;
+
   const callService = useCallback(
     (domain, service, data) => {
       if (!conn) {
         logger.warn(`Service call attempted while disconnected: ${domain}.${service}`);
         return Promise.reject(new Error('No connection'));
+      }
+      // Home Assistant cannot act on an unavailable device; say so instead of
+      // sending a command that silently does nothing.
+      const currentEntities = entitiesRef.current;
+      const unavailable = getUnavailableServiceTargets(data, currentEntities);
+      if (unavailable.length > 0) {
+        const names = unavailable
+          .map((id) => currentEntities[id]?.attributes?.friendly_name || id)
+          .join(', ');
+        const msg = t?.('toast.entityUnavailable') || '{name} is unavailable';
+        addToast(msg.replace('{name}', names), 'error');
+        return Promise.reject(new Error(`Unavailable: ${unavailable.join(', ')}`));
       }
       return haCallService(conn, domain, service, data).catch((error) => {
         const msg = t?.('toast.serviceFailed') || 'Action failed';

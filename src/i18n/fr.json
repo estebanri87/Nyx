@@ -1419,6 +1419,7 @@
   "time.minutesAgo": "il y a {minutes} min",
   "time.unknown": "heure inconnue",
   "toast.serviceFailed": "Action échouée",
+  "toast.entityUnavailable": "{name} est indisponible",
   "todo.addHint": "Ajouter un nouvel élément ci-dessus",
   "todo.addPlaceholder": "Ajouter un nouvel élément...",
   "todo.allDone": "Tout est fait !",

@@ -1478,7 +1478,8 @@ export default function VacuumModal({
   const startRoomCleaning = async (scriptEntityId) => {
     if (!conn && !callService) return;
     try {
-      if (conn) {
+      // callService first: it refuses unavailable targets and reports failures.
+      if (!callService) {
         await conn.sendMessagePromise({
           type: 'call_service',
           domain: 'script',
@@ -1486,7 +1487,7 @@ export default function VacuumModal({
           service_data: { entity_id: scriptEntityId },
         });
       } else {
-        callService('script', 'turn_on', { entity_id: scriptEntityId });
+        await callService('script', 'turn_on', { entity_id: scriptEntityId });
       }
     } catch (_e) {
       // silently handle
@@ -1565,7 +1566,8 @@ export default function VacuumModal({
   const handleReset = async (buttonId) => {
     if (!buttonId || (!conn && !callService)) return;
     try {
-      if (conn) {
+      // callService first: it refuses unavailable targets and reports failures.
+      if (!callService) {
         await conn.sendMessagePromise({
           type: 'call_service',
           domain: 'button',
@@ -1594,7 +1596,8 @@ export default function VacuumModal({
   const handleCleanSelectedAreas = async () => {
     if (selectedAreaIds.length === 0) return;
     try {
-      if (conn) {
+      // callService first: it refuses unavailable targets and reports failures.
+      if (!callService) {
         await conn.sendMessagePromise({
           type: 'call_service',
           domain: 'vacuum',
@@ -1607,7 +1610,7 @@ export default function VacuumModal({
           },
         });
       } else {
-        callService('vacuum', 'clean_area', {
+        await callService('vacuum', 'clean_area', {
           target: {
             entity_id: vacuumId,
           },
@@ -1627,7 +1630,8 @@ export default function VacuumModal({
     const domain = roomSelectEntityId.split('.')[0] === 'input_select' ? 'input_select' : 'select';
 
     try {
-      if (conn) {
+      // callService first: it refuses unavailable targets and reports failures.
+      if (!callService) {
         await conn.sendMessagePromise({
           type: 'call_service',
           domain,
@@ -1638,7 +1642,7 @@ export default function VacuumModal({
           },
         });
       } else {
-        callService(domain, 'select_option', {
+        await callService(domain, 'select_option', {
           entity_id: roomSelectEntityId,
           option: selectedRoom,
         });

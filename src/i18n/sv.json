@@ -1419,6 +1419,7 @@
   "time.minutesAgo": "{minutes} min sedan",
   "time.unknown": "okänd tid",
   "toast.serviceFailed": "Åtgärden misslyckades",
+  "toast.entityUnavailable": "{name} är inte tillgänglig",
   "todo.addHint": "Lägg till nytt objekt ovan",
   "todo.addPlaceholder": "Lägg till nytt objekt...",
   "todo.allDone": "Allt klart!",

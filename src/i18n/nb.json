@@ -1419,6 +1419,7 @@
   "time.minutesAgo": "for {minutes} min siden",
   "time.unknown": "ukjent tid",
   "toast.serviceFailed": "Handling mislyktes",
+  "toast.entityUnavailable": "{name} er utilgjengelig",
   "todo.addHint": "Legg til en ny oppgave over",
   "todo.addPlaceholder": "Legg til ny oppgave...",
   "todo.allDone": "Alt er gjort!",

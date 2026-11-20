@@ -185,6 +185,51 @@ describe('useEntityHelpers › callService', () => {
     const { result } = renderHook(() => useEntityHelpers(baseProps()), { wrapper });
     await expect(result.current.callService('switch', 'turn_off', {})).rejects.toThrow('timeout');
   });
+
+  it('sends nothing to an unavailable device', async () => {
+    const props = baseProps();
+    props.entities = { 'light.lamp': { state: 'unavailable', attributes: {} } };
+    const { result } = renderHook(() => useEntityHelpers(props), { wrapper });
+    await expect(
+      result.current.callService('light', 'toggle', { entity_id: 'light.lamp' })
+    ).rejects.toThrow('Unavailable: light.lamp');
+    await expect(
+      result.current.callService('vacuum', 'clean_area', { target: { entity_id: 'light.lamp' } })
+    ).rejects.toThrow('Unavailable');
+    expect(haCallService).not.toHaveBeenCalled();
+  });
+
+  it('still sends when only some targets are unavailable', async () => {
+    haCallService.mockResolvedValueOnce({ ok: true });
+    const props = baseProps();
+    props.entities = {
+      'light.a': { state: 'unavailable' },
+      'light.b': { state: 'on' },
+    };
+    const { result } = renderHook(() => useEntityHelpers(props), { wrapper });
+    await result.current.callService('light', 'turn_off', { entity_id: ['light.a', 'light.b'] });
+    expect(haCallService).toHaveBeenCalledOnce();
+  });
+
+  it('leaves buttons and scripts in the unknown state alone', async () => {
+    haCallService.mockResolvedValueOnce({ ok: true });
+    const props = baseProps();
+    props.entities = { 'button.reset': { state: 'unknown' } };
+    const { result } = renderHook(() => useEntityHelpers(props), { wrapper });
+    await result.current.callService('button', 'press', { entity_id: 'button.reset' });
+    expect(haCallService).toHaveBeenCalledOnce();
+  });
+
+  it('keeps one callService across entity updates', () => {
+    const props = baseProps();
+    const { result, rerender } = renderHook((p) => useEntityHelpers(p), {
+      wrapper,
+      initialProps: props,
+    });
+    const first = result.current.callService;
+    rerender({ ...props, entities: { 'light.a': { state: 'on' } } });
+    expect(result.current.callService).toBe(first);
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════
