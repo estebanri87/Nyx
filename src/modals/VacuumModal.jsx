@@ -990,7 +990,10 @@ export default function VacuumModal({
           (vacuumFriendlyName &&
             vacuumFriendlyName
               .split(/[_\-\s]+/)
-              .some((token) => token.length > 2 && (lowerEid.includes(token) || friendly.includes(token)))));
+              .some(
+                (token) =>
+                  token.length > 2 && (lowerEid.includes(token) || friendly.includes(token))
+              )));
 
       // If it is related to the vacuum, we consider it a map entity since cameras/images on a vacuum are always maps
       return isRelated;
@@ -1021,7 +1024,7 @@ export default function VacuumModal({
       if (!eid.startsWith('image.') && !eid.startsWith('camera.')) return false;
       const lowerEid = eid.toLowerCase();
       const friendly = (entities[eid]?.attributes?.friendly_name || '').toLowerCase();
-      
+
       const isRelated =
         vacuumNameTokens.length === 0 ||
         vacuumNameTokens.some((token) => lowerEid.includes(token) || friendly.includes(token)) ||
@@ -1030,7 +1033,9 @@ export default function VacuumModal({
         (vacuumFriendlyName &&
           vacuumFriendlyName
             .split(/[_\-\s]+/)
-            .some((token) => token.length > 2 && (lowerEid.includes(token) || friendly.includes(token))));
+            .some(
+              (token) => token.length > 2 && (lowerEid.includes(token) || friendly.includes(token))
+            ));
 
       return isRelated;
     });
@@ -1087,7 +1092,7 @@ export default function VacuumModal({
 
       if (nameRegex) cleanName = cleanName.replace(nameRegex, '');
       if (friendlyNameRegex) cleanName = cleanName.replace(friendlyNameRegex, '');
-      
+
       if (Array.isArray(vacuumNameTokens)) {
         for (const token of vacuumNameTokens) {
           if (token && token.length > 2) {
@@ -1424,7 +1429,7 @@ export default function VacuumModal({
         </button>
 
         {isAdvancedOpen && (
-          <div className="animate-in slide-in-from-top-2 scrollbar-thin max-h-[250px] divide-y divide-white/5 overflow-y-auto border-t border-white/5 p-4 pt-0 duration-300">
+          <div className="animate-in slide-in-from-top-2 max-h-[250px] scrollbar-thin divide-y divide-white/5 overflow-y-auto border-t border-white/5 p-4 pt-0 duration-300">
             {advancedSensors.map((sensor) => {
               const value = sensor.state;
               const unit = sensor.unit;
@@ -1653,9 +1658,9 @@ export default function VacuumModal({
       >
         {/* Left Column - Main Controls & Status (Span 3) */}
         <div
-          className={`flex flex-col space-y-6 ${showRightColumn ? 'lg:col-span-3 h-full' : 'mx-auto w-full max-w-3xl'}`}
+          className={`flex flex-col space-y-6 ${showRightColumn ? 'h-full lg:col-span-3' : 'mx-auto w-full max-w-3xl'}`}
         >
-          <div className="popup-surface flex flex-1 flex-col items-center justify-stretch gap-6 rounded-3xl p-6 sm:p-8 h-full">
+          <div className="popup-surface flex h-full flex-1 flex-col items-center justify-stretch gap-6 rounded-3xl p-6 sm:p-8">
             {/* Primary Actions */}
             <div className="flex w-full gap-4">
               <button
@@ -1849,7 +1854,7 @@ export default function VacuumModal({
 
         {/* Right Column - Map & History if simple layout (Span 2) */}
         {showRightColumn && (
-          <div className="flex flex-col justify-start space-y-4 py-2 font-sans lg:col-span-2 h-full">
+          <div className="flex h-full flex-col justify-start space-y-4 py-2 font-sans lg:col-span-2">
             {/* Live Map Display in controls column */}
             {showRightImage && finalMapUrl && (
               <>
@@ -1874,7 +1879,7 @@ export default function VacuumModal({
                 )}
 
                 <div
-                  className="popup-surface relative flex-1 min-h-[280px] w-full overflow-hidden rounded-3xl p-2 shadow-2xl select-none"
+                  className="popup-surface relative min-h-[280px] w-full flex-1 overflow-hidden rounded-3xl p-2 shadow-2xl select-none"
                   onMouseDown={handleMapMouseDown}
                   onMouseMove={handleMapMouseMove}
                   onMouseUp={handleMapMouseUpOrLeave}
@@ -1882,7 +1887,9 @@ export default function VacuumModal({
                   onTouchStart={handleMapTouchStart}
                   onTouchMove={handleMapTouchMove}
                   onTouchEnd={handleMapTouchEnd}
-                  style={{ cursor: mapScale > 1.05 ? (isPanning ? 'grabbing' : 'grab') : 'default' }}
+                  style={{
+                    cursor: mapScale > 1.05 ? (isPanning ? 'grabbing' : 'grab') : 'default',
+                  }}
                 >
                   {/* Pulsing Live Badge */}
                   <div className="absolute top-4 left-4 z-10 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-[10px] font-bold tracking-widest text-[var(--status-success-fg)] uppercase italic shadow-md backdrop-blur-md">
@@ -2022,7 +2029,9 @@ export default function VacuumModal({
     if (showTabbedLayout) {
       const hasConsumables = consumables.length > 0;
       return (
-        <div className={`animate-in fade-in font-sans not-italic duration-300 ${hasConsumables ? 'grid grid-cols-1 lg:grid-cols-5 gap-8' : ''}`}>
+        <div
+          className={`animate-in fade-in font-sans not-italic duration-300 ${hasConsumables ? 'grid grid-cols-1 gap-8 lg:grid-cols-5' : ''}`}
+        >
           {/* Left Column: Stats & Diagnostics */}
           <div className={`space-y-6 ${hasConsumables ? 'lg:col-span-3' : 'w-full'}`}>
             {/* Statistics Grid */}
@@ -2515,7 +2524,7 @@ export default function VacuumModal({
           )}
 
           {/* Render Tab Contents */}
-          <div className="scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent h-[60vh] overflow-y-auto pr-1 md:h-[480px] md:pr-2">
+          <div className="h-[60vh] scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent overflow-y-auto pr-1 md:h-[480px] md:pr-2">
             {(!showTabbedLayout || activeTab === 'controls') && renderControlsPane(hasMap)}
 
             {showTabbedLayout && activeTab === 'areas' && (
