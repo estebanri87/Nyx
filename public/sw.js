@@ -6,7 +6,7 @@
 // after an upgrade serves the previous index.html and the app keeps the old bundle.
 const CACHE_VERSION = '__APP_VERSION__';
 const SHELL_CACHE_NAME = `nyx-shell-${CACHE_VERSION}`;
-const ASSET_CACHE_NAME = 'nyx-assets-v2';
+const ASSET_CACHE_NAME = `nyx-assets-${CACHE_VERSION}`;
 const SHELL_ASSETS = ['./', './index.html'];
 
 function isBuildAssetRequest(request) {

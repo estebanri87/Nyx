@@ -12,6 +12,10 @@ describe('service worker cache versioning', () => {
     expect(source).toContain('const SHELL_CACHE_NAME = `nyx-shell-${CACHE_VERSION}`');
   });
 
+  it('names the asset cache after the release, so old chunks are cleared', () => {
+    expect(source).toContain('const ASSET_CACHE_NAME = `nyx-assets-${CACHE_VERSION}`');
+  });
+
   it('does not hardcode a shell cache name', () => {
     expect(source).not.toMatch(/nyx-shell-v\d/);
   });

@@ -79,6 +79,7 @@ const hasDefaultDashboardLayout = (snapshot) => {
 };
 
 const READ_CURRENT_FAILED = Symbol('READ_CURRENT_FAILED');
+const SYNC_POLL_INTERVAL_MS = 30_000;
 const LOCAL_CHANGE_SYNC_DELAY_MS = 10000;
 const isServiceUnavailableError = (error) => Number(error?.status) === 503;
 
@@ -619,13 +620,19 @@ export function useSettingsSync({ haUserId, contextSettersRef, autoBootstrap = t
 
   useEffect(() => {
     if (!autoBootstrap || !haUserId || backgroundSyncSuspended) return;
-    const id = setInterval(() => {
+    const check = () => {
+      if (globalThis.document?.visibilityState === 'hidden') return;
       reconcileFromServer();
       // Settings changed outside edit mode (appearance, layout, header) have
       // no edit-done event, so pick them up here once they have settled.
       queueAutoSyncRef.current(false, { delayMs: LOCAL_CHANGE_SYNC_DELAY_MS });
-    }, 4000);
-    return () => clearInterval(id);
+    };
+    const id = setInterval(check, SYNC_POLL_INTERVAL_MS);
+    globalThis.document?.addEventListener('visibilitychange', check);
+    return () => {
+      clearInterval(id);
+      globalThis.document?.removeEventListener('visibilitychange', check);
+    };
   }, [autoBootstrap, haUserId, reconcileFromServer, backgroundSyncSuspended]);
 
   useEffect(() => {
