@@ -2,6 +2,8 @@ import { Router } from 'express';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import db from '../db.js';
 import {
+  assertStoredDataWritable,
+  handleDataEncryptionError,
   encryptDataText,
   getEncryptedOnlyPlaintextStub,
   isEncryptionWriteRequired,
@@ -64,6 +66,8 @@ router.put('/', (req, res) => {
   if (encryptedPayload === null && isEncryptionWriteRequired()) {
     return res.status(503).json({ error: 'Encryption is required but unavailable' });
   }
+  const existing = db.prepare('SELECT data, data_enc FROM kiosk_broadcast WHERE id = 1').get();
+  assertStoredDataWritable(existing, encryptedPayload);
   const plainPayload = shouldPersistPlaintextData() ? payload : getEncryptedOnlyPlaintextStub();
   const now = new Date().toISOString();
 
@@ -77,9 +81,7 @@ router.put('/', (req, res) => {
        updated_at = excluded.updated_at`
   ).run(plainPayload, encryptedPayload, now);
 
-  const row = db
-    .prepare('SELECT revision, updated_at FROM kiosk_broadcast WHERE id = 1')
-    .get();
+  const row = db.prepare('SELECT revision, updated_at FROM kiosk_broadcast WHERE id = 1').get();
 
   return res.json({ success: true, revision: row.revision, updated_at: row.updated_at });
 });
@@ -89,5 +91,7 @@ router.delete('/', (_req, res) => {
   db.prepare('DELETE FROM kiosk_broadcast WHERE id = 1').run();
   return res.json({ success: true });
 });
+
+router.use(handleDataEncryptionError);
 
 export default router;

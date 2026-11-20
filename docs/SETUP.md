@@ -152,7 +152,7 @@ Server-side auth guidance:
 ### Data-at-rest encryption rollout (safe migration)
 
 - `off`: legacy behavior (plaintext DB storage only).
-- `dual`: writes plaintext + encrypted data, reads encrypted first then falls back to plaintext.
+- `dual`: writes plaintext + encrypted data and requires a working key. Rows with an encrypted payload are always read from it; if it cannot be decrypted, the server refuses to start (or returns `503 DATA_ENCRYPTION_UNAVAILABLE`) instead of falling back to plaintext or overwriting the row.
 - `enc_only`: requires encrypted writes and stores only a minimal plaintext stub for new writes; reads encrypted first and only falls back to legacy plaintext rows that have no encrypted payload.
 
 Key guidance:
