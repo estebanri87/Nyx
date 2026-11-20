@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import LockCard from '../components/cards/LockCard';
 
@@ -6,6 +6,7 @@ const t = (key) =>
   ({
     'common.missing': 'Missing',
     'common.unknown': 'Unknown',
+    'lock.action.confirmOpen': 'Confirm open',
     'lock.action.confirmUnlock': 'Confirm unlock',
     'lock.action.lock': 'Lock',
     'lock.action.open': 'Open',
@@ -127,7 +128,31 @@ describe('LockCard', () => {
     render(<LockCard {...props} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Open' }));
+    expect(callService).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm open' }));
     expect(callService).toHaveBeenCalledWith('lock', 'open', { entity_id: 'lock.front_door' });
+  });
+
+  it('forgets an armed open after three seconds', () => {
+    vi.useFakeTimers();
+    try {
+      const { props, callService } = baseProps({
+        entities: {
+          'lock.front_door': {
+            entity_id: 'lock.front_door',
+            state: 'unlocked',
+            attributes: { friendly_name: 'Front Door', supported_features: 1 },
+          },
+        },
+      });
+      render(<LockCard {...props} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Open' }));
+      act(() => vi.advanceTimersByTime(3000));
+      fireEvent.click(screen.getByRole('button', { name: 'Open' }));
+      expect(callService).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('includes a user code when Home Assistant advertises a lock code format', () => {

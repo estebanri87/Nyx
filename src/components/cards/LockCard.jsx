@@ -1,6 +1,7 @@
 import { useEffect, useState, memo } from 'react';
 import { AlertTriangle, Key, Lock, Unlock } from '../../icons';
 import { getIconComponent } from '../../icons';
+import { useConfirmTap } from '../../hooks/useConfirmTap';
 
 const FEATURE_OPEN = 1;
 const normalizeState = (state) => String(state || 'unknown').toLowerCase();
@@ -33,6 +34,8 @@ const LockCard = memo(
   }) {
     const entity = entities[lockId];
     const [confirmUnlock, setConfirmUnlock] = useState(false);
+    const { armedKey, confirmTap, disarm } = useConfirmTap();
+    const confirmOpen = armedKey === 'open';
 
     useEffect(() => {
       if (!confirmUnlock) return undefined;
@@ -111,6 +114,7 @@ const LockCard = memo(
     const runLockService = (event) => {
       event.stopPropagation();
       setConfirmUnlock(false);
+      disarm();
       if (isActionDisabled || isLocked) return;
       const payload = buildServicePayload();
       if (!payload) return;
@@ -119,6 +123,7 @@ const LockCard = memo(
 
     const runUnlockService = (event) => {
       event.stopPropagation();
+      disarm();
       if (isActionDisabled || isUnlocked || isOpen) return;
       if (!confirmUnlock) {
         setConfirmUnlock(true);
@@ -134,9 +139,12 @@ const LockCard = memo(
       event.stopPropagation();
       setConfirmUnlock(false);
       if (isActionDisabled || !supportsOpen || isOpen) return;
-      const payload = buildServicePayload();
-      if (!payload) return;
-      callService('lock', 'open', payload);
+      // Opening releases the door itself, so it needs a second tap like unlocking.
+      confirmTap('open', () => {
+        const payload = buildServicePayload();
+        if (!payload) return;
+        callService('lock', 'open', payload);
+      });
     };
 
     const lockButtonDisabled = isActionDisabled || isLocked;
@@ -146,7 +154,8 @@ const LockCard = memo(
       'flex items-center justify-center rounded-xl transition-colors active:scale-95 disabled:cursor-not-allowed disabled:opacity-40';
     const lockButtonClass = `${actionButtonBase} bg-[var(--status-success-bg)] text-[var(--status-success-fg)] hover:bg-[var(--status-success-border)]`;
     const unlockButtonClass = `${actionButtonBase} ${confirmUnlock ? 'bg-[var(--status-warning-bg)] text-[var(--status-warning-fg)] ring-1 ring-[var(--status-warning-border)]' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'}`;
-    const openButtonClass = `${actionButtonBase} bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]`;
+    const openButtonClass = `${actionButtonBase} ${confirmOpen ? 'bg-[var(--status-warning-bg)] text-[var(--status-warning-fg)] ring-1 ring-[var(--status-warning-border)]' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'}`;
+    const openLabel = confirmOpen ? t('lock.action.confirmOpen') : t('lock.action.open');
 
     if (isSmall) {
       const primaryAction = isUnlocked || isOpen ? runLockService : runUnlockService;
@@ -193,8 +202,8 @@ const LockCard = memo(
                 type="button"
                 onClick={runOpenService}
                 disabled={openButtonDisabled}
-                aria-label={t('lock.action.open')}
-                title={t('lock.action.open')}
+                aria-label={openLabel}
+                title={openLabel}
                 className={`${openButtonClass} h-10 w-10`}
               >
                 <Key className="h-4 w-4" />
@@ -299,8 +308,8 @@ const LockCard = memo(
                 type="button"
                 onClick={runOpenService}
                 disabled={openButtonDisabled}
-                aria-label={t('lock.action.open')}
-                title={t('lock.action.open')}
+                aria-label={openLabel}
+                title={openLabel}
                 className={`${openButtonClass} ${useDenseMobileLargeLayout ? 'h-10' : isMobile ? 'p-2.5' : 'p-3'}`}
               >
                 <Key className={useDenseMobileLargeLayout ? 'h-4 w-4' : 'h-5 w-5'} />

@@ -23,6 +23,7 @@ import {
 } from '../utils';
 import M3Slider from '../components/ui/M3Slider';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
+import { useConfirmTap } from '../hooks/useConfirmTap';
 
 const GROUPED_OTHER_DOMAINS = new Set([
   'binary_sensor',
@@ -50,6 +51,7 @@ export default function RoomModal({
 }) {
   const [selectedClimateId, setSelectedClimateId] = useState(settings?.climateEntityId || null);
   const [failedImageMap, setFailedImageMap] = useState({});
+  const { armedKey: armedUnlockId, confirmTap } = useConfirmTap();
   const { unitsMode } = useConfig();
   const { haConfig } = useHomeAssistantMeta();
   const effectiveUnitMode = getEffectiveUnitMode(unitsMode, haConfig);
@@ -348,12 +350,21 @@ export default function RoomModal({
     }
 
     if (domain === 'lock') {
+      // Unlocking takes a second tap, as on the lock card.
+      const isArmed = armedUnlockId === entityId;
       return [
         {
           key: 'lock-toggle',
-          label: state === 'locked' ? 'Unlock' : 'Lock',
+          label: isArmed
+            ? t('lock.action.confirmUnlock')
+            : state === 'locked'
+              ? t('lock.action.unlock')
+              : t('lock.action.lock'),
+          armed: isArmed,
           onClick: () =>
-            handleEntityAction('lock', state === 'locked' ? 'unlock' : 'lock', entityId),
+            state === 'locked'
+              ? confirmTap(entityId, () => handleEntityAction('lock', 'unlock', entityId))
+              : handleEntityAction('lock', 'lock', entityId),
         },
       ];
     }
@@ -1017,7 +1028,7 @@ export default function RoomModal({
                                     <button
                                       key={action.key}
                                       onClick={action.onClick}
-                                      className="rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-hover)] px-2.5 py-1 text-[10px] font-bold tracking-widest text-[var(--text-primary)] uppercase transition-colors hover:bg-[var(--accent-color)]/20"
+                                      className={`rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase transition-colors ${action.armed ? 'border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] text-[var(--status-warning-fg)]' : 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)] hover:bg-[var(--accent-color)]/20'}`}
                                     >
                                       {action.label}
                                     </button>

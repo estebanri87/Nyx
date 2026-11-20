@@ -1,6 +1,7 @@
 import { X, Car, Clock, RefreshCw, Zap, MapPin, Thermometer } from '../icons';
 import M3Slider from '../components/ui/M3Slider';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
+import { useConfirmTap } from '../hooks/useConfirmTap';
 import { formatRelativeTime } from '../utils';
 import { useConfig, useHomeAssistantMeta } from '../contexts';
 import {
@@ -37,6 +38,7 @@ export default function LeafModal({ show, onClose, entities, callService, getS, 
   const { unitsMode } = useConfig();
   const { haConfig } = useHomeAssistantMeta();
   const effectiveUnitMode = getEffectiveUnitMode(unitsMode, haConfig);
+  const { armedKey, confirmTap, disarm } = useConfirmTap();
   const modalTitleId = `leaf-modal-title-${(car?.name || 'car').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 
   if (!show) return null;
@@ -191,16 +193,26 @@ export default function LeafModal({ show, onClose, entities, callService, getS, 
     }
   };
 
+  // Unlocking and starting the engine take a second tap; locking and stopping do not.
   const handleLockControl = () => {
     if (!lockId) return;
     const isLocked = lockState === 'locked' || lockState === 'locking';
-    callService('lock', isLocked ? 'unlock' : 'lock', { entity_id: lockId });
+    if (!isLocked) {
+      disarm();
+      callService('lock', 'lock', { entity_id: lockId });
+      return;
+    }
+    confirmTap('unlock', () => callService('lock', 'unlock', { entity_id: lockId }));
   };
 
   const handleIgnitionControl = () => {
     if (!ignitionSwitchId) return;
-    const isOn = ignitionState === 'on';
-    callService('switch', isOn ? 'turn_off' : 'turn_on', { entity_id: ignitionSwitchId });
+    if (ignitionState === 'on') {
+      disarm();
+      callService('switch', 'turn_off', { entity_id: ignitionSwitchId });
+      return;
+    }
+    confirmTap('engine', () => callService('switch', 'turn_on', { entity_id: ignitionSwitchId }));
   };
 
   const updateClimateTarget = (nextValue) => {
@@ -673,21 +685,25 @@ export default function LeafModal({ show, onClose, entities, callService, getS, 
                     {lockId && (
                       <button
                         onClick={handleLockControl}
-                        className="popup-surface popup-surface-hover rounded-full px-3 py-1.5 text-[10px] font-bold tracking-widest text-[var(--text-primary)] uppercase"
+                        className={`rounded-full px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase ${armedKey === 'unlock' ? 'border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] text-[var(--status-warning-fg)] ring-1 ring-[var(--status-warning-border)]' : 'popup-surface popup-surface-hover text-[var(--text-primary)]'}`}
                       >
-                        {lockState === 'locked' || lockState === 'locking'
-                          ? t('car.unlock') || 'Unlock'
-                          : t('car.lock') || 'Lock'}
+                        {armedKey === 'unlock'
+                          ? t('lock.action.confirmUnlock')
+                          : lockState === 'locked' || lockState === 'locking'
+                            ? t('car.unlock') || 'Unlock'
+                            : t('car.lock') || 'Lock'}
                       </button>
                     )}
                     {ignitionSwitchId && (
                       <button
                         onClick={handleIgnitionControl}
-                        className="popup-surface popup-surface-hover rounded-full px-3 py-1.5 text-[10px] font-bold tracking-widest text-[var(--text-primary)] uppercase"
+                        className={`rounded-full px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase ${armedKey === 'engine' ? 'border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] text-[var(--status-warning-fg)] ring-1 ring-[var(--status-warning-border)]' : 'popup-surface popup-surface-hover text-[var(--text-primary)]'}`}
                       >
-                        {ignitionState === 'on'
-                          ? t('car.engineStop') || 'Engine stop'
-                          : t('car.engineStart') || 'Engine start'}
+                        {armedKey === 'engine'
+                          ? t('car.confirmEngineStart')
+                          : ignitionState === 'on'
+                            ? t('car.engineStop') || 'Engine stop'
+                            : t('car.engineStart') || 'Engine start'}
                       </button>
                     )}
                   </div>
