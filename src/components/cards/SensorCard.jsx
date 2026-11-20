@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
-import { Minus, Plus, Activity, Play, List, Trash2 } from 'lucide-react';
+import { Minus, Plus, Activity, Play, List, Trash2, Zap } from 'lucide-react';
 import { getHistory, getStatistics } from '../../services/haClient';
 import SparkLine from '../charts/SparkLine';
 import { Gauge, Donut, Bar } from '../charts/SensorGauge';
@@ -543,6 +543,20 @@ const SensorCard = memo(
       </span>
     );
 
+    // Same pill style as the vacuum card's battery badge.
+    const renderPowerPill = (compact = false) => (
+      <div
+        className={`flex shrink-0 items-center rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] whitespace-nowrap text-[var(--text-secondary)] ${compact ? 'gap-1 px-2.5 py-1' : 'gap-1.5 px-3 py-1'}`}
+      >
+        <Zap className={compact ? 'h-2.5 w-2.5' : 'h-3 w-3'} />
+        <span
+          className={`${compact ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest tabular-nums`}
+        >
+          {powerText}
+        </span>
+      </div>
+    );
+
     const renderSelectDropdown = (compact = false) => (
       <ModernDropdown
         label={translate('sensor.select.label')}
@@ -820,11 +834,6 @@ const SensorCard = memo(
                         {displayNumericUnit}
                       </span>
                     )}
-                  {powerText && (
-                    <span className="ml-1 shrink-0 text-[10px] leading-none font-bold tracking-wider whitespace-nowrap text-[var(--text-secondary)] tabular-nums">
-                      · {powerText}
-                    </span>
-                  )}
                 </div>
               )}
             </div>
@@ -838,6 +847,7 @@ const SensorCard = memo(
             )}
           </div>
 
+          {showStatus && powerText && renderPowerPill(useDenseMobileSmallLayout)}
           {!showToggleControls && <div className="shrink-0">{renderControls()}</div>}
         </div>
       );
@@ -941,13 +951,7 @@ const SensorCard = memo(
             </div>
           )}
 
-          {!isNumeric && showStatus && powerText && (
-            <span
-              className={`${useDenseMobileLargeLayout ? 'text-[1.2rem]' : 'text-2xl'} shrink-0 leading-none font-thin whitespace-nowrap text-[var(--text-primary)] tabular-nums`}
-            >
-              {powerText}
-            </span>
-          )}
+          {!isNumeric && showStatus && powerText && renderPowerPill(useDenseMobileLargeLayout)}
         </div>
 
         {useDenseMobileLargeLayout && showName && (

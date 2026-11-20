@@ -314,9 +314,9 @@ describe('SensorCard', () => {
         settings: { size, showControls: true, powerEntityId: 'sensor.tv_schlafzimmer_power' },
       });
 
-    it('shows the current power next to the state in the small layout', () => {
+    it('shows the current power as a pill in the small layout', () => {
       render(<SensorCard {...plugProps('85.4', 'small')} />);
-      expect(screen.getByText('· 85.4 W')).not.toBeNull();
+      expect(screen.getByText('85.4 W').parentElement.className).toContain('rounded-full');
     });
 
     it('shows the current power in the large layout', () => {
