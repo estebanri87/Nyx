@@ -10,9 +10,10 @@ import {
 } from 'home-assistant-js-websocket';
 import { WebSocket as NodeWebSocket } from 'ws';
 import { createHash } from 'node:crypto';
+import { ipKeyGenerator } from 'express-rate-limit';
 
 const DEFAULT_CACHE_TTL_MS = Math.min(
-  Math.max(Number(process.env.HA_AUTH_CACHE_TTL_MS) || 15_000, 1_000),
+  Math.max(Number(process.env.HA_AUTH_CACHE_TTL_MS) || 120_000, 1_000),
   300_000
 );
 const DEFAULT_INVALID_AUTH_CACHE_TTL_MS = Math.min(
@@ -131,6 +132,19 @@ const getHomeAssistantUrlCandidates = () => {
     pushUniqueCandidate(candidates, candidate);
   }
   return candidates;
+};
+
+/**
+ * Without a URL every profile, settings and kiosk call outside Supervisor ingress returns 503,
+ * so say why at startup. In the add-on the sidebar still works, but the direct port does not.
+ */
+export const warnIfHomeAssistantUrlMissing = () => {
+  if (getHomeAssistantUrlCandidates().length > 0) return;
+  console.warn(
+    isSupervisorIngressTrustEnabled()
+      ? '[server] No Home Assistant URL is configured. The sidebar works, but profiles, settings sync and the kiosk dashboard are unavailable through the direct port. Set internal_ha_url in the add-on configuration to use it.'
+      : '[server] No valid Home Assistant URL is configured, so profiles and settings sync are unavailable. Set NYX_INTERNAL_HA_URL to an http(s) address this server can reach.'
+  );
 };
 
 const getBearerToken = (req) => {
@@ -335,6 +349,18 @@ export const createValidatedHomeAssistantUserResolver = ({
 };
 
 const resolveValidatedHomeAssistantUser = createValidatedHomeAssistantUserResolver();
+
+/**
+ * Trusted ingress puts every client behind the Supervisor's address, so each Home Assistant
+ * user gets a bucket of their own there. Anything else is limited by the immediate socket
+ * peer (not X-Forwarded-For), as before.
+ * @param {import('express').Request} req
+ * @returns {string}
+ */
+export const getRateLimitKey = (req) => {
+  const user = getTrustedSupervisorUser(req);
+  return user ? `ha-user:${user.id}` : ipKeyGenerator(req.socket?.remoteAddress || req.ip || '');
+};
 
 export const createHomeAssistantAuthMiddleware = ({
   validateHomeAssistantUser = resolveValidatedHomeAssistantUser,

@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import rateLimit from 'express-rate-limit';
+import { getRateLimitKey } from '../haAuth.js';
 import db from '../db.js';
 import {
   assertStoredDataWritable,
@@ -18,7 +19,7 @@ const kioskRateLimiter = rateLimit({
   max: Math.max(Number(process.env.KIOSK_RATE_LIMIT_MAX) || 180, 10),
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => ipKeyGenerator(req.socket?.remoteAddress || req.ip),
+  keyGenerator: getRateLimitKey,
 });
 
 router.use(kioskRateLimiter);

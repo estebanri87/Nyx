@@ -10,7 +10,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATA_DIR=/app/data
-      - NYX_INTERNAL_HA_URL=${NYX_INTERNAL_HA_URL:-}
+      - NYX_INTERNAL_HA_URL=${NYX_INTERNAL_HA_URL:-http://host.docker.internal:8123}
       - NYX_INTERNAL_HA_FALLBACK_URL=${NYX_INTERNAL_HA_FALLBACK_URL:-}
       - NYX_ENCRYPTION_MODE=${NYX_ENCRYPTION_MODE:-off}
       - NYX_DATA_KEY=${NYX_DATA_KEY:-}

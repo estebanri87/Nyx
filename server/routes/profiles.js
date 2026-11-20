@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
-import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import rateLimit from 'express-rate-limit';
+import { getRateLimitKey } from '../haAuth.js';
 import db from '../db.js';
 import {
   assertStoredDataWritable,
@@ -21,11 +22,10 @@ const profilesRateLimiter = rateLimit({
   max: Math.max(Number(process.env.PROFILES_RATE_LIMIT_MAX) || 120, 10),
   standardHeaders: true,
   legacyHeaders: false,
-  // We intentionally key on the immediate socket peer, not X-Forwarded-For
-  // (Ingress traffic all arrives from the Supervisor's proxy). Skips
-  // express-rate-limit's trust-proxy sanity check, which would otherwise
-  // log a warning on every request in this setup.
-  keyGenerator: (req) => ipKeyGenerator(req.socket?.remoteAddress || req.ip),
+  // One bucket per Home Assistant user under trusted Ingress (all of it
+  // arrives from the Supervisor's proxy), otherwise per socket peer -- never
+  // X-Forwarded-For. See getRateLimitKey in haAuth.js.
+  keyGenerator: getRateLimitKey,
 });
 
 router.use(profilesRateLimiter);
