@@ -30,7 +30,9 @@ LABEL \
 	io.hass.type="app" \
 	io.hass.arch="${BUILD_ARCH}"
 
-RUN apk add --no-cache nodejs npm python3 make g++
+# The base image pins musl; naming it with --upgrade lets apk move to the
+# musl release that the current musl-dev (pulled in by g++) requires.
+RUN apk add --no-cache --upgrade musl nodejs npm python3 make g++
 
 WORKDIR /app
 
