@@ -19,7 +19,7 @@ const TYPE_STYLES = {
 };
 
 export default function ToastContainer() {
-  const { toasts } = useToast();
+  const { toasts, dismissToast } = useToast();
   if (!toasts.length) return null;
 
   return (
@@ -38,6 +38,18 @@ export default function ToastContainer() {
             }}
           >
             <span className="flex-1">{toast.message}</span>
+            {toast.action && (
+              <button
+                type="button"
+                className="-my-2 min-h-11 shrink-0 rounded-lg px-3 font-bold underline"
+                onClick={() => {
+                  toast.action.onClick();
+                  dismissToast(toast.id);
+                }}
+              >
+                {toast.action.label}
+              </button>
+            )}
           </div>
         );
       })}
