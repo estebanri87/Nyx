@@ -49,4 +49,32 @@ describe('Home Assistant relay authentication', () => {
     expect(result.current.haUser?.id).toBe('viewer-1');
     expect(connection.close).not.toHaveBeenCalled();
   });
+
+  it('opens a new relay connection after the socket drops', async () => {
+    const listeners = new Map();
+    relay.createRelayConnection.mockResolvedValue({
+      close: vi.fn(),
+      sendMessagePromise: vi.fn(async () => []),
+      addEventListener: vi.fn((name, fn) =>
+        listeners.set(name, [...(listeners.get(name) || []), fn])
+      ),
+      removeEventListener: vi.fn(),
+      onEntities: vi.fn(() => vi.fn()),
+    });
+    const { result } = renderHook(useHomeAssistantMeta, { wrapper });
+    await waitFor(() => expect(result.current.haUser?.id).toBe('viewer-1'));
+    expect(relay.createRelayConnection).toHaveBeenCalledTimes(1);
+
+    vi.useFakeTimers();
+    try {
+      act(() => (listeners.get('disconnected') || []).forEach((fn) => fn()));
+      expect(result.current.connected).toBe(false);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5000);
+      });
+      expect(relay.createRelayConnection).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

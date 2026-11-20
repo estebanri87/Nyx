@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { LayoutGrid, Plus, UserCircle2 } from '../icons';
 import CardErrorBoundary from '../components/ui/CardErrorBoundary';
+import { useHomeAssistantOffline } from '../contexts/HomeAssistantContext';
 import { formatDuration } from '../utils';
 
 const MediaPage = lazy(() => import('../components/pages/MediaPage'));
@@ -62,6 +63,7 @@ const buildGridTemplateColumns = ({
 };
 
 export default function DashboardGrid({ page, media, grid, cards, actions, t }) {
+  const offline = useHomeAssistantOffline();
   const {
     activePage,
     pagesConfig,
@@ -355,7 +357,8 @@ export default function DashboardGrid({ page, media, grid, cards, actions, t }) 
                 </div>
               )}
               <div
-                className="h-full overflow-hidden"
+                className="dashboard-card-slot h-full overflow-hidden"
+                data-card-offline={offline && !editMode ? '' : undefined}
                 style={
                   needsScale
                     ? {

@@ -73,6 +73,14 @@ function saveCachedEntities(entities) {
 const HomeAssistantEntitiesContext = createContext(null);
 /** @type {import('react').Context<HomeAssistantMetaValue | null>} */
 const HomeAssistantMetaContext = createContext(null);
+const HomeAssistantOfflineContext = createContext(false);
+
+/**
+ * True while the cards cannot be trusted: old data, or a connection down past the warning delay.
+ * A context of its own, because the meta value changes with every socket message.
+ * @returns {boolean}
+ */
+export const useHomeAssistantOffline = () => useContext(HomeAssistantOfflineContext);
 
 /** @returns {EntityMap} */
 export const useHomeAssistantEntities = () => {
@@ -168,6 +176,8 @@ export const HomeAssistantProvider = ({ children, config }) => {
     setConnected(true);
     setHaUnavailable(false);
     setDisconnectedSince(null);
+    // An answered ping proves the data is current, even in a house where nothing has changed.
+    setLastEntityUpdateAt((current) => (current ? Date.now() : current));
   }, []);
 
   const markConnectionRecovering = useCallback(() => {
@@ -541,6 +551,17 @@ export const HomeAssistantProvider = ({ children, config }) => {
         }
       });
       unsubscribeEntitiesRef.current = typeof unsub === 'function' ? unsub : null;
+      retryDelay = 5000;
+      // The relay socket cannot reopen itself the way HAWS does, so open a new
+      // one when it drops.
+      connInstance.addEventListener('disconnected', () => {
+        if (!isCurrentAttempt() || connection !== connInstance) return;
+        clearTimeout(retryTimer);
+        retryTimer = setTimeout(() => {
+          if (isCurrentAttempt()) connect();
+        }, retryDelay);
+        retryDelay = Math.min(retryDelay * 2, 60000);
+      });
       return connInstance;
     }
 
@@ -592,7 +613,8 @@ export const HomeAssistantProvider = ({ children, config }) => {
           if (
             retryError === ERR_CANNOT_CONNECT ||
             retryError === ERR_CONNECTION_LOST ||
-            retryError instanceof TypeError
+            retryError instanceof TypeError ||
+            isRelay
           ) {
             retryTimer = setTimeout(() => {
               if (isCurrentAttempt() && (!isOAuth || hasOAuthTokens() || config.isIngress))
@@ -777,9 +799,11 @@ export const HomeAssistantProvider = ({ children, config }) => {
 
   return (
     <HomeAssistantMetaContext.Provider value={metaValue}>
-      <HomeAssistantEntitiesContext.Provider value={entities}>
-        {children}
-      </HomeAssistantEntitiesContext.Provider>
+      <HomeAssistantOfflineContext.Provider value={entityDataStale || haUnavailableVisible}>
+        <HomeAssistantEntitiesContext.Provider value={entities}>
+          {children}
+        </HomeAssistantEntitiesContext.Provider>
+      </HomeAssistantOfflineContext.Provider>
     </HomeAssistantMetaContext.Provider>
   );
 };

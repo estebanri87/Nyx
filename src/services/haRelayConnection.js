@@ -46,6 +46,14 @@ export function createRelayConnection() {
     };
 
     const conn = {
+      /** Mirrors HAWS: false once the relay socket is gone. */
+      get connected() {
+        return ws?.readyState === 1; // WebSocket.OPEN
+      },
+      /** Round trip to Home Assistant through the relay, as HAWS's `ping` does. */
+      ping() {
+        return conn.sendMessagePromise({ type: 'ping' });
+      },
       sendMessagePromise(payload) {
         return new Promise((res, rej) => {
           const id = nextId++;

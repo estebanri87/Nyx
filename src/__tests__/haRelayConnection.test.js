@@ -92,8 +92,16 @@ describe('createRelayConnection entity diff handling', () => {
     // light.a is untouched by either diff -- its reference must stay
     // identical across both applications, so downstream reference-equality
     // checks (e.g. React memoization) don't treat it as changed.
-    emitMessage(ws, { type: 'entities_diff', changed: { 'light.b': { state: 'on' } }, removed: [] });
-    emitMessage(ws, { type: 'entities_diff', changed: { 'light.b': { state: 'off' } }, removed: [] });
+    emitMessage(ws, {
+      type: 'entities_diff',
+      changed: { 'light.b': { state: 'on' } },
+      removed: [],
+    });
+    emitMessage(ws, {
+      type: 'entities_diff',
+      changed: { 'light.b': { state: 'off' } },
+      removed: [],
+    });
 
     expect(received).toHaveLength(2);
     expect(received[1]['light.a']).toBe(received[0]['light.a']);
@@ -118,5 +126,32 @@ describe('createRelayConnection entity diff handling', () => {
 
     expect(received).toHaveLength(2);
     expect(received[1]).toEqual({ 'light.b': { state: 'off' } });
+  });
+});
+
+describe('createRelayConnection health checks', () => {
+  const open = async () => {
+    const connPromise = createRelayConnection();
+    const ws = instances[0];
+    ws.sent = [];
+    ws.send = (raw) => ws.sent.push(JSON.parse(raw));
+    ws.readyState = 1;
+    emitMessage(ws, { type: 'entities', data: {} });
+    return { conn: await connPromise, ws };
+  };
+
+  it('reports whether the relay socket is still open', async () => {
+    const { conn, ws } = await open();
+    expect(conn.connected).toBe(true);
+    ws.readyState = 3;
+    expect(conn.connected).toBe(false);
+  });
+
+  it('pings Home Assistant through the relay', async () => {
+    const { conn, ws } = await open();
+    const pong = conn.ping();
+    expect(ws.sent).toEqual([{ type: 'forward', id: 1, payload: { type: 'ping' } }]);
+    emitMessage(ws, { type: 'response', id: 1, result: null });
+    await expect(pong).resolves.toBeNull();
   });
 });
