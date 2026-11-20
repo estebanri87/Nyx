@@ -3,11 +3,27 @@ import { getIconComponent } from '../../icons';
 import { ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 
 /* -- Styles ---------------------------------------------------------- */
+// A requested position the motor never reaches would otherwise stay on screen for good.
+const DRAFT_TIMEOUT_MS = 10_000;
+
+// Fixed positions (raw Home Assistant values, 0 = closed) offered as chips on the large card.
+const POSITION_PRESETS = [
+  { position: 0, labelKey: 'cover.closed' },
+  { position: 50, labelKey: 'cover.half' },
+  { position: 100, labelKey: 'cover.open' },
+];
+
 const CONTROL_STYLE =
   'bg-black/5 border border-[var(--glass-border)] ring-1 ring-white/5 shadow-inner';
+// Small card Open and Close sit in a 40 px bar. These stretch the tap target to 44x44 over the
+// empty gap and padding around them, so the bar keeps its size and nothing else is covered.
+const OPEN_HIT_AREA =
+  'relative after:absolute after:-inset-y-2 after:-right-1.5 after:-left-[22px]';
+const CLOSE_HIT_AREA =
+  'relative after:absolute after:-inset-y-2 after:-right-[22px] after:-left-1.5';
 
 /* -- Vertical Blind Slider ------------------------------------------- */
-const BlindSlider = ({ position, onChange, onCommit, accent, isUnavailable }) => {
+const BlindSlider = ({ position, onChange, onCommit, onCancel, accent, isUnavailable }) => {
   const containerRef = useRef(null);
   const isDragging = useRef(false);
 
@@ -34,6 +50,13 @@ const BlindSlider = ({ position, onChange, onCommit, accent, isUnavailable }) =>
     if (val !== null) onChange(val);
   };
 
+  // A cancelled gesture (scroll takeover, system interruption) must not move the cover.
+  const handlePointerCancel = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    onCancel?.();
+  };
+
   const handlePointerUp = (e) => {
     if (isDragging.current) {
       isDragging.current = false;
@@ -52,7 +75,7 @@ const BlindSlider = ({ position, onChange, onCommit, accent, isUnavailable }) =>
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       className={`relative h-full w-full overflow-hidden rounded-2xl ${isUnavailable ? 'cursor-not-allowed opacity-50' : 'cursor-ns-resize touch-none'} ${CONTROL_STYLE}`}
     >
       {/* The Blind (Fills from top) */}
@@ -84,7 +107,14 @@ const BlindSlider = ({ position, onChange, onCommit, accent, isUnavailable }) =>
 };
 
 /* -- Horizontal Blind Slider (Small Card) --------------------------- */
-const HorizontalBlindSlider = ({ position, onChange, onCommit, accent, isUnavailable }) => {
+const HorizontalBlindSlider = ({
+  position,
+  onChange,
+  onCommit,
+  onCancel,
+  accent,
+  isUnavailable,
+}) => {
   const containerRef = useRef(null);
   const isDragging = useRef(false);
 
@@ -112,6 +142,13 @@ const HorizontalBlindSlider = ({ position, onChange, onCommit, accent, isUnavail
     if (val !== null) onChange(val);
   };
 
+  // A cancelled gesture (scroll takeover, system interruption) must not move the cover.
+  const handlePointerCancel = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    onCancel?.();
+  };
+
   const handlePointerUp = (e) => {
     if (isDragging.current) {
       isDragging.current = false;
@@ -131,7 +168,7 @@ const HorizontalBlindSlider = ({ position, onChange, onCommit, accent, isUnavail
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       className={`relative h-full w-full overflow-hidden rounded-xl ${isUnavailable ? 'cursor-not-allowed opacity-50' : 'cursor-ew-resize touch-none'} ${CONTROL_STYLE}`}
     >
       {/* Fill from left */}
@@ -160,7 +197,14 @@ const HorizontalBlindSlider = ({ position, onChange, onCommit, accent, isUnavail
 };
 
 /* -- Button Control Component ---------------------------------------- */
-const ButtonControl = ({ onOpen, onClose, onStop, isUnavailable, horizontal = false }) => {
+const ButtonControl = ({
+  onOpen,
+  onClose,
+  onStop,
+  isUnavailable,
+  supportsStop = true,
+  horizontal = false,
+}) => {
   if (horizontal) {
     return (
       <div
@@ -172,27 +216,29 @@ const ButtonControl = ({ onOpen, onClose, onStop, isUnavailable, horizontal = fa
             onOpen();
           }}
           disabled={isUnavailable}
-          className="flex h-full flex-1 items-center justify-center rounded-xl bg-white/5 text-[var(--text-secondary)] transition-all hover:bg-white/10 hover:text-[var(--text-primary)] active:scale-95"
+          className={`flex h-full flex-1 items-center justify-center rounded-xl bg-white/5 text-[var(--text-secondary)] transition-all hover:bg-white/10 hover:text-[var(--text-primary)] active:scale-95 ${OPEN_HIT_AREA}`}
         >
           <ChevronUp className="h-5 w-5" />
         </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onStop();
-          }}
-          disabled={isUnavailable}
-          className="flex h-full w-10 items-center justify-center rounded-xl bg-white/5 text-[var(--text-secondary)] transition-all hover:bg-white/10 hover:text-[var(--text-primary)] active:scale-95"
-        >
-          <div className="h-2 w-2 rounded-sm bg-current" />
-        </button>
+        {supportsStop && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onStop();
+            }}
+            disabled={isUnavailable}
+            className="flex h-full w-10 items-center justify-center rounded-xl bg-white/5 text-[var(--text-secondary)] transition-all hover:bg-white/10 hover:text-[var(--text-primary)] active:scale-95"
+          >
+            <div className="h-2 w-2 rounded-sm bg-current" />
+          </button>
+        )}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onClose();
           }}
           disabled={isUnavailable}
-          className="flex h-full flex-1 items-center justify-center rounded-xl bg-white/5 text-[var(--text-secondary)] transition-all hover:bg-white/10 hover:text-[var(--text-primary)] active:scale-95"
+          className={`flex h-full flex-1 items-center justify-center rounded-xl bg-white/5 text-[var(--text-secondary)] transition-all hover:bg-white/10 hover:text-[var(--text-primary)] active:scale-95 ${CLOSE_HIT_AREA}`}
         >
           <ChevronDown className="h-5 w-5" />
         </button>
@@ -213,16 +259,18 @@ const ButtonControl = ({ onOpen, onClose, onStop, isUnavailable, horizontal = fa
         <ChevronUp className="h-8 w-8 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]" />
       </button>
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onStop();
-        }}
-        disabled={isUnavailable}
-        className="group flex h-12 w-full items-center justify-center rounded-xl bg-white/5 transition-all hover:bg-white/10 active:scale-[0.98]"
-      >
-        <div className="h-3 w-3 rounded-sm bg-[var(--text-secondary)] group-hover:bg-[var(--text-primary)]" />
-      </button>
+      {supportsStop && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onStop();
+          }}
+          disabled={isUnavailable}
+          className="group flex h-12 w-full items-center justify-center rounded-xl bg-white/5 transition-all hover:bg-white/10 active:scale-[0.98]"
+        >
+          <div className="h-3 w-3 rounded-sm bg-[var(--text-secondary)] group-hover:bg-[var(--text-primary)]" />
+        </button>
+      )}
 
       <button
         onClick={(e) => {
@@ -258,7 +306,9 @@ const SmallCoverCard = (props) => {
     Icon,
     mode,
     supportsPosition,
+    supportsStop,
     handlePositionCommit,
+    resetLocalPos,
     setLocalPos,
     handleOpenCover,
     handleCloseCover,
@@ -314,6 +364,7 @@ const SmallCoverCard = (props) => {
             position={localPos}
             onChange={setLocalPos}
             onCommit={handlePositionCommit}
+            onCancel={resetLocalPos}
             accent={accent}
             isUnavailable={isUnavailable}
           />
@@ -323,6 +374,7 @@ const SmallCoverCard = (props) => {
             onClose={handleCloseCover}
             onStop={handleStopCover}
             isUnavailable={isUnavailable}
+            supportsStop={supportsStop}
             horizontal={true}
           />
         )}
@@ -368,6 +420,7 @@ const CoverCard = ({
   // Features
   const supportedFeatures = activeEntity.attributes?.supported_features ?? 0;
   const supportsPosition = (supportedFeatures & 4) !== 0;
+  const supportsStop = (supportedFeatures & 8) !== 0;
 
   const name = customNames[cardId] || activeEntity.attributes?.friendly_name || activeEntityId;
   const coverIconName = customIcons[cardId] || activeEntity?.attributes?.icon;
@@ -398,6 +451,16 @@ const CoverCard = ({
       setLocalPos(rawPosition);
     }
   }, [rawPosition]);
+
+  useEffect(() => {
+    if (typeof rawPosition !== 'number' || localPos === rawPosition) return undefined;
+    const timer = setTimeout(() => setLocalPos(rawPosition), DRAFT_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [localPos, rawPosition]);
+
+  const resetLocalPos = () => {
+    if (typeof rawPosition === 'number') setLocalPos(rawPosition);
+  };
 
   // Percentage shown to the user for the slider handle/number, honoring the
   // display-only invertPosition preference.
@@ -431,7 +494,10 @@ const CoverCard = ({
   const handlePositionCommit = (val) => {
     setLocalPos(val);
     if (!activeEntityId) return;
-    callService('cover', 'set_cover_position', { entity_id: activeEntityId, position: val });
+    // A refused or failed move puts the slider back where the cover really is.
+    Promise.resolve(
+      callService('cover', 'set_cover_position', { entity_id: activeEntityId, position: val })
+    ).catch(resetLocalPos);
   };
 
   const handleToggleMode = (e) => {
@@ -473,7 +539,9 @@ const CoverCard = ({
     Icon,
     mode,
     supportsPosition,
+    supportsStop,
     handlePositionCommit,
+    resetLocalPos,
     setLocalPos,
     handleOpenCover,
     handleCloseCover,
@@ -503,7 +571,7 @@ const CoverCard = ({
 
       {/* LEFT COLUMN: Info */}
       <div
-        className={`pointer-events-none z-10 flex min-w-0 flex-1 flex-col justify-between ${isDenseMobile ? 'pr-1.5' : 'pr-2'}`}
+        className={`@container pointer-events-none z-10 flex min-w-0 flex-1 flex-col justify-between ${isDenseMobile ? 'pr-1.5' : 'pr-2'}`}
       >
         {/* Top: Icon (Interactive for mode toggle) */}
         <div className="pointer-events-auto flex items-start">
@@ -549,6 +617,35 @@ const CoverCard = ({
             {name}
           </div>
 
+          {supportsPosition && (
+            <div
+              role="group"
+              aria-label={translate('cover.presets')}
+              className={`pointer-events-auto flex gap-1 @max-[8rem]:hidden ${isDenseMobile ? 'mt-1.5' : 'mt-2'}`}
+            >
+              {POSITION_PRESETS.map(({ position: preset, labelKey }) => {
+                const label = translate(labelKey);
+                const active = typeof rawPosition === 'number' && localPos === preset;
+                return (
+                  <button
+                    key={preset}
+                    type="button"
+                    aria-label={label}
+                    aria-pressed={active}
+                    disabled={isUnavailable}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePositionCommit(preset);
+                    }}
+                    className={`relative min-w-0 flex-auto rounded-full border border-[var(--glass-border)] px-1.5 py-1.5 text-[9px] leading-none font-bold tracking-wider uppercase transition-colors after:absolute after:inset-x-0 after:-inset-y-3 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 ${active ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)]' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                  >
+                    <span className="block truncate">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {isMoving && (
             <div
               className={`${isDenseMobile ? 'mt-0.5 text-[9px]' : 'mt-1 text-[10px]'} animate-pulse font-bold tracking-widest text-[var(--text-primary)] uppercase`}
@@ -571,6 +668,7 @@ const CoverCard = ({
             position={localPos}
             onChange={setLocalPos}
             onCommit={handlePositionCommit}
+            onCancel={resetLocalPos}
             accent={accent}
             isUnavailable={isUnavailable}
           />
@@ -580,6 +678,7 @@ const CoverCard = ({
             onClose={handleCloseCover}
             onStop={handleStopCover}
             isUnavailable={isUnavailable}
+            supportsStop={supportsStop}
           />
         )}
       </div>
