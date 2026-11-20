@@ -48,6 +48,18 @@ const LightCard = ({
   const isSmall = sizeSetting === 'small';
   const isDenseMobile = isMobile && !isSmall;
 
+  // Small cards show the brightness beside the slider; it follows the finger while dragging.
+  const brightnessPct = Math.round(((optimisticLightBrightness[cardId] ?? br) / 255) * 100);
+  const inlineValueIsNumber = !isUnavailable && isOn && isDimmable;
+  const inlineValue = isUnavailable
+    ? '--'
+    : inlineValueIsNumber
+      ? `${brightnessPct}%`
+      : isOn
+        ? t('common.on')
+        : t('common.off');
+  const inlineValueClass = `shrink-0 leading-none whitespace-nowrap ${isDimmable ? 'min-w-10 text-right' : 'text-left'} ${inlineValueIsNumber ? 'text-sm font-semibold text-[var(--text-primary)] tabular-nums' : 'text-[11px] font-bold tracking-widest text-[var(--text-secondary)] uppercase'}`;
+
   // Debounced brightness service call
   const debounceRef = useRef(null);
   useEffect(() => () => clearTimeout(debounceRef.current), []);
@@ -126,20 +138,25 @@ const LightCard = ({
               </span>
             )}
           </div>
-          <div className={`flex w-full items-center ${isDimmable ? 'h-6' : 'h-6'}`}>
+          <div className="flex h-6 w-full min-w-0 items-center gap-3">
             {isDimmable && (
-              <M3Slider
-                variant="thinLg"
-                min={0}
-                max={255}
-                step={1}
-                value={optimisticLightBrightness[cardId] ?? br}
-                disabled={isUnavailable}
-                onChange={handleBrightnessChange}
-                colorClass="bg-amber-500"
-                ariaLabel={t('light.brightness')}
-              />
+              <div className="min-w-0 flex-1">
+                <M3Slider
+                  variant="thinLg"
+                  min={0}
+                  max={255}
+                  step={1}
+                  value={optimisticLightBrightness[cardId] ?? br}
+                  disabled={isUnavailable}
+                  onChange={handleBrightnessChange}
+                  colorClass="bg-amber-500"
+                  ariaLabel={t('light.brightness')}
+                />
+              </div>
             )}
+            <span className={inlineValueClass} data-light-value>
+              {inlineValue}
+            </span>
           </div>
         </div>
       </div>

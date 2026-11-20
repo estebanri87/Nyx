@@ -26,6 +26,9 @@ function reloadForChunkErrorOnce() {
 }
 
 if (globalThis.window !== undefined) {
+  // iOS Safari only applies :active (used for the touch outline on cards) once a
+  // touchstart listener exists somewhere on the page.
+  globalThis.document.addEventListener('touchstart', () => {}, { passive: true });
   globalThis.window.addEventListener('unhandledrejection', (event) => {
     if (!isChunkLoadError(event?.reason)) return;
     reloadForChunkErrorOnce();
