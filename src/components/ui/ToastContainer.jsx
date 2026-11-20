@@ -30,7 +30,7 @@ export default function ToastContainer() {
           <div
             key={toast.id}
             role="alert"
-            className="pointer-events-auto flex max-w-sm items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-md popup-anim"
+            className="popup-anim pointer-events-auto flex max-w-sm items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-md"
             style={{
               background: style.bg,
               border: `1px solid ${style.border}`,
