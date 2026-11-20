@@ -288,7 +288,7 @@ const TiltVisual = ({ tilt, onTiltChange, accent, disabled, translate }) => {
 const SEGMENT_BAR =
   'flex gap-1 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-1';
 const segmentClass = (active) =>
-  `min-w-0 flex-1 truncate rounded-lg py-2 text-center text-[11px] font-bold tracking-wider uppercase transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
+  `min-w-0 flex-auto truncate rounded-lg px-2 py-2 text-center text-[11px] font-bold tracking-wider uppercase transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
     active
       ? 'bg-[var(--glass-bg-hover)] text-[var(--text-primary)] shadow-sm'
       : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
