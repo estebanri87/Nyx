@@ -286,6 +286,7 @@
   "climate.hvac.dry": "Trocknen",
   "climate.hvac.fanOnly": "Nur Lüfter",
   "climate.hvac.heat": "Heizen",
+  "climate.hvac.heatCool": "Heizen/Kühlen",
   "climate.hvac.off": "Aus",
   "climate.indoorShort": "Innen",
   "climate.indoorTemp": "Innentemperatur",

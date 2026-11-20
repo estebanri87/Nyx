@@ -3,16 +3,7 @@ import { Minus, Plus, AirVent, Fan } from 'lucide-react';
 import { getIconComponent } from '../../icons';
 import { useConfig, useHomeAssistantMeta } from '../../contexts';
 import { formatKindValueForDisplay, getEffectiveUnitMode } from '../../utils';
-
-const isCoolingState = (entity) => {
-  const action = entity?.attributes?.hvac_action;
-  return action === 'cooling';
-};
-
-const isHeatingState = (entity) => {
-  const action = entity?.attributes?.hvac_action;
-  return action === 'heating';
-};
+import { getClimateStatus } from '../../utils/climateStatus';
 
 const normalizeFanModeToken = (value) => {
   if (typeof value !== 'string') return '';
@@ -96,10 +87,8 @@ const GenericClimateCard = memo(
     const Icon = climateIconName ? getIconComponent(climateIconName) : null;
 
     const translate = t || ((key) => key);
-    const isCooling = isCoolingState(entity);
-    const isHeating = isHeatingState(entity);
+    const { isCooling, isHeating, translationKey } = getClimateStatus(entity);
     const clTheme = isCooling ? 'blue' : isHeating ? 'orange' : 'gray';
-    const hvacAction = entity.attributes?.hvac_action || 'idle';
     const DisplayIcon = Icon || AirVent;
 
     const themeClasses = {
@@ -210,7 +199,7 @@ const GenericClimateCard = memo(
             <span
               className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}
             >
-              {translate('climate.action.' + hvacAction)}
+              {translate(translationKey)}
             </span>
           </div>
         </div>

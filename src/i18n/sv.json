@@ -286,6 +286,7 @@
   "climate.hvac.dry": "Torr",
   "climate.hvac.fanOnly": "Endast fläkt",
   "climate.hvac.heat": "Värme",
+  "climate.hvac.heatCool": "Värme/kyla",
   "climate.hvac.off": "Av",
   "climate.indoorShort": "Inne",
   "climate.indoorTemp": "Innertemperatur",

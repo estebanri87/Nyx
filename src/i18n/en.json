@@ -286,6 +286,7 @@
   "climate.hvac.dry": "Dry",
   "climate.hvac.fanOnly": "Fan only",
   "climate.hvac.heat": "Heat",
+  "climate.hvac.heatCool": "Heat/cool",
   "climate.hvac.off": "Off",
   "climate.indoorShort": "Indoor",
   "climate.indoorTemp": "Indoor temperature",

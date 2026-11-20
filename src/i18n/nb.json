@@ -286,6 +286,7 @@
   "climate.hvac.dry": "Tørking",
   "climate.hvac.fanOnly": "Vifte",
   "climate.hvac.heat": "Varme",
+  "climate.hvac.heatCool": "Varme/kjøling",
   "climate.hvac.off": "Av",
   "climate.indoorShort": "Inne",
   "climate.indoorTemp": "Innetemperatur",

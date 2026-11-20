@@ -286,6 +286,7 @@
   "climate.hvac.dry": "Sec",
   "climate.hvac.fanOnly": "Ventilateur seul",
   "climate.hvac.heat": "Chaud",
+  "climate.hvac.heatCool": "Chauffage/climatisation",
   "climate.hvac.off": "Éteint",
   "climate.indoorShort": "Intérieur",
   "climate.indoorTemp": "Température intérieure",

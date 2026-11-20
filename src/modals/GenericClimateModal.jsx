@@ -4,6 +4,7 @@ import ModernDropdown from '../components/ui/ModernDropdown';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import { useConfig, useHomeAssistantMeta } from '../contexts';
 import { formatKindValueForDisplay, getEffectiveUnitMode } from '../utils';
+import { getClimateStatus } from '../utils/climateStatus';
 
 const getDisplayName = (entity, fallback) => entity?.attributes?.friendly_name || fallback;
 
@@ -22,9 +23,7 @@ export default function GenericClimateModal({
 
   if (!entityId || !entity) return null;
 
-  const hvacAction = entity.attributes?.hvac_action || 'idle';
-  const isCooling = hvacAction === 'cooling';
-  const isHeating = hvacAction === 'heating';
+  const { isCooling, isHeating, translationKey } = getClimateStatus(entity);
   const clTheme = isCooling ? 'blue' : isHeating ? 'orange' : 'gray';
   const currentTemp = entity.attributes?.current_temperature;
   const targetTemp = entity.attributes?.temperature;
@@ -133,7 +132,7 @@ export default function GenericClimateModal({
                 }}
               >
                 <p className="text-[10px] font-bold tracking-widest uppercase italic">
-                  {t('climate.action.' + hvacAction)}
+                  {t(translationKey)}
                 </p>
               </div>
             </div>
