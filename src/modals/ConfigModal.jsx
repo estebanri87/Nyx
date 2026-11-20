@@ -42,6 +42,7 @@ import {
   Trash2,
   Edit2,
 } from '../icons';
+import { useDialog } from '../contexts/DialogContext';
 
 const SETTINGS_STATIC_VERSION = __APP_VERSION__;
 
@@ -110,6 +111,7 @@ export default function ConfigModal({
   // Profiles & templates
   profiles,
 }) {
+  const dialog = useDialog();
   const [runningVersion, setRunningVersion] = useState(SETTINGS_STATIC_VERSION);
   const [installingIds, setInstallingIds] = useState({});
   const [expandedNotes, setExpandedNotes] = useState({});
@@ -680,9 +682,15 @@ export default function ConfigModal({
                           <Edit2 className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => {
-                            if (globalThis.confirm(t('profiles.confirmDelete')))
-                              removeProfile(profile.id);
+                          onClick={async () => {
+                            const confirmed = await dialog.confirm({
+                              title: t('profiles.delete'),
+                              message: t('profiles.confirmDelete'),
+                              confirmLabel: t('common.delete'),
+                              cancelLabel: t('common.cancel'),
+                              destructive: true,
+                            });
+                            if (confirmed) removeProfile(profile.id);
                           }}
                           className="rounded-lg p-1.5 text-[var(--text-secondary)] transition-all hover:bg-[var(--status-error-bg)] hover:text-[var(--status-error-fg)]"
                         >
@@ -811,9 +819,17 @@ export default function ConfigModal({
                       <button
                         type="button"
                         onClick={() => {
-                          if (window.confirm(t('profiles.autoSyncOverwriteConfirm'))) {
-                            autoSync.overwriteServerWithLocal?.().catch(() => {});
-                          }
+                          dialog
+                            .confirm({
+                              title: t('profiles.autoSyncOverwrite'),
+                              message: t('profiles.autoSyncOverwriteConfirm'),
+                              confirmLabel: t('profiles.autoSyncOverwrite'),
+                              cancelLabel: t('common.cancel'),
+                              destructive: true,
+                            })
+                            .then((confirmed) => {
+                              if (confirmed) autoSync.overwriteServerWithLocal?.().catch(() => {});
+                            });
                         }}
                         className="mt-2 rounded-lg border border-[var(--glass-border)] px-3 py-2 font-bold"
                       >
@@ -957,17 +973,20 @@ export default function ConfigModal({
                                 <button
                                   type="button"
                                   disabled={isRenaming}
-                                  onClick={(event) => {
+                                  onClick={async (event) => {
                                     event.preventDefault();
                                     event.stopPropagation();
                                     const currentLabel =
                                       typeof entry.device_label === 'string'
                                         ? entry.device_label
                                         : '';
-                                    const nextLabel = globalThis.prompt(
-                                      t('profiles.autoSyncRenameDevicePrompt'),
-                                      currentLabel
-                                    );
+                                    const nextLabel = await dialog.prompt({
+                                      title: t('profiles.autoSyncRenameDevice'),
+                                      message: t('profiles.autoSyncRenameDevicePrompt'),
+                                      confirmLabel: t('common.confirm'),
+                                      cancelLabel: t('common.cancel'),
+                                      defaultValue: currentLabel,
+                                    });
                                     if (nextLabel === null) return;
                                     autoSync.renameKnownDevice(entry.device_id, nextLabel);
                                   }}
@@ -980,15 +999,17 @@ export default function ConfigModal({
                                   <button
                                     type="button"
                                     disabled={isRemoving || isRenaming}
-                                    onClick={(event) => {
+                                    onClick={async (event) => {
                                       event.preventDefault();
                                       event.stopPropagation();
-                                      if (
-                                        !globalThis.confirm(
-                                          t('profiles.autoSyncRemoveDeviceConfirm')
-                                        )
-                                      )
-                                        return;
+                                      const confirmed = await dialog.confirm({
+                                        title: t('profiles.autoSyncRemoveDevice'),
+                                        message: t('profiles.autoSyncRemoveDeviceConfirm'),
+                                        confirmLabel: t('common.delete'),
+                                        cancelLabel: t('common.cancel'),
+                                        destructive: true,
+                                      });
+                                      if (!confirmed) return;
                                       autoSync.removeKnownDevice(entry.device_id);
                                       setPublishTargets((prev) =>
                                         prev.filter((id) => id !== entry.device_id)
@@ -1141,8 +1162,15 @@ export default function ConfigModal({
           </h3>
           <div className="popup-surface p-4">
             <button
-              onClick={() => {
-                if (globalThis.confirm(t('profiles.confirmBlank'))) startBlank();
+              onClick={async () => {
+                const confirmed = await dialog.confirm({
+                  title: t('profiles.startBlank'),
+                  message: t('profiles.confirmBlank'),
+                  confirmLabel: t('profiles.startBlank'),
+                  cancelLabel: t('common.cancel'),
+                  destructive: true,
+                });
+                if (confirmed) startBlank();
               }}
               className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] py-2.5 text-sm font-bold text-[var(--text-secondary)] transition-all hover:border-[var(--status-error-border)] hover:bg-[var(--status-error-bg)] hover:text-[var(--status-error-fg)]"
             >

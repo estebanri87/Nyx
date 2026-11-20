@@ -159,7 +159,7 @@ describe('usePageManagement › deletePage', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
   });
 
-  it('removes the page from config and settings', () => {
+  it('removes the page from config and settings', async () => {
     const props = makeProps({
       pagesConfig: { pages: ['home', 'kitchen'], home: [], kitchen: ['c1'] },
       pageSettings: { kitchen: { label: 'Kitchen' } },
@@ -167,7 +167,7 @@ describe('usePageManagement › deletePage', () => {
     });
     const { result } = renderHook(() => usePageManagement(props));
 
-    act(() => result.current.deletePage('kitchen'));
+    await act(async () => result.current.deletePage('kitchen'));
 
     expect(props.persistConfig).toHaveBeenCalledWith(expect.objectContaining({ pages: ['home'] }));
     expect(props.persistPageSettings).toHaveBeenCalledWith(
@@ -176,33 +176,33 @@ describe('usePageManagement › deletePage', () => {
     expect(props.setActivePage).toHaveBeenCalledWith('home');
   });
 
-  it('does nothing for the home page', () => {
+  it('does nothing for the home page', async () => {
     const props = makeProps();
     const { result } = renderHook(() => usePageManagement(props));
 
-    act(() => result.current.deletePage('home'));
+    await act(async () => result.current.deletePage('home'));
 
     expect(props.persistConfig).not.toHaveBeenCalled();
   });
 
-  it('does nothing when user cancels confirmation', () => {
+  it('does nothing when user cancels confirmation', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false);
     const props = makeProps({
       pagesConfig: { pages: ['home', 'kitchen'], home: [], kitchen: [] },
     });
     const { result } = renderHook(() => usePageManagement(props));
 
-    act(() => result.current.deletePage('kitchen'));
+    await act(async () => result.current.deletePage('kitchen'));
 
     expect(props.persistConfig).not.toHaveBeenCalled();
   });
 
-  it('does nothing for null/undefined pageId', () => {
+  it('does nothing for null/undefined pageId', async () => {
     const props = makeProps();
     const { result } = renderHook(() => usePageManagement(props));
 
-    act(() => result.current.deletePage(null));
-    act(() => result.current.deletePage(undefined));
+    await act(async () => result.current.deletePage(null));
+    await act(async () => result.current.deletePage(undefined));
 
     expect(props.persistConfig).not.toHaveBeenCalled();
   });

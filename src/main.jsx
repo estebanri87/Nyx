@@ -9,6 +9,7 @@ import { PageProvider } from './contexts/PageContext';
 import { ToastProvider } from './contexts/ToastContext';
 import ToastContainer from './components/ui/ToastContainer';
 import { claimChunkReload } from './utils/chunkReload';
+import { DialogProvider } from './contexts/DialogContext';
 
 function isChunkLoadError(error) {
   const message = String(error?.message || error || '').toLowerCase();
@@ -122,13 +123,15 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
       <ToastProvider>
-        <ConfigProvider>
-          <PageProvider>
-            <HashRouter>
-              <App />
-            </HashRouter>
-          </PageProvider>
-        </ConfigProvider>
+        <DialogProvider>
+          <ConfigProvider>
+            <PageProvider>
+              <HashRouter>
+                <App />
+              </HashRouter>
+            </PageProvider>
+          </ConfigProvider>
+        </DialogProvider>
         <ToastContainer />
       </ToastProvider>
     </ErrorBoundary>

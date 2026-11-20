@@ -2,6 +2,7 @@ import { useEffect, useState, memo } from 'react';
 import { AlertTriangle, Key, Lock, Unlock } from '../../icons';
 import { getIconComponent } from '../../icons';
 import { useConfirmTap } from '../../hooks/useConfirmTap';
+import { useDialog } from '../../contexts/DialogContext';
 
 const FEATURE_OPEN = 1;
 const normalizeState = (state) => String(state || 'unknown').toLowerCase();
@@ -33,6 +34,7 @@ const LockCard = memo(
     t,
   }) {
     const entity = entities[lockId];
+    const dialog = useDialog();
     const [confirmUnlock, setConfirmUnlock] = useState(false);
     const { armedKey, confirmTap, disarm } = useConfirmTap();
     const confirmOpen = armedKey === 'open';
@@ -101,14 +103,26 @@ const LockCard = memo(
           ? 'border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)]'
           : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]';
 
-    const buildServicePayload = () => {
-      const payload = { entity_id: lockId };
-      if (!requiresCode) return payload;
-      const code = globalThis.window?.prompt?.(t('lock.code.prompt'));
-      if (code === null || code === undefined) return null;
-      const trimmed = code.trim();
-      if (trimmed) payload.code = trimmed;
-      return payload;
+    // Calls the lock service at once, or after asking for the code when the lock needs one.
+    const runWithPayload = (service) => {
+      if (!requiresCode) {
+        callService('lock', service, { entity_id: lockId });
+        return;
+      }
+      dialog
+        .prompt({
+          title: t('lock.code.prompt'),
+          confirmLabel: t('common.ok'),
+          cancelLabel: t('common.cancel'),
+          inputType: 'password',
+        })
+        .then((code) => {
+          if (code === null || code === undefined) return;
+          const payload = { entity_id: lockId };
+          const trimmed = code.trim();
+          if (trimmed) payload.code = trimmed;
+          callService('lock', service, payload);
+        });
     };
 
     const runLockService = (event) => {
@@ -116,9 +130,7 @@ const LockCard = memo(
       setConfirmUnlock(false);
       disarm();
       if (isActionDisabled || isLocked) return;
-      const payload = buildServicePayload();
-      if (!payload) return;
-      callService('lock', 'lock', payload);
+      runWithPayload('lock');
     };
 
     const runUnlockService = (event) => {
@@ -130,9 +142,7 @@ const LockCard = memo(
         return;
       }
       setConfirmUnlock(false);
-      const payload = buildServicePayload();
-      if (!payload) return;
-      callService('lock', 'unlock', payload);
+      runWithPayload('unlock');
     };
 
     const runOpenService = (event) => {
@@ -140,11 +150,7 @@ const LockCard = memo(
       setConfirmUnlock(false);
       if (isActionDisabled || !supportsOpen || isOpen) return;
       // Opening releases the door itself, so it needs a second tap like unlocking.
-      confirmTap('open', () => {
-        const payload = buildServicePayload();
-        if (!payload) return;
-        callService('lock', 'open', payload);
-      });
+      confirmTap('open', () => runWithPayload('open'));
     };
 
     const lockButtonDisabled = isActionDisabled || isLocked;

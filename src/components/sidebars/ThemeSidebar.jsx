@@ -19,6 +19,7 @@ import {
   Feather,
 } from '../../icons';
 import SidebarContainer from './SidebarContainer';
+import { useDialog } from '../../contexts/DialogContext';
 
 const APP_FONT_OPTIONS = ['sans', 'Inter', 'Roboto', 'Lato', 'Montserrat', 'Open Sans', 'Raleway'];
 
@@ -70,6 +71,7 @@ export default function ThemeSidebar({
   inactivityTimeout,
   setInactivityTimeout,
 }) {
+  const dialog = useDialog();
   const {
     unitsMode,
     setUnitsMode,
@@ -183,8 +185,14 @@ export default function ThemeSidebar({
     setLockError('');
   };
 
-  const handleDisableLock = () => {
-    const pin = window.prompt(t('settings.lock.enterPinToDisable'));
+  const handleDisableLock = async () => {
+    const pin = await dialog.prompt({
+      title: t('settings.lock.disable'),
+      message: t('settings.lock.enterPinToDisable'),
+      confirmLabel: t('common.confirm'),
+      cancelLabel: t('common.cancel'),
+      inputType: 'password',
+    });
     if (pin === null) return;
     if (!unlockSettingsLock(pin)) {
       setLockError(t('settings.lock.pinIncorrect'));

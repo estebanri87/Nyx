@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import LockCard from '../components/cards/LockCard';
 
@@ -155,7 +155,7 @@ describe('LockCard', () => {
     }
   });
 
-  it('includes a user code when Home Assistant advertises a lock code format', () => {
+  it('includes a user code when Home Assistant advertises a lock code format', async () => {
     vi.spyOn(window, 'prompt').mockReturnValue('2468');
     const { props, callService } = baseProps({
       entities: {
@@ -175,6 +175,7 @@ describe('LockCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Unlock' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm unlock' }));
     expect(window.prompt).toHaveBeenCalledWith('Enter lock code');
+    await waitFor(() => expect(callService).toHaveBeenCalled());
     expect(callService).toHaveBeenCalledWith('lock', 'unlock', {
       entity_id: 'lock.front_door',
       code: '2468',

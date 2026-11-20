@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { getEntitiesForArea } from '../../services/haClient';
+import { useDialog } from '../../contexts/DialogContext';
 
 export function RoomSettingsSection({
   conn,
@@ -11,6 +12,7 @@ export function RoomSettingsSection({
   t,
   pageOptions = [],
 }) {
+  const dialog = useDialog();
   const [refreshing, setRefreshing] = React.useState(false);
   const [query, setQuery] = React.useState('');
   const [domainFilter, setDomainFilter] = React.useState('all');
@@ -110,11 +112,16 @@ export function RoomSettingsSection({
     roomEntityIds.length > 0 && roomEntityIds.every((id) => excludedEntityIds.includes(id));
   const hasExcludedDomainEntities = roomEntityIds.some((id) => excludedEntityIds.includes(id));
 
-  const handleExcludeAllEntities = () => {
+  const handleExcludeAllEntities = async () => {
     if (!roomEntityIds.length || areAllDomainEntitiesExcluded) return;
-    const confirmed = globalThis.confirm(
-      t('room.excludeAllConfirm') || 'Are you sure you want to exclude all entities in this room?'
-    );
+    const confirmed = await dialog.confirm({
+      title: t('room.excludeAll'),
+      message:
+        t('room.excludeAllConfirm') ||
+        'Are you sure you want to exclude all entities in this room?',
+      confirmLabel: t('room.excludeAll'),
+      cancelLabel: t('common.cancel'),
+    });
     if (!confirmed) return;
     const mergedExcluded = Array.from(
       new Set([

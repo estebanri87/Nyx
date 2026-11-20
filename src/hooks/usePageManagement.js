@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useOptionalToast } from '../contexts/ToastContext';
+import { useDialog } from '../contexts/DialogContext';
 
 /** @typedef {import('../types/dashboard').UsePageManagementDeps} UsePageManagementDeps */
 /** @typedef {import('../types/dashboard').UsePageManagementResult} UsePageManagementResult */
@@ -28,6 +29,7 @@ export function usePageManagement({
   const [newPageIcon, setNewPageIcon] = useState(null);
   const [editingPage, setEditingPage] = useState(null);
   const addToast = useOptionalToast()?.addToast;
+  const dialog = useDialog();
 
   // An Undo tapped later must not write back the config from before the removal.
   const pagesConfigRef = useRef(pagesConfig);
@@ -166,9 +168,16 @@ export function usePageManagement({
     });
 
   // ── Delete a page ──────────────────────────────────────────────────────
-  const deletePage = (pageId) => {
+  const deletePage = async (pageId) => {
     if (!pageId || pageId === 'home') return;
-    if (!window.confirm(t('confirm.deletePage'))) return;
+    const confirmed = await dialog.confirm({
+      title: t('common.delete'),
+      message: t('confirm.deletePage'),
+      confirmLabel: t('common.delete'),
+      cancelLabel: t('common.cancel'),
+      destructive: true,
+    });
+    if (!confirmed) return;
 
     const newConfig = { ...pagesConfig };
     newConfig.pages = (newConfig.pages || []).filter((id) => id !== pageId);
