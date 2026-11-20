@@ -385,7 +385,11 @@ const CoverCard = ({
   // what's actually sent to Home Assistant.
   const rawPosition = activeEntity.attributes?.current_position;
   const position =
-    typeof rawPosition === 'number' ? (invertPosition ? 100 - rawPosition : rawPosition) : rawPosition;
+    typeof rawPosition === 'number'
+      ? invertPosition
+        ? 100 - rawPosition
+        : rawPosition
+      : rawPosition;
   const [localPos, setLocalPos] = useState(rawPosition ?? 0);
   const isDraggingRef = useRef(false);
 
@@ -498,7 +502,9 @@ const CoverCard = ({
       {controls}
 
       {/* LEFT COLUMN: Info */}
-      <div className={`pointer-events-none z-10 flex min-w-0 flex-1 flex-col justify-between ${isDenseMobile ? 'pr-1.5' : 'pr-2'}`}>
+      <div
+        className={`pointer-events-none z-10 flex min-w-0 flex-1 flex-col justify-between ${isDenseMobile ? 'pr-1.5' : 'pr-2'}`}
+      >
         {/* Top: Icon (Interactive for mode toggle) */}
         <div className="pointer-events-auto flex items-start">
           <div
@@ -506,7 +512,9 @@ const CoverCard = ({
             className={`flex cursor-pointer items-center justify-center border border-[var(--glass-border)] bg-[var(--glass-bg-hover)] shadow-sm transition-all group-hover:scale-110 hover:bg-white/10 active:scale-90 ${isDenseMobile ? 'h-10 w-10 rounded-xl' : 'h-12 w-12 rounded-2xl'}`}
             style={{ color: accent.text }}
           >
-            <Icon className={`${isDenseMobile ? 'h-5 w-5' : 'h-6 w-6'} stroke-[1.5px] ${isMoving ? 'animate-pulse' : ''}`} />
+            <Icon
+              className={`${isDenseMobile ? 'h-5 w-5' : 'h-6 w-6'} stroke-[1.5px] ${isMoving ? 'animate-pulse' : ''}`}
+            />
           </div>
         </div>
 
@@ -515,26 +523,36 @@ const CoverCard = ({
           <div className="flex items-baseline gap-1">
             {typeof position === 'number' ? (
               <>
-                <span className={`${isDenseMobile ? 'text-3xl' : 'text-4xl'} leading-none font-thin text-[var(--text-primary)] tabular-nums`}>
+                <span
+                  className={`${isDenseMobile ? 'text-3xl' : 'text-4xl'} leading-none font-thin text-[var(--text-primary)] tabular-nums`}
+                >
                   {localDisplayPos}
                 </span>
-                <span className={`${isDenseMobile ? 'text-lg' : 'text-xl'} leading-none font-light text-[var(--text-secondary)]`}>
+                <span
+                  className={`${isDenseMobile ? 'text-lg' : 'text-xl'} leading-none font-light text-[var(--text-secondary)]`}
+                >
                   %
                 </span>
               </>
             ) : (
-              <span className={`${isDenseMobile ? 'text-[1.55rem]' : 'text-3xl'} leading-none font-thin text-[var(--text-primary)] capitalize`}>
+              <span
+                className={`${isDenseMobile ? 'text-[1.55rem]' : 'text-3xl'} leading-none font-thin text-[var(--text-primary)] capitalize`}
+              >
                 {getStateLabel()}
               </span>
             )}
           </div>
 
-          <div className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} truncate font-bold tracking-wider text-[var(--text-secondary)] uppercase opacity-80`}>
+          <div
+            className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} truncate font-bold tracking-wider text-[var(--text-secondary)] uppercase opacity-80`}
+          >
             {name}
           </div>
 
           {isMoving && (
-            <div className={`${isDenseMobile ? 'mt-0.5 text-[9px]' : 'mt-1 text-[10px]'} animate-pulse font-bold tracking-widest text-[var(--text-primary)] uppercase`}>
+            <div
+              className={`${isDenseMobile ? 'mt-0.5 text-[9px]' : 'mt-1 text-[10px]'} animate-pulse font-bold tracking-widest text-[var(--text-primary)] uppercase`}
+            >
               {effectiveOpening
                 ? `${translate('cover.opening')}...`
                 : `${translate('cover.closing')}...`}
@@ -544,7 +562,10 @@ const CoverCard = ({
       </div>
 
       {/* RIGHT COLUMN: Control */}
-      <div className={`relative z-0 flex flex-col ${isDenseMobile ? 'w-12 pl-2' : 'w-14 pl-3'}`} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`relative z-0 flex flex-col ${isDenseMobile ? 'w-12 pl-2' : 'w-14 pl-3'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         {mode === 'slider' && supportsPosition ? (
           <BlindSlider
             position={localPos}
