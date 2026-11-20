@@ -366,93 +366,93 @@ export default function PersonModal({
             .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
             .leaflet-container { font-family: inherit; }
           `}</style>
-        <div className="absolute top-6 right-6 z-20 flex gap-3 md:top-10 md:right-10">
-          <button onClick={onClose} className="modal-close" aria-label={t('common.close')}>
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="mb-6 flex items-center gap-4 pr-12">
-          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] shadow-lg">
-            {picture && !pictureFailed ? (
-              <img
-                src={picture}
-                alt={name}
-                className={`h-full w-full object-cover transition-transform duration-700 hover:scale-110 ${isHome ? '' : 'grayscale opacity-75'}`}
-                onError={() => setPictureFailed(true)}
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-xl font-bold text-[var(--text-secondary)]">
-                {name?.charAt(0)}
-              </div>
-            )}
-            <div
-              className="absolute right-1 bottom-1 h-3.5 w-3.5 rounded-full border-2 border-[var(--card-bg)]"
-              style={{ backgroundColor: isHome ? 'var(--status-success-fg)' : '#71717a' }}
-            />
+          <div className="absolute top-6 right-6 z-20 flex gap-3 md:top-10 md:right-10">
+            <button onClick={onClose} className="modal-close" aria-label={t('common.close')}>
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <div className="min-w-0">
-            <h3
-              id={modalTitleId}
-              className="truncate text-3xl leading-none font-light tracking-tight text-[var(--text-primary)] uppercase italic"
-            >
-              {name}
-            </h3>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+
+          <div className="mb-6 flex items-center gap-4 pr-12">
+            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] shadow-lg">
+              {picture && !pictureFailed ? (
+                <img
+                  src={picture}
+                  alt={name}
+                  className={`h-full w-full object-cover transition-transform duration-700 hover:scale-110 ${isHome ? '' : 'opacity-75 grayscale'}`}
+                  onError={() => setPictureFailed(true)}
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-xl font-bold text-[var(--text-secondary)]">
+                  {name?.charAt(0)}
+                </div>
+              )}
               <div
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 ${
-                  isHome
-                    ? 'border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)]'
-                    : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
-                }`}
+                className="absolute right-1 bottom-1 h-3.5 w-3.5 rounded-full border-2 border-[var(--card-bg)]"
+                style={{ backgroundColor: isHome ? 'var(--status-success-fg)' : '#71717a' }}
+              />
+            </div>
+            <div className="min-w-0">
+              <h3
+                id={modalTitleId}
+                className="truncate text-3xl leading-none font-light tracking-tight text-[var(--text-primary)] uppercase italic"
               >
-                <MapPin className="h-3 w-3" />
-                <span className="text-[10px] font-bold tracking-widest uppercase italic">
-                  {statusLabel}
-                </span>
+                {name}
+              </h3>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <div
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 ${
+                    isHome
+                      ? 'border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)]'
+                      : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
+                  }`}
+                >
+                  <MapPin className="h-3 w-3" />
+                  <span className="text-[10px] font-bold tracking-widest uppercase italic">
+                    {statusLabel}
+                  </span>
+                </div>
+                {lastUpdated && (
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-1 text-[var(--text-secondary)]">
+                    <Clock className="h-3 w-3" />
+                    <span className="text-[10px] font-bold tracking-widest uppercase">
+                      {lastUpdatedText}
+                    </span>
+                  </div>
+                )}
               </div>
-              {lastUpdated && (
-                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-1 text-[var(--text-secondary)]">
-                  <Clock className="h-3 w-3" />
-                  <span className="text-[10px] font-bold tracking-widest uppercase">
-                    {lastUpdatedText}
+            </div>
+          </div>
+
+          <div className="grid h-full grid-cols-1 items-start gap-6 lg:grid-cols-5">
+            <section className="min-w-0 lg:col-span-3">
+              {currentLat && currentLon ? (
+                <div className="group relative z-0 h-[clamp(20rem,35vw,30rem)] w-full overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] shadow-inner">
+                  <div
+                    ref={mapRef}
+                    className="z-0 h-full w-full opacity-80 transition-opacity duration-500 group-hover:opacity-100"
+                  />
+                  <div className="pointer-events-none absolute top-4 left-4 z-[1000] flex items-center gap-2 rounded-xl border border-[var(--glass-border)] bg-[var(--card-bg)]/85 px-4 py-2 shadow-lg backdrop-blur-md">
+                    <Navigation className="h-3 w-3 text-[var(--accent-color)]" />
+                    <div className="min-w-0">
+                      <span className="block text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase">
+                        {t('map.lastSeenHere')}
+                      </span>
+                      {trackerLabel && (
+                        <span className="block max-w-[16rem] truncate text-xs text-[var(--text-primary)]">
+                          {trackerLabel}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex h-[clamp(20rem,35vw,30rem)] flex-col items-center justify-center rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)]/50 p-6 text-center">
+                  <MapPin className="mb-4 h-16 w-16 opacity-20" />
+                  <span className="text-xs font-bold tracking-widest uppercase opacity-50">
+                    {t('map.locationUnknown')}
                   </span>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid h-full grid-cols-1 items-start gap-6 lg:grid-cols-5">
-          <section className="min-w-0 lg:col-span-3">
-            {currentLat && currentLon ? (
-              <div className="group relative z-0 h-[clamp(20rem,35vw,30rem)] w-full overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] shadow-inner">
-                <div
-                  ref={mapRef}
-                  className="z-0 h-full w-full opacity-80 transition-opacity duration-500 group-hover:opacity-100"
-                />
-                <div className="pointer-events-none absolute top-4 left-4 z-[1000] flex items-center gap-2 rounded-xl border border-[var(--glass-border)] bg-[var(--card-bg)]/85 px-4 py-2 shadow-lg backdrop-blur-md">
-                  <Navigation className="h-3 w-3 text-[var(--accent-color)]" />
-                  <div className="min-w-0">
-                    <span className="block text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase">
-                      {t('map.lastSeenHere')}
-                    </span>
-                    {trackerLabel && (
-                      <span className="block max-w-[16rem] truncate text-xs text-[var(--text-primary)]">
-                        {trackerLabel}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex h-[clamp(20rem,35vw,30rem)] flex-col items-center justify-center rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)]/50 p-6 text-center">
-                <MapPin className="mb-4 h-16 w-16 opacity-20" />
-                <span className="text-xs font-bold tracking-widest uppercase opacity-50">
-                  {t('map.locationUnknown')}
-                </span>
-              </div>
-            )}
             </section>
 
             <aside className="space-y-4 lg:col-span-2">
@@ -491,9 +491,7 @@ export default function PersonModal({
               </div>
 
               {phoneBatteryInfo && <BatteryMeter info={phoneBatteryInfo} icon={Smartphone} />}
-              {watchBatteryInfo && (
-                <BatteryMeter info={watchBatteryInfo} icon={Watch} compact />
-              )}
+              {watchBatteryInfo && <BatteryMeter info={watchBatteryInfo} icon={Watch} compact />}
 
               {hasSensors && personExtraSensors.length > 0 && (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
