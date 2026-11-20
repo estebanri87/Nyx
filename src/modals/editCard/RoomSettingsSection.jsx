@@ -55,13 +55,11 @@ export function RoomSettingsSection({
             if (dc !== 'motion' && dc !== 'occupancy' && dc !== 'presence') return false;
           } else if (domainFilter === '_temperature') {
             const e = entities[id];
-            if (
-              !(
-                e?.attributes?.device_class === 'temperature' ||
-                id.includes('temperature') ||
-                id.includes('temp')
-              )
-            )
+            if (!(
+              e?.attributes?.device_class === 'temperature' ||
+              id.includes('temperature') ||
+              id.includes('temp')
+            ))
               return false;
           } else if (domainFilter === '_door') {
             const e = entities[id];
