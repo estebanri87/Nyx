@@ -1767,6 +1767,8 @@
   "energyFlow.status.idle": "Idle",
   "sensor.statusEntity": "Status entity",
   "sensor.statusEntityHint": "Show the state of this entity instead of the switch, e.g. a door contact for a garage door.",
+  "sensor.powerEntity": "Power sensor",
+  "sensor.powerEntityHint": "Show the current consumption from this sensor on the card, e.g. for a metering smart plug.",
   "sensor.pressAction": "Button action",
   "sensor.pressAction.toggle": "Toggle",
   "sensor.pressAction.turnOn": "Turn on",

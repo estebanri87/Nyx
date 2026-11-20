@@ -1767,6 +1767,8 @@
   "energyFlow.status.idle": "Hvile",
   "sensor.statusEntity": "Statusentitet",
   "sensor.statusEntityHint": "Vis tilstanden til denne entiteten i stedet for bryteren, f.eks. en dørkontakt for en garasjeport.",
+  "sensor.powerEntity": "Effektsensor",
+  "sensor.powerEntityHint": "Vis gjeldende forbruk fra denne sensoren på kortet, f.eks. for en smartplugg med måling.",
   "sensor.pressAction": "Knapphandling",
   "sensor.pressAction.toggle": "Bytt",
   "sensor.pressAction.turnOn": "Slå på",

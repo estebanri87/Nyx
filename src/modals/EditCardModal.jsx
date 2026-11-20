@@ -1151,6 +1151,20 @@ export default function EditCardModal({
       ),
     [entityEntries, sortByName]
   );
+  const powerSensorOptions = React.useMemo(
+    () =>
+      sortByName(
+        entityEntries
+          .filter(
+            ([id, entity]) =>
+              id.startsWith('sensor.') &&
+              (entity?.attributes?.device_class === 'power' ||
+                ['W', 'kW'].includes(entity?.attributes?.unit_of_measurement))
+          )
+          .map(([id]) => id)
+      ),
+    [entityEntries, sortByName]
+  );
   const cameraMotionSensorOptions = React.useMemo(
     () =>
       sortByName(
@@ -3025,6 +3039,21 @@ export default function EditCardModal({
                           />
                           <span className="block px-1 text-[10px] text-[var(--text-muted)]">
                             {t('sensor.statusEntityHint')}
+                          </span>
+                          <SearchableSelect
+                            label={t('sensor.powerEntity')}
+                            value={editSettings.powerEntityId || null}
+                            options={powerSensorOptions}
+                            onChange={(id) =>
+                              editSettingsKey &&
+                              saveCardSetting(editSettingsKey, 'powerEntityId', id)
+                            }
+                            placeholder={t('dropdown.noneSelected')}
+                            entities={entities}
+                            t={t}
+                          />
+                          <span className="block px-1 text-[10px] text-[var(--text-muted)]">
+                            {t('sensor.powerEntityHint')}
                           </span>
                           <div className="space-y-1">
                             <span className="block text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">

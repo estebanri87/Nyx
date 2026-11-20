@@ -1767,6 +1767,8 @@
   "energyFlow.status.idle": "Vilar",
   "sensor.statusEntity": "Statusentitet",
   "sensor.statusEntityHint": "Visa den här entitetens tillstånd i stället för strömbrytarens, t.ex. en dörrkontakt för en garageport.",
+  "sensor.powerEntity": "Effektsensor",
+  "sensor.powerEntityHint": "Visa aktuell förbrukning från den här sensorn på kortet, t.ex. för ett smart uttag med mätning.",
   "sensor.pressAction": "Knappåtgärd",
   "sensor.pressAction.toggle": "Växla",
   "sensor.pressAction.turnOn": "Slå på",

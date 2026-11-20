@@ -86,6 +86,12 @@ const SensorCard = memo(
         : isBinaryNumeric
           ? numericState === 1
           : false;
+    // Metered plugs/switches can show the live draw of a separate power sensor.
+    const powerEntity = settings?.powerEntityId ? entities?.[settings.powerEntityId] : null;
+    const powerValue = parseFloat(powerEntity?.state);
+    const powerText = Number.isFinite(powerValue)
+      ? `${formatUnitValue(powerValue)} ${powerEntity.attributes?.unit_of_measurement || 'W'}`
+      : null;
     // "trigger" actions send one fixed service call instead of toggling.
     const pressAction = settings?.pressAction || 'toggle';
     const isTriggerAction = pressAction === 'turn_on' || pressAction === 'turn_off';
@@ -814,6 +820,11 @@ const SensorCard = memo(
                         {displayNumericUnit}
                       </span>
                     )}
+                  {powerText && (
+                    <span className="ml-1 shrink-0 text-[10px] leading-none font-bold tracking-wider whitespace-nowrap text-[var(--text-secondary)] tabular-nums">
+                      · {powerText}
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -928,6 +939,14 @@ const SensorCard = memo(
                 </span>
               )}
             </div>
+          )}
+
+          {!isNumeric && showStatus && powerText && (
+            <span
+              className={`${useDenseMobileLargeLayout ? 'text-[1.2rem]' : 'text-2xl'} shrink-0 leading-none font-thin whitespace-nowrap text-[var(--text-primary)] tabular-nums`}
+            >
+              {powerText}
+            </span>
           )}
         </div>
 

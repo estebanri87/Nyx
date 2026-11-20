@@ -296,6 +296,40 @@ describe('SensorCard', () => {
     });
   });
 
+  describe('power sensor', () => {
+    const plugProps = (powerState, size) =>
+      baseProps({
+        entity: {
+          entity_id: 'switch.tv_schlafzimmer',
+          state: 'on',
+          attributes: { friendly_name: 'TV Schlafzimmer' },
+        },
+        entities: {
+          'sensor.tv_schlafzimmer_power': {
+            entity_id: 'sensor.tv_schlafzimmer_power',
+            state: powerState,
+            attributes: { device_class: 'power', unit_of_measurement: 'W' },
+          },
+        },
+        settings: { size, showControls: true, powerEntityId: 'sensor.tv_schlafzimmer_power' },
+      });
+
+    it('shows the current power next to the state in the small layout', () => {
+      render(<SensorCard {...plugProps('85.4', 'small')} />);
+      expect(screen.getByText('· 85.4 W')).not.toBeNull();
+    });
+
+    it('shows the current power in the large layout', () => {
+      render(<SensorCard {...plugProps('85.4', 'large')} />);
+      expect(screen.getByText('85.4 W')).not.toBeNull();
+    });
+
+    it('hides the power when the sensor is unavailable', () => {
+      render(<SensorCard {...plugProps('unavailable', 'small')} />);
+      expect(screen.queryByText(/ W$/)).toBeNull();
+    });
+  });
+
   it('renders a single trigger button for turn_on actions in the large layout', () => {
     const onControl = vi.fn();
     render(

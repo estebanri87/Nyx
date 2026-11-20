@@ -1767,6 +1767,8 @@
   "energyFlow.status.idle": "Repos",
   "sensor.statusEntity": "Entité d’état",
   "sensor.statusEntityHint": "Affiche l’état de cette entité au lieu de l’interrupteur, ex. un contact de porte pour un garage.",
+  "sensor.powerEntity": "Capteur de puissance",
+  "sensor.powerEntityHint": "Affiche la consommation actuelle de ce capteur sur la carte, ex. pour une prise connectée avec mesure.",
   "sensor.pressAction": "Action du bouton",
   "sensor.pressAction.toggle": "Basculer",
   "sensor.pressAction.turnOn": "Allumer",

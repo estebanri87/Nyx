@@ -1767,6 +1767,8 @@
   "energyFlow.status.idle": "Leerlauf",
   "sensor.statusEntity": "Status-Entität",
   "sensor.statusEntityHint": "Zeigt den Zustand dieser Entität statt des Schalters an, z. B. einen Türkontakt beim Garagentor.",
+  "sensor.powerEntity": "Leistungssensor",
+  "sensor.powerEntityHint": "Zeigt den aktuellen Verbrauch dieses Sensors auf der Karte an, z. B. bei einer messenden Steckdose.",
   "sensor.pressAction": "Tastenaktion",
   "sensor.pressAction.toggle": "Umschalten",
   "sensor.pressAction.turnOn": "Einschalten",

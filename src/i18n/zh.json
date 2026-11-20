@@ -1668,6 +1668,8 @@
   "energyFlow.status.idle": "空闲",
   "sensor.statusEntity": "状态实体",
   "sensor.statusEntityHint": "显示此实体的状态而不是开关的状态，例如车库门的门磁。",
+  "sensor.powerEntity": "功率传感器",
+  "sensor.powerEntityHint": "在卡片上显示此传感器的当前功耗，例如带计量功能的智能插座。",
   "sensor.pressAction": "按钮操作",
   "sensor.pressAction.toggle": "切换",
   "sensor.pressAction.turnOn": "打开",
