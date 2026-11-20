@@ -380,12 +380,14 @@ export function useCardRendering({
             key={`${cardId}-render-error`}
             {...dragProps}
             className="flex h-full w-full items-center justify-center rounded-2xl border p-3 text-center text-xs"
-            style={/** @type {any} */ ({
-              ...cardStyle,
-              backgroundColor: 'var(--glass-bg)',
-              borderColor: 'var(--glass-border)',
-              color: 'var(--text-secondary)',
-            })}
+            style={
+              /** @type {any} */ ({
+                ...cardStyle,
+                backgroundColor: 'var(--glass-bg)',
+                borderColor: 'var(--glass-border)',
+                color: 'var(--text-secondary)',
+              })
+            }
           >
             {t('card.error.render')}
           </div>
