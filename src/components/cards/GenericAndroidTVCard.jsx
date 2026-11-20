@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Tv, Play, Pause } from '../../icons';
 import { getMediaLogoUrl } from '../../utils/mediaLogos';
+import { getUnavailableLabel } from '../../utils/entityState';
 
 const GenericAndroidTVCard = memo(
   /** @param {any} props */ function GenericAndroidTVCard({
@@ -144,7 +145,9 @@ const GenericAndroidTVCard = memo(
                 {deviceName}
               </p>
               <p className="truncate text-lg leading-tight font-medium text-[var(--text-primary)]">
-                {appName || (isOn ? t('media.homeScreen') : t('status.off'))}
+                {isUnavailable
+                  ? getUnavailableLabel(state, t)
+                  : appName || (isOn ? t('media.homeScreen') : t('status.off'))}
               </p>
               {title && (
                 <p
@@ -160,7 +163,13 @@ const GenericAndroidTVCard = memo(
             className={`flex items-center gap-1.5 rounded-full border px-3 py-1 transition-all ${isOn ? 'border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)]' : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'}`}
           >
             <span className="text-[10px] font-bold tracking-widest uppercase">
-              {isOn ? (isPlaying ? t('status.playing') : t('common.on')) : t('common.off')}
+              {isUnavailable
+                ? getUnavailableLabel(state, t)
+                : isOn
+                  ? isPlaying
+                    ? t('status.playing')
+                    : t('common.on')
+                  : t('common.off')}
             </span>
           </div>
         </div>
@@ -194,7 +203,13 @@ const GenericAndroidTVCard = memo(
               <span
                 className={`${isDenseMobile ? 'text-[10px]' : 'text-xs'} font-bold tracking-widest uppercase`}
               >
-                {isOn ? (isPlaying ? t('status.playing') : t('common.on')) : t('common.off')}
+                {isUnavailable
+                  ? getUnavailableLabel(state, t)
+                  : isOn
+                    ? isPlaying
+                      ? t('status.playing')
+                      : t('common.on')
+                    : t('common.off')}
               </span>
             </div>
           )}
@@ -212,7 +227,9 @@ const GenericAndroidTVCard = memo(
             <h3
               className={`${isDenseMobile ? 'mb-0.5 text-[1.45rem]' : 'mb-1 text-3xl'} line-clamp-2 leading-none font-thin`}
             >
-              {appName || (isOn ? t('media.homeScreen') : t('status.off'))}
+              {isUnavailable
+                ? getUnavailableLabel(state, t)
+                : appName || (isOn ? t('media.homeScreen') : t('status.off'))}
             </h3>
             {title && (
               <p

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, memo } from 'react';
 import { getIconComponent } from '../../icons';
 import { AlertTriangle, Battery, Sprout, Home, MapPin, Pause, Play } from '../../icons';
+import { getUnavailableLabel } from '../../utils/entityState';
 
 function getMowerStateLabel(state, battery, t) {
   const normalized = String(state || '').toLowerCase();
   if (!normalized) return t('mower.unknown');
+  if (normalized === 'unavailable') return getUnavailableLabel(normalized, t);
 
   if (normalized === 'mowing' || normalized === 'cleaning') return t('mower.mowing');
   if (

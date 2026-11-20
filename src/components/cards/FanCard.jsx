@@ -8,6 +8,7 @@ import {
 } from '../../icons';
 import { getIconComponent } from '../../icons';
 import M3Slider from '../ui/M3Slider';
+import { getUnavailableLabel } from '../../utils/entityState';
 
 const FAN_FEATURE = {
   SET_SPEED: 1,
@@ -102,7 +103,7 @@ const FanCard = memo(
     const Icon = fanIconName ? getIconComponent(fanIconName) || FanIconGlyph : FanIconGlyph;
 
     const statusText = (() => {
-      if (isUnavailable) return t('common.unknown');
+      if (isUnavailable) return getUnavailableLabel(state, t);
       if (!isOn) return t('status.off');
       if (hasPresetControl && presetMode) return String(presetMode);
       if (hasSpeedControl) return `${boundedPercentage}%`;
@@ -110,7 +111,7 @@ const FanCard = memo(
     })();
 
     const mobileBadgeText = (() => {
-      if (isUnavailable) return t('common.unknown');
+      if (isUnavailable) return getUnavailableLabel(state, t);
       if (!isOn) return t('status.off');
       if (oscillating) return t('fan.oscillating');
       if (hasPresetControl && presetMode) return String(presetMode);
@@ -246,11 +247,17 @@ const FanCard = memo(
             </div>
 
             <div>
-              <span
-                className={`${isDenseMobile ? 'text-3xl' : 'text-4xl'} leading-none font-thin text-[var(--text-primary)]`}
-              >
-                {hasSpeedControl ? `${boundedPercentage}%` : isOn ? 'ON' : 'OFF'}
-              </span>
+              {isUnavailable ? (
+                <span className="text-xl leading-none font-medium text-[var(--text-primary)]">
+                  {statusText}
+                </span>
+              ) : (
+                <span
+                  className={`${isDenseMobile ? 'text-3xl' : 'text-4xl'} leading-none font-thin text-[var(--text-primary)]`}
+                >
+                  {hasSpeedControl ? `${boundedPercentage}%` : isOn ? 'ON' : 'OFF'}
+                </span>
+              )}
             </div>
 
             <div className={`${isDenseMobile ? 'mt-1 text-xs' : 'mt-2 text-xs'}`}>

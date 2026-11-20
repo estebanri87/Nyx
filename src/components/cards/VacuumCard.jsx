@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, memo } from 'react';
 import { getIconComponent } from '../../icons';
 import { AlertTriangle, Battery, Bot, Home, MapPin, Pause, Play } from '../../icons';
+import { getUnavailableLabel } from '../../utils/entityState';
 
 function getVacuumStateLabel(state, battery, t) {
   const normalized = String(state || '').toLowerCase();
   if (!normalized) return t('vacuum.unknown');
+  if (normalized === 'unavailable') return getUnavailableLabel(normalized, t);
 
   if (normalized === 'cleaning' || normalized === 'vacuuming') return t('vacuum.cleaning');
   if (

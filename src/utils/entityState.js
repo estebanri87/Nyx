@@ -23,3 +23,22 @@ export function getUnavailableServiceTargets(data, entities) {
   const unavailable = ids.filter((id) => entities?.[id]?.state === 'unavailable');
   return unavailable.length === ids.length ? unavailable : [];
 }
+
+/**
+ * True when Home Assistant cannot act on or report the entity right now.
+ * @param {string | null | undefined} state
+ * @returns {boolean}
+ */
+export function isUnavailableState(state) {
+  return state === 'unavailable' || state === 'unknown';
+}
+
+/**
+ * The text every card shows for a state where `isUnavailableState` is true.
+ * @param {string | null | undefined} state
+ * @param {(key: string) => string} t
+ * @returns {string}
+ */
+export function getUnavailableLabel(state, t) {
+  return state === 'unknown' ? t('common.unknown') : t('status.unavailable');
+}

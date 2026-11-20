@@ -12,6 +12,7 @@ import {
   Tv,
 } from '../../icons';
 import { getMediaPlayerPowerAction } from '../../utils/mediaPlayerFeatures';
+import { getUnavailableLabel, isUnavailableState } from '../../utils/entityState';
 
 /* ─── Single media player card ─── */
 
@@ -62,7 +63,9 @@ export const MediaPlayerCard = memo(
 
     const mpState = entity?.state;
     const isPlaying = mpState === 'playing';
-    const isActive = isMediaActive(entity);
+    const isUnavailable = isUnavailableState(mpState);
+    // A player that dropped out is not playing, however recently it last updated.
+    const isActive = !isUnavailable && isMediaActive(entity);
     const name = customNames[mpId] || getA(mpId, 'friendly_name', t('media.mediaPlayer'));
     const title =
       getA(mpId, 'media_title') || (isActive ? t('status.active') : t('media.noneMedia'));
@@ -101,7 +104,7 @@ export const MediaPlayerCard = memo(
             e.stopPropagation();
             if (!editMode) onOpen(mpId, null, null);
           }}
-          className={`glass-texture touch-feedback group relative flex h-full flex-col items-center justify-center overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isDenseMobile ? 'p-5' : 'p-4 sm:p-7'} ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'}`}
+          className={`glass-texture touch-feedback group relative flex h-full flex-col items-center justify-center overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isDenseMobile ? 'p-5' : 'p-4 sm:p-7'} ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`}
           style={{ ...cardStyle, color: 'var(--text-primary)' }}
         >
           {controls}
@@ -121,7 +124,7 @@ export const MediaPlayerCard = memo(
           </div>
           <div className="w-full px-4 text-center">
             <p className="text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase opacity-60">
-              {t('media.noneMusic')}
+              {isUnavailable ? getUnavailableLabel(mpState, t) : t('media.noneMusic')}
             </p>
             <div className="mt-1 flex items-center justify-center gap-2">
               <p className="truncate text-xs tracking-widest text-[var(--text-muted)] uppercase opacity-40">

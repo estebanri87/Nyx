@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { X, Sprout, Battery, MapPin, Play, Pause, Home, AlertTriangle } from '../icons';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
+import { getUnavailableLabel } from '../utils/entityState';
 
 const ACTIVE_STATES = ['mowing', 'cleaning'];
 const ERROR_STATES = ['error', 'fault', 'problem', 'stuck'];
@@ -8,6 +9,7 @@ const ERROR_STATES = ['error', 'fault', 'problem', 'stuck'];
 function getMowerStateLabel(state, battery, t) {
   const normalized = String(state || '').toLowerCase();
   if (!normalized) return t('mower.unknown');
+  if (normalized === 'unavailable') return getUnavailableLabel(normalized, t);
   if (ACTIVE_STATES.includes(normalized)) return t('mower.mowing');
   if (['returning', 'going_home', 'return_to_base'].includes(normalized))
     return t('mower.returning');

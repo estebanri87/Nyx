@@ -56,6 +56,14 @@ describe('GenericClimateCard', () => {
     expect(screen.queryByText('climate.action.idle')).not.toBeInTheDocument();
   });
 
+  it('says unavailable and dims when the thermostat cannot be reached', () => {
+    const props = baseProps({ hvac_action: undefined });
+    props.entity.state = 'unavailable';
+    const { container } = render(<GenericClimateCard {...props} />);
+    expect(screen.getByText('status.unavailable')).toBeInTheDocument();
+    expect(container.firstChild).toHaveClass('opacity-70');
+  });
+
   it('keeps an explicitly reported idle action neutral even in heat mode', () => {
     const props = baseProps({ hvac_action: 'idle' });
     props.entity.state = 'heat';

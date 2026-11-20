@@ -29,8 +29,11 @@ describe('getClimateStatus', () => {
     });
   });
 
-  it('keeps an unknown state readable', () => {
+  it('says unavailable or unknown instead of a mode', () => {
     expect(getClimateStatus({ state: 'unavailable', attributes: {} }).translationKey).toBe(
+      'status.unavailable'
+    );
+    expect(getClimateStatus({ state: 'unknown', attributes: {} }).translationKey).toBe(
       'common.unknown'
     );
   });

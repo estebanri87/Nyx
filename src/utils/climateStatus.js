@@ -19,11 +19,14 @@ export function getClimateStatus(entity) {
     entity.state === 'off' ? 'off' : typeof reportedAction === 'string' ? reportedAction : '';
   const mode = modeKeys[entity.state];
   return {
-    translationKey: action
-      ? `climate.action.${action}`
-      : mode
-        ? `climate.hvac.${mode}`
-        : 'common.unknown',
+    translationKey:
+      entity.state === 'unavailable'
+        ? 'status.unavailable'
+        : action
+          ? `climate.action.${action}`
+          : mode
+            ? `climate.hvac.${mode}`
+            : 'common.unknown',
     isHeating: action ? action === 'heating' : entity.state === 'heat',
     isCooling: action ? action === 'cooling' : entity.state === 'cool',
   };

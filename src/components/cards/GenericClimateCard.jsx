@@ -88,6 +88,7 @@ const GenericClimateCard = memo(
 
     const translate = t || ((key) => key);
     const { isCooling, isHeating, translationKey } = getClimateStatus(entity);
+    const isUnavailable = entity.state === 'unavailable' || entity.state === 'unknown';
     const clTheme = isCooling ? 'blue' : isHeating ? 'orange' : 'gray';
     const DisplayIcon = Icon || AirVent;
 
@@ -121,7 +122,7 @@ const GenericClimateCard = memo(
             e.stopPropagation();
             if (!editMode && onOpen) onOpen();
           }}
-          className={`glass-texture touch-feedback group relative flex h-full items-center justify-between gap-4 overflow-hidden rounded-3xl border p-4 pl-5 font-sans transition-all duration-500 ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'}`}
+          className={`glass-texture touch-feedback group relative flex h-full items-center justify-between gap-4 overflow-hidden rounded-3xl border p-4 pl-5 font-sans transition-all duration-500 ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`}
           style={{ ...cardStyle, containerType: 'inline-size' }}
         >
           {controls}
@@ -178,7 +179,7 @@ const GenericClimateCard = memo(
           e.stopPropagation();
           if (!editMode && onOpen) onOpen();
         }}
-        className={`glass-texture touch-feedback group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isDenseMobile ? 'p-5' : 'p-7'} ${!editMode ? 'cursor-pointer active:scale-98' : 'cursor-move'}`}
+        className={`glass-texture touch-feedback group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border font-sans transition-all duration-500 ${isDenseMobile ? 'p-5' : 'p-7'} ${!editMode ? 'cursor-pointer active:scale-98' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`}
         style={cardStyle}
       >
         {controls}

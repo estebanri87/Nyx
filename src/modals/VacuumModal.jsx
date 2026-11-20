@@ -33,6 +33,7 @@ import {
 import ModernDropdown from '../components/ui/ModernDropdown';
 import { getRelatedEntityIds } from '../services/haClient';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
+import { getUnavailableLabel } from '../utils/entityState';
 
 const getRoomIcon = (roomName) => {
   const name = String(roomName || '').toLowerCase();
@@ -143,6 +144,7 @@ function formatRawValueWithUnit(value, unit) {
 function getVacuumStateLabel(state, battery, t) {
   const normalized = String(state || '').toLowerCase();
   if (!normalized) return t('vacuum.unknown');
+  if (normalized === 'unavailable') return getUnavailableLabel(normalized, t);
 
   if (normalized === 'cleaning' || normalized === 'vacuuming') return t('vacuum.cleaning');
   if (

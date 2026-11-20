@@ -1,9 +1,12 @@
 import { Workflow } from '../../icons';
 import { getIconComponent } from '../../icons';
+import { getUnavailableLabel, isUnavailableState } from '../../utils/entityState';
 
 export function renderAutomationCard(cardId, dragProps, getControls, cardStyle, settingsKey, ctx) {
   const { entities, editMode, customNames, customIcons, getA, callService, t } = ctx;
-  const isOn = entities[cardId]?.state === 'on';
+  const state = entities[cardId]?.state;
+  const isOn = state === 'on';
+  const isUnavailable = isUnavailableState(state);
   const friendlyName = customNames[cardId] || getA(cardId, 'friendly_name') || cardId;
   const automationIconName = customIcons[cardId] || entities[cardId]?.attributes?.icon;
   const Icon = automationIconName ? getIconComponent(automationIconName) || Workflow : Workflow;
@@ -13,7 +16,7 @@ export function renderAutomationCard(cardId, dragProps, getControls, cardStyle, 
       key={cardId}
       {...dragProps}
       data-haptic={editMode ? undefined : 'card'}
-      className={`touch-feedback group relative mb-3 flex w-full break-inside-avoid items-center justify-between overflow-hidden rounded-2xl border p-4 font-sans transition-all duration-500 ${!editMode ? 'cursor-pointer active:scale-98' : 'cursor-move'}`}
+      className={`touch-feedback group relative mb-3 flex w-full break-inside-avoid items-center justify-between overflow-hidden rounded-2xl border p-4 font-sans transition-all duration-500 ${!editMode ? 'cursor-pointer active:scale-98' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`}
       style={{
         ...cardStyle,
         backgroundColor: isOn
@@ -26,7 +29,7 @@ export function renderAutomationCard(cardId, dragProps, getControls, cardStyle, 
             : 'rgba(255, 255, 255, 0.04)',
       }}
       onClick={(_e) => {
-        if (!editMode) callService('automation', 'toggle', { entity_id: cardId });
+        if (!editMode && !isUnavailable) callService('automation', 'toggle', { entity_id: cardId });
       }}
     >
       {getControls(cardId)}
@@ -51,7 +54,11 @@ export function renderAutomationCard(cardId, dragProps, getControls, cardStyle, 
             </span>
           </div>
           <span className="mt-0.5 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase">
-            {isOn ? t('status.active') : t('status.off')}
+            {isUnavailable
+              ? getUnavailableLabel(state, t)
+              : isOn
+                ? t('status.active')
+                : t('status.off')}
           </span>
         </div>
       </div>
