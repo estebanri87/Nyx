@@ -558,6 +558,16 @@ html[data-density='spacious'] .touch-feedback h3 {
   background: rgba(255, 255, 255, 0.25);
 }
 
+/* While editing, only the card itself (to drag it) and its edit controls answer. No switch,
+   slider or button underneath may fire. */
+.dashboard-card-slot[data-card-editing] > * * {
+  pointer-events: none;
+}
+.dashboard-card-slot[data-card-editing] [data-edit-control],
+.dashboard-card-slot[data-card-editing] [data-edit-control] * {
+  pointer-events: auto;
+}
+
 /* No contact with Home Assistant: the data is old and a tap could not reach the house.
    The fade-in hides the blink while a waking screen is still checking the connection. */
 .dashboard-card-slot[data-card-offline] {

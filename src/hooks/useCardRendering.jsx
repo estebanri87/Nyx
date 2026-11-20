@@ -9,6 +9,9 @@ import { dispatchCardRender } from '../rendering/registry';
 import EditOverlay from '../components/ui/EditOverlay';
 
 /** @param {any} params */
+// Cards being edited are rearranged, never operated.
+const ignoreServiceCall = () => Promise.resolve();
+
 export function useCardRendering({
   editMode,
   pagesConfig,
@@ -328,7 +331,7 @@ export function useCardRendering({
         getA,
         getS,
         getEntityImageUrl,
-        callService,
+        callService: editMode ? ignoreServiceCall : callService,
         isMediaActive,
         saveCardSetting,
         language,

@@ -66,7 +66,10 @@ function EditOverlay({
   return (
     <>
       {/* Move buttons – top left */}
-      <div className={`absolute ${topOffsetClass} ${sideOffsetClass} z-50 flex ${gapClass}`}>
+      <div
+        data-edit-control
+        className={`absolute ${topOffsetClass} ${sideOffsetClass} z-50 flex ${gapClass}`}
+      >
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -92,7 +95,10 @@ function EditOverlay({
       </div>
 
       {/* Action buttons – top right */}
-      <div className={`absolute ${topOffsetClass} ${rightOffsetClass} z-50 flex ${gapClass}`}>
+      <div
+        data-edit-control
+        className={`absolute ${topOffsetClass} ${rightOffsetClass} z-50 flex ${gapClass}`}
+      >
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -150,6 +156,7 @@ function EditOverlay({
         <button
           type="button"
           data-drag-handle
+          data-edit-control
           {...dragHandleProps}
           style={{ touchAction: 'none' }}
           className={dragHandleClass}
