@@ -44,6 +44,7 @@ import './styles/dashboard.css';
 import {
   hasOAuthTokens,
   requestTokensFromOtherTabs,
+  subscribeToOAuthLogout,
   subscribeToOAuthTokenChanges,
 } from './services/oauthStorage';
 import { scheduleLikelyModalPrefetch, scheduleModalPrefetch } from './utils/prefetchModals';
@@ -220,7 +221,9 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
     setEditMode(false);
   }, [cardsOnlyMode, editMode, setEditMode]);
 
-  const kioskEditLocked = Boolean(kioskDisplaySettings?.enabled && kioskDisplaySettings?.hideMenuButton);
+  const kioskEditLocked = Boolean(
+    kioskDisplaySettings?.enabled && kioskDisplaySettings?.hideMenuButton
+  );
 
   useEffect(() => {
     if (!kioskEditLocked || !editMode) return;
@@ -247,7 +250,12 @@ export function AppContent({ showOnboarding, setShowOnboarding }) {
   const { activePage, setActivePage } = usePageRouting();
 
   const [tempHistoryById, _setTempHistoryById] = useTempHistory(conn, cardSettings);
-  const [forecastsById, _setForecastsById] = useWeatherForecast(conn, cardSettings, entities, entitiesLoaded);
+  const [forecastsById, _setForecastsById] = useWeatherForecast(
+    conn,
+    cardSettings,
+    entities,
+    entitiesLoaded
+  );
 
   const {
     showPinLockModal,
@@ -957,6 +965,9 @@ export default function App() {
       setOAuthTokenRevision((revision) => revision + 1);
     });
   }, []);
+
+  // Another tab logged out: drop this tab's live session as well.
+  useEffect(() => subscribeToOAuthLogout(() => globalThis.location?.reload()), []);
 
   useEffect(() => {
     if (config.authMethod !== 'oauth' || !config.url || isOAuthCallback) return;

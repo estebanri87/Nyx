@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { createConnection, createLongLivedTokenAuth, getAuth } from 'home-assistant-js-websocket';
 import { validateUrl } from '../config/onboarding';
-import { saveTokens, loadTokens, clearOAuthTokens, hasOAuthTokens } from '../services/oauthStorage';
+import {
+  saveTokens,
+  loadTokens,
+  hasOAuthTokens,
+  isOAuthRejected,
+  logoutOAuthEverywhere,
+} from '../services/oauthStorage';
 
 /** @typedef {import('../types/dashboard').UseConnectionSetupDeps} UseConnectionSetupDeps */
 /** @typedef {import('../types/dashboard').UseConnectionSetupResult} UseConnectionSetupResult */
@@ -49,6 +55,8 @@ export function useConnectionSetup({
       typeof window !== 'undefined' &&
       new URLSearchParams(window.location.search).has('auth_callback');
     if (isOAuthCallback) return;
+    // A rejected OAuth session is handled by the expired-login banner.
+    if (config.authMethod === 'oauth' && isOAuthRejected()) return;
 
     // Relay mode (trusted Supervisor Ingress) has no personal token/OAuth
     // tokens by design -- it's never "missing auth" the way the other two
@@ -83,9 +91,11 @@ export function useConnectionSetup({
   };
 
   // ── OAuth login redirect ───────────────────────────────────────────────
-  const startOAuthLogin = () => {
-    if (!validateUrl(config.url)) return;
-    const cleanUrl = config.url.replace(/\/$/, '');
+  const startOAuthLogin = (url = config.url) => {
+    const cleanUrl = String(url || '')
+      .trim()
+      .replace(/\/$/, '');
+    if (!validateUrl(cleanUrl)) return;
     try {
       localStorage.setItem('ha_url', cleanUrl);
       localStorage.setItem('ha_auth_method', 'oauth');
@@ -100,21 +110,26 @@ export function useConnectionSetup({
       if (typeof window !== 'undefined' && window.location.search.includes('auth_callback')) {
         window.history.replaceState(null, '', window.location.pathname);
       }
-      
-      if (err === 5) { // 5 = ERR_INVALID_HTTPS_TO_HTTP in HAWS
-        setConnectionTestResult({ 
-          success: false, 
-          message: 'Cannot use an HTTP Home Assistant URL when accessing the dashboard via HTTPS. Please use an HTTPS URL for Home Assistant (e.g. Nabu Casa / DuckDNS), or use a Long-Lived Access Token.' 
+
+      if (err === 5) {
+        // 5 = ERR_INVALID_HTTPS_TO_HTTP in HAWS
+        setConnectionTestResult({
+          success: false,
+          message:
+            'Cannot use an HTTP Home Assistant URL when accessing the dashboard via HTTPS. Please use an HTTPS URL for Home Assistant (e.g. Nabu Casa / DuckDNS), or use a Long-Lived Access Token.',
         });
       } else {
-        setConnectionTestResult({ success: false, message: t('system.oauth.redirectFailed') + (err ? ` (${err.message || err})` : '') });
+        setConnectionTestResult({
+          success: false,
+          message: t('system.oauth.redirectFailed') + (err ? ` (${err.message || err})` : ''),
+        });
       }
     });
   };
 
   // ── OAuth logout ───────────────────────────────────────────────────────
   const handleOAuthLogout = () => {
-    clearOAuthTokens();
+    logoutOAuthEverywhere();
     setConfig({ ...config, authMethod: 'oauth', token: '' });
     try {
       localStorage.removeItem('ha_oauth_tokens');
@@ -123,6 +138,9 @@ export function useConnectionSetup({
       localStorage.removeItem('ha_token');
       localStorage.setItem('ha_auth_method', 'oauth');
     } catch {}
+    // The live HA connection keeps its auth in memory and would save refreshed
+    // tokens again, so start over from a clean page.
+    globalThis.location?.reload();
   };
 
   // ── Derived: can the user advance past onboarding step 0? ──────────────
