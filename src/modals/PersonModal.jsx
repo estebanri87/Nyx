@@ -208,9 +208,8 @@ export default function PersonModal({
 
   const isLightTheme =
     typeof document !== 'undefined' && document.documentElement.dataset.theme === 'light';
-  const tileUrl = isLightTheme
-    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+  // OpenStreetMap needs no API key and shows no watermark; dark themes invert the tiles in CSS.
+  const tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
   // 1. Manual Override
   if (manualBatteryId && entities?.[manualBatteryId]) {
@@ -271,11 +270,12 @@ export default function PersonModal({
       if (!mapInstanceRef.current) {
         const map = L.map(mapRef.current, {
           zoomControl: false,
-          attributionControl: false,
+          attributionControl: true,
         }).setView([currentLat, currentLon], 14);
 
         tileLayerRef.current = L.tileLayer(tileUrl, {
-          subdomains: 'abcd',
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           maxZoom: 19,
         }).addTo(map);
 
@@ -287,7 +287,8 @@ export default function PersonModal({
         if (hasDifferentLayer) {
           tileLayerRef.current?.remove();
           tileLayerRef.current = L.tileLayer(tileUrl, {
-            subdomains: 'abcd',
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19,
           }).addTo(mapInstanceRef.current);
         }
@@ -365,6 +366,9 @@ export default function PersonModal({
             .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
             .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
             .leaflet-container { font-family: inherit; }
+            .person-map[data-map-theme='dark'] .leaflet-tile-pane {
+              filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+            }
           `}</style>
           <div className="absolute top-6 right-6 z-20 flex gap-3 md:top-10 md:right-10">
             <button onClick={onClose} className="modal-close" aria-label={t('common.close')}>
@@ -429,7 +433,8 @@ export default function PersonModal({
                 <div className="group relative z-0 h-[clamp(20rem,35vw,30rem)] w-full overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] shadow-inner">
                   <div
                     ref={mapRef}
-                    className="z-0 h-full w-full opacity-80 transition-opacity duration-500 group-hover:opacity-100"
+                    data-map-theme={isLightTheme ? 'light' : 'dark'}
+                    className="person-map z-0 h-full w-full opacity-80 transition-opacity duration-500 group-hover:opacity-100"
                   />
                   <div className="pointer-events-none absolute top-4 left-4 z-[1000] flex items-center gap-2 rounded-xl border border-[var(--glass-border)] bg-[var(--card-bg)]/85 px-4 py-2 shadow-lg backdrop-blur-md">
                     <Navigation className="h-3 w-3 text-[var(--accent-color)]" />
