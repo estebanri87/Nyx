@@ -61,7 +61,7 @@ export const createApp = ({
       // WebSocket connections to the user's HA instance (any origin, since URL is user-configured)
       "connect-src 'self' ws: wss: http: https:",
       // Leaflet map iframe
-      "frame-src https://www.openstreetmap.org",
+      'frame-src https://www.openstreetmap.org',
       // Block all object/embed/plugin
       "object-src 'none'",
       // Restrict base-uri to prevent base tag injection
