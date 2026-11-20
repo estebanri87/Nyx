@@ -898,6 +898,18 @@ export function getAllIconKeys() {
 // reset any CSS animations such as `animate-spin`) on every parent re-render.
 const mdiComponentCache = new Map();
 
+// @mdi/react mutates props.style when size is set; React 19 dev freezes
+// style objects, so hand it a copy to avoid "Object is not extensible".
+const createMdiIconElement = (path, props) => {
+  const { style, ...restProps } = props;
+  return React.createElement(MdiIcon, {
+    path,
+    size: '1.4em',
+    ...restProps,
+    ...(style ? { style: { ...style } } : {}),
+  });
+};
+
 export function getIconComponent(iconName, fallbackIcon = FALLBACK_ICON) {
   if (!iconName) return null;
   if (ICON_MAP[iconName]) return ICON_MAP[iconName];
@@ -907,8 +919,7 @@ export function getIconComponent(iconName, fallbackIcon = FALLBACK_ICON) {
 
     const initialPath = mdiPathByName.get(iconName);
     if (initialPath) {
-      const ResolvedMdiIcon = (props) =>
-        React.createElement(MdiIcon, { path: initialPath, size: '1.4em', ...props });
+      const ResolvedMdiIcon = (props) => createMdiIconElement(initialPath, props);
       ResolvedMdiIcon.displayName = `MdiIcon(${iconName})`;
       mdiComponentCache.set(iconName, ResolvedMdiIcon);
       return ResolvedMdiIcon;
@@ -936,7 +947,7 @@ export function getIconComponent(iconName, fallbackIcon = FALLBACK_ICON) {
       }, [path]);
 
       if (!path) return React.createElement(fallbackIcon, props);
-      return React.createElement(MdiIcon, { path, size: '1.4em', ...props });
+      return createMdiIconElement(path, props);
     }
     LazyMdiIcon.displayName = `LazyMdiIcon(${iconName})`;
     mdiComponentCache.set(iconName, LazyMdiIcon);
