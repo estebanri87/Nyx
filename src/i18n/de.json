@@ -305,6 +305,7 @@
   "common.add": "Hinzufügen",
   "common.auto": "Auto",
   "common.cancel": "Abbrechen",
+  "common.moreCount": "+{count} weitere",
   "common.undo": "Rückgängig",
   "common.close": "Schließen",
   "common.confirm": "Bestätigen",

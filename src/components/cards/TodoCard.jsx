@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback, memo } from 'react';
 import { Circle, CheckCircle2, Plus, AlertCircle, ListChecks, Trash2 } from 'lucide-react';
 import { getIconComponent } from '../../icons';
+import { useRowsThatFit } from '../../hooks/useRowsThatFit';
 import { getTodoItems, addTodoItem, updateTodoItem, removeTodoItem } from '../../services/haClient';
 
 class TodoErrorBoundary extends React.Component {
@@ -164,6 +165,8 @@ const TodoCard = memo(
     const completedItems = useMemo(() => items.filter((i) => i.status === 'completed'), [items]);
     const pendingCount = pendingItems.length;
     const completedCount = completedItems.length;
+    const listRowCount = pendingCount + completedCount;
+    const { listRef, visibleRows, showMore: showMoreLine } = useRowsThatFit(listRowCount, items);
     const totalCount = items.length;
 
     const IconComp = iconName ? getIconComponent(iconName) || ListChecks : ListChecks;
@@ -216,7 +219,10 @@ const TodoCard = memo(
       );
     }
 
-    // Large card
+    // Large card: pending first, then completed, as many as fit whole.
+    const shownPending = pendingItems.slice(0, visibleRows);
+    const shownCompleted = completedItems.slice(0, Math.max(0, visibleRows - pendingCount));
+    const hiddenRows = Math.max(0, listRowCount - visibleRows);
     return (
       <div
         ref={cardRef}
@@ -262,7 +268,7 @@ const TodoCard = memo(
         )}
 
         {/* Content */}
-        <div className="hide-scrollbar flex-1 [scrollbar-width:'none'] space-y-1 overflow-y-auto p-5 pt-1 [-ms-overflow-style:'none'] [&::-webkit-scrollbar]:hidden">
+        <div ref={listRef} className="min-h-0 flex-1 space-y-1 overflow-hidden p-5 pt-1">
           {!todoEntityId ? (
             <div className="flex h-full flex-col items-center justify-center text-[var(--text-secondary)] opacity-60">
               <IconComp className="mb-2 h-8 w-8" />
@@ -294,9 +300,10 @@ const TodoCard = memo(
           ) : (
             <>
               {/* Pending items */}
-              {pendingItems.map((item, idx) => (
+              {shownPending.map((item, idx) => (
                 <div
                   key={item.uid || `pending-${idx}`}
+                  data-fit-row=""
                   className="group flex cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[var(--glass-bg)]"
                   onClick={(e) => handleToggle(e, item)}
                 >
@@ -325,16 +332,17 @@ const TodoCard = memo(
               ))}
 
               {/* Completed items */}
-              {completedItems.length > 0 && (
+              {shownCompleted.length > 0 && (
                 <div className="pt-2 opacity-50">
                   <div className="pt-2 pb-1">
                     <p className="px-3 text-[10px] font-bold tracking-widest text-[var(--status-success-fg)]/60 uppercase">
                       {t('todo.completed') || 'Completed'} ({completedCount})
                     </p>
                   </div>
-                  {completedItems.map((item, idx) => (
+                  {shownCompleted.map((item, idx) => (
                     <div
                       key={item.uid || `completed-${idx}`}
+                      data-fit-row=""
                       className="group flex cursor-pointer items-start gap-3 rounded-xl px-3 py-2 transition-colors"
                       onClick={(e) => handleToggle(e, item)}
                     >
@@ -355,6 +363,14 @@ const TodoCard = memo(
                     </div>
                   ))}
                 </div>
+              )}
+              {showMoreLine && (
+                <p
+                  data-fit-more=""
+                  className="px-3 pt-1 text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase"
+                >
+                  {t('common.moreCount').replace('{count}', String(hiddenRows))}
+                </p>
               )}
             </>
           )}

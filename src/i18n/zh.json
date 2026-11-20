@@ -282,6 +282,7 @@
   "common.add": "添加",
   "common.auto": "自动",
   "common.cancel": "取消",
+  "common.moreCount": "还有 {count} 项",
   "common.undo": "撤销",
   "common.close": "关闭",
   "common.delete": "删除",

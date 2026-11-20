@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
 import { Calendar as CalendarIcon, Clock, MapPin, AlertCircle } from 'lucide-react';
 import { getIconComponent } from '../../icons';
+import { useRowsThatFit } from '../../hooks/useRowsThatFit';
 import { getCalendarEvents } from '../../services/haClient';
 
 class CalendarErrorBoundary extends React.Component {
@@ -236,6 +237,15 @@ const CalendarCard = memo(
     const IconComp = iconName ? getIconComponent(iconName) || CalendarIcon : CalendarIcon;
     const displayName = customName || settings?.name || t('calendar.title');
     const isSmall = size === 'small';
+    const listRowCount = useMemo(
+      () => Object.values(groupedEvents).reduce((total, dayEvents) => total + dayEvents.length, 0),
+      [groupedEvents]
+    );
+    const {
+      listRef,
+      visibleRows,
+      showMore: showMoreLine,
+    } = useRowsThatFit(listRowCount, groupedEvents);
     const isLarge = !!settings?.largeCalendar;
 
     const HOUR_HEIGHT = 48;
@@ -566,6 +576,16 @@ const CalendarCard = memo(
       );
     }
 
+    // The days and events that fit, in order; the rest are counted on the "+N more" line.
+    const shownDays = [];
+    let rowsLeft = visibleRows;
+    for (const [dateKey, dayEvents] of Object.entries(groupedEvents)) {
+      if (rowsLeft <= 0) break;
+      shownDays.push([dateKey, dayEvents.slice(0, rowsLeft)]);
+      rowsLeft -= dayEvents.length;
+    }
+    const hiddenRows = Math.max(0, listRowCount - visibleRows);
+
     return (
       <div
         ref={cardRef}
@@ -590,7 +610,7 @@ const CalendarCard = memo(
         </div>
 
         {/* Content */}
-        <div className="hide-scrollbar flex-1 [scrollbar-width:'none'] space-y-4 overflow-y-auto p-5 pt-0 [-ms-overflow-style:'none'] [&::-webkit-scrollbar]:hidden">
+        <div ref={listRef} className="min-h-0 flex-1 space-y-4 overflow-hidden p-5 pt-0">
           {selectedCalendars.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-[var(--text-secondary)] opacity-60">
               <IconComp className="mb-2 h-8 w-8" />
@@ -618,74 +638,85 @@ const CalendarCard = memo(
               </p>
             </div>
           ) : (
-            Object.entries(groupedEvents).map(([dateKey, dayEvents]) => (
-              <div key={dateKey} className="space-y-1">
-                <h4 className="mb-1 py-1 text-[10px] font-bold tracking-widest text-[var(--accent-color)] uppercase">
-                  {formatDateHeader(dateKey)}
-                </h4>
-                <div className="space-y-3">
-                  {dayEvents.map((evt, idx) => {
-                    if (!evt || !evt.start) return null;
-                    const startRaw = getEventDateValue(evt.start);
-                    const start = startRaw ? new Date(startRaw) : null;
-                    const endRaw = getEventDateValue(evt.end);
-                    const end = endRaw ? new Date(endRaw) : null;
+            <>
+              {shownDays.map(([dateKey, dayEvents]) => (
+                <div key={dateKey} className="space-y-1">
+                  <h4 className="mb-1 py-1 text-[10px] font-bold tracking-widest text-[var(--accent-color)] uppercase">
+                    {formatDateHeader(dateKey)}
+                  </h4>
+                  <div className="space-y-3">
+                    {dayEvents.map((evt, idx) => {
+                      if (!evt || !evt.start) return null;
+                      const startRaw = getEventDateValue(evt.start);
+                      const start = startRaw ? new Date(startRaw) : null;
+                      const endRaw = getEventDateValue(evt.end);
+                      const end = endRaw ? new Date(endRaw) : null;
 
-                    const startTime = formatEventTime(start);
-                    const endTime = formatEventTime(end);
+                      const startTime = formatEventTime(start);
+                      const endTime = formatEventTime(end);
 
-                    const isAllDay = isAllDayValue(evt.start);
-                    const timeString = isAllDay
-                      ? t('calendar.allDay')
-                      : startTime
-                        ? `${startTime}${endTime ? ` - ${endTime}` : ''}`
-                        : '';
+                      const isAllDay = isAllDayValue(evt.start);
+                      const timeString = isAllDay
+                        ? t('calendar.allDay')
+                        : startTime
+                          ? `${startTime}${endTime ? ` - ${endTime}` : ''}`
+                          : '';
 
-                    return (
-                      <div
-                        key={`${evt.uid || evt.id || evt.summary || 'event'}-${idx}`}
-                        className="group flex items-start gap-4"
-                      >
-                        <div className="flex flex-col items-center pt-1.5">
-                          <div
-                            className={`h-2 w-2 rounded-full ${isAllDay ? 'bg-[var(--accent-color)]' : 'bg-[var(--glass-border)] transition-colors group-hover:bg-[var(--accent-color)]'}`}
-                          />
-                          <div className="my-1 -mb-4 h-full w-0.5 bg-[var(--glass-border)]/50 group-last:hidden" />
-                        </div>
-                        <div className="flex-1 pb-1">
-                          {timeString && (
-                            <p className="mb-0.5 text-[11px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
-                              {timeString}
-                            </p>
-                          )}
-                          <div className="relative rounded-xl border border-transparent bg-transparent py-2.5 pr-3 pl-4 transition-colors hover:border-[var(--glass-border)] hover:bg-[var(--glass-bg)]">
-                            <span
-                              className={`absolute top-2 bottom-2 left-0 w-1 rounded-full ${isAllDay ? 'bg-[var(--accent-bg)]' : 'bg-[var(--glass-border)] transition-colors group-hover:bg-[var(--accent-bg)]'}`}
+                      return (
+                        <div
+                          key={`${evt.uid || evt.id || evt.summary || 'event'}-${idx}`}
+                          data-fit-row=""
+                          className="group flex items-start gap-4"
+                        >
+                          <div className="flex flex-col items-center pt-1.5">
+                            <div
+                              className={`h-2 w-2 rounded-full ${isAllDay ? 'bg-[var(--accent-color)]' : 'bg-[var(--glass-border)] transition-colors group-hover:bg-[var(--accent-color)]'}`}
                             />
-                            <p className="text-sm leading-snug font-medium break-words whitespace-normal text-[var(--text-primary)]">
-                              {evt.summary}
-                            </p>
-                            {evt.location && (
-                              <div className="mt-1.5 flex items-start gap-1.5 text-[10px] text-[var(--text-secondary)]">
-                                <MapPin className="mt-0.5 h-3 w-3 flex-shrink-0" />
-                                <span className="break-words whitespace-normal opacity-80">
-                                  {evt.location}
-                                </span>
-                              </div>
-                            )}
-                            {evt.description && (
-                              <p className="mt-1.5 text-[10px] break-words whitespace-normal text-[var(--text-secondary)] opacity-60">
-                                {evt.description}
+                            <div className="my-1 -mb-4 h-full w-0.5 bg-[var(--glass-border)]/50 group-last:hidden" />
+                          </div>
+                          <div className="flex-1 pb-1">
+                            {timeString && (
+                              <p className="mb-0.5 text-[11px] font-bold tracking-wide text-[var(--text-secondary)] uppercase">
+                                {timeString}
                               </p>
                             )}
+                            <div className="relative rounded-xl border border-transparent bg-transparent py-2.5 pr-3 pl-4 transition-colors hover:border-[var(--glass-border)] hover:bg-[var(--glass-bg)]">
+                              <span
+                                className={`absolute top-2 bottom-2 left-0 w-1 rounded-full ${isAllDay ? 'bg-[var(--accent-bg)]' : 'bg-[var(--glass-border)] transition-colors group-hover:bg-[var(--accent-bg)]'}`}
+                              />
+                              <p className="text-sm leading-snug font-medium break-words whitespace-normal text-[var(--text-primary)]">
+                                {evt.summary}
+                              </p>
+                              {evt.location && (
+                                <div className="mt-1.5 flex items-start gap-1.5 text-[10px] text-[var(--text-secondary)]">
+                                  <MapPin className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                                  <span className="break-words whitespace-normal opacity-80">
+                                    {evt.location}
+                                  </span>
+                                </div>
+                              )}
+                              {evt.description && (
+                                <p className="mt-1.5 text-[10px] break-words whitespace-normal text-[var(--text-secondary)] opacity-60">
+                                  {evt.description}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+              {showMoreLine && (
+                <p
+                  data-fit-more=""
+                  className="text-[10px] font-bold tracking-widest text-[var(--text-secondary)] uppercase"
+                >
+                  {t('common.moreCount').replace('{count}', String(hiddenRows))}
+                </p>
+              )}
+            </>
           )}
         </div>
       </div>

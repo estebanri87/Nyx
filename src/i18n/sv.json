@@ -305,6 +305,7 @@
   "common.add": "Lägg till",
   "common.auto": "Auto",
   "common.cancel": "Avbryt",
+  "common.moreCount": "+{count} till",
   "common.undo": "Ångra",
   "common.close": "Stäng",
   "common.confirm": "Bekräfta",
