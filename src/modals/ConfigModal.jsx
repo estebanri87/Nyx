@@ -530,7 +530,7 @@ export default function ConfigModal({
     let syncStatusTone = 'text-[var(--status-success-fg)]';
     if (autoSync.status === 'error') {
       syncStatusTone = 'text-[var(--status-error-fg)]';
-    } else if (autoSync.status === 'syncing') {
+    } else if (autoSync.status === 'syncing' || autoSync.status === 'conflict') {
       syncStatusTone = 'text-amber-300';
     }
 
@@ -582,7 +582,9 @@ export default function ConfigModal({
             </button>
           </div>
 
-          {profileError && <p className="text-xs font-bold text-[var(--status-error-fg)]">{profileError}</p>}
+          {profileError && (
+            <p className="text-xs font-bold text-[var(--status-error-fg)]">{profileError}</p>
+          )}
 
           {loadSummary && <p className="text-xs font-bold text-amber-300">{loadSummary}</p>}
 
@@ -798,16 +800,48 @@ export default function ConfigModal({
                   </div>
 
                   {autoSync.error && (
-                    <p className="text-xs font-bold text-[var(--status-error-fg)]">{autoSync.error}</p>
+                    <p className="text-xs font-bold text-[var(--status-error-fg)]">
+                      {autoSync.error}
+                    </p>
                   )}
 
+                  {autoSync.status === 'conflict' && (
+                    <div className="popup-surface rounded-xl p-3 text-xs" role="alert">
+                      <p>{t('profiles.autoSyncConflictHint')}</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(t('profiles.autoSyncOverwriteConfirm'))) {
+                            autoSync.overwriteServerWithLocal?.().catch(() => {});
+                          }
+                        }}
+                        className="mt-2 rounded-lg border border-[var(--glass-border)] px-3 py-2 font-bold"
+                      >
+                        {t('profiles.autoSyncOverwrite')}
+                      </button>
+                    </div>
+                  )}
+                  {autoSync.publishConflicts?.length > 0 && (
+                    <p className="text-xs text-[var(--status-warning-fg)]" role="alert">
+                      {t('profiles.autoSyncPublishConflicts')}{' '}
+                      {autoSync.publishConflicts
+                        .map(
+                          ({ device_id }) =>
+                            autoSync.knownDevices?.find((device) => device.device_id === device_id)
+                              ?.device_label || device_id
+                        )
+                        .join(', ')}
+                    </p>
+                  )}
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() =>
-                        autoSync.loadCurrentFromServer(
-                          selectedServerRevision ? Number(selectedServerRevision) : undefined
-                        )
+                        autoSync
+                          .loadCurrentFromServer(
+                            selectedServerRevision ? Number(selectedServerRevision) : undefined
+                          )
+                          .catch(() => {})
                       }
                       className="rounded-lg border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-xs font-bold text-[var(--text-secondary)] transition-all hover:bg-[var(--glass-bg-hover)]"
                     >
@@ -815,8 +849,14 @@ export default function ConfigModal({
                     </button>
                     <button
                       type="button"
-                      disabled={autoSync.publishing || selectedTargets.length === 0}
-                      onClick={() => autoSync.publishCurrentToDevices(selectedTargets)}
+                      disabled={
+                        autoSync.publishing ||
+                        autoSync.status === 'conflict' ||
+                        selectedTargets.length === 0
+                      }
+                      onClick={() =>
+                        autoSync.publishCurrentToDevices(selectedTargets).catch(() => {})
+                      }
                       className="rounded-lg border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-xs font-bold text-[var(--text-secondary)] transition-all hover:bg-[var(--glass-bg-hover)] disabled:opacity-60"
                     >
                       {publishButtonLabel}
@@ -996,9 +1036,7 @@ export default function ConfigModal({
                   <p className="text-sm font-bold text-[var(--text-primary)]">
                     {t('profiles.kioskTitle')}
                   </p>
-                  <p className="text-[11px] text-[var(--text-muted)]">
-                    {t('profiles.kioskHint')}
-                  </p>
+                  <p className="text-[11px] text-[var(--text-muted)]">{t('profiles.kioskHint')}</p>
                 </div>
               </div>
 
@@ -1036,10 +1074,14 @@ export default function ConfigModal({
               {kioskSync.followEnabled && (
                 <div className="flex items-center justify-between gap-2 text-[11px] text-[var(--text-muted)]">
                   <span>
-                    {t('profiles.autoSyncStatusLabel')}: <span className="font-bold">{kioskStatusLabel}</span>
+                    {t('profiles.autoSyncStatusLabel')}:{' '}
+                    <span className="font-bold">{kioskStatusLabel}</span>
                   </span>
                   {kioskSync.lastUpdatedAt && (
-                    <span>{t('profiles.autoSyncLastSynced')}: {new Date(kioskSync.lastUpdatedAt).toLocaleTimeString()}</span>
+                    <span>
+                      {t('profiles.autoSyncLastSynced')}:{' '}
+                      {new Date(kioskSync.lastUpdatedAt).toLocaleTimeString()}
+                    </span>
                   )}
                 </div>
               )}
@@ -1051,7 +1093,9 @@ export default function ConfigModal({
         {!backendAvailable && (
           <div className="flex items-start gap-3 rounded-xl border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] p-4">
             <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--status-warning-fg)]" />
-            <p className="text-sm text-[var(--status-warning-fg)]">{t('profiles.backendUnavailable')}</p>
+            <p className="text-sm text-[var(--status-warning-fg)]">
+              {t('profiles.backendUnavailable')}
+            </p>
           </div>
         )}
 
@@ -1769,7 +1813,7 @@ export default function ConfigModal({
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <h4 className="break-words text-sm font-bold leading-5 text-[var(--text-primary)]">
+                      <h4 className="text-sm leading-5 font-bold break-words text-[var(--text-primary)]">
                         {update.attributes?.title ||
                           update.attributes?.friendly_name ||
                           update.entity_id}
@@ -1902,7 +1946,7 @@ export default function ConfigModal({
     >
       {(resolvedTitleId) => (
         <>
-      <style>{`
+          <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
           height: 4px;
@@ -1918,405 +1962,407 @@ export default function ConfigModal({
           background: rgba(255, 255, 255, 0.2);
         }
       `}</style>
-      <div className="flex h-full min-h-0 flex-col">
-        {/* Invisible focus anchor — wins PRIORITY_FOCUS_SELECTOR race so keyboard stays closed on mobile */}
-        <div tabIndex={0} data-autofocus className="sr-only" />
-        <h2 id={resolvedTitleId} className="sr-only">
-          {isOnboardingActive ? t('onboarding.title') : t('system.title')}
-        </h2>
-        {isOnboardingActive ? (
-          <div className="flex h-full flex-col md:flex-row">
-            {/* Onboarding Sidebar */}
-            <div className="flex w-full flex-row gap-1 border-b border-[var(--glass-border)] p-3 md:w-64 md:flex-col md:border-r md:border-b-0">
-              <div className="mb-2 hidden items-center gap-3 px-3 py-4 md:flex">
-                <div className="rounded-lg bg-[var(--accent-bg)] p-2 text-[var(--accent-color)]">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <span className="text-lg font-bold tracking-wide">{t('onboarding.title')}</span>
-              </div>
-
-              {onboardingSteps.map((step, index) => {
-                const isActive = onboardingStep === index;
-                const isDone = onboardingStep > index;
-                const StepIcon = step.icon;
-                return (
-                  <div
-                    key={step.key}
-                    className={`flex flex-1 cursor-default items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold tracking-wide uppercase transition-all md:flex-none ${isActive ? 'bg-[var(--accent-color)] text-white shadow-lg ' : ''} ${isDone ? 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)]' : ''} ${!isActive && !isDone ? 'text-[var(--text-secondary)] opacity-50' : ''}`}
-                  >
-                    {isDone ? <Check className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
-                    <span className="hidden md:inline">{step.label}</span>
+          <div className="flex h-full min-h-0 flex-col">
+            {/* Invisible focus anchor — wins PRIORITY_FOCUS_SELECTOR race so keyboard stays closed on mobile */}
+            <div tabIndex={0} data-autofocus className="sr-only" />
+            <h2 id={resolvedTitleId} className="sr-only">
+              {isOnboardingActive ? t('onboarding.title') : t('system.title')}
+            </h2>
+            {isOnboardingActive ? (
+              <div className="flex h-full flex-col md:flex-row">
+                {/* Onboarding Sidebar */}
+                <div className="flex w-full flex-row gap-1 border-b border-[var(--glass-border)] p-3 md:w-64 md:flex-col md:border-r md:border-b-0">
+                  <div className="mb-2 hidden items-center gap-3 px-3 py-4 md:flex">
+                    <div className="rounded-lg bg-[var(--accent-bg)] p-2 text-[var(--accent-color)]">
+                      <Sparkles className="h-5 w-5" />
+                    </div>
+                    <span className="text-lg font-bold tracking-wide">{t('onboarding.title')}</span>
                   </div>
-                );
-              })}
-            </div>
 
-            {/* Onboarding Content Area */}
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div className="flex items-center justify-between border-b border-[var(--glass-border)] p-6 md:hidden">
-                <h3 className="text-lg font-bold tracking-wide uppercase">
-                  {onboardingSteps[onboardingStep].label}
-                </h3>
-              </div>
-
-              <div className="custom-scrollbar flex-1 overflow-y-auto p-4 md:p-5">
-                <div className="mb-4 hidden items-center justify-between md:flex">
-                  <h2 className="text-xl font-bold">{onboardingSteps[onboardingStep].label}</h2>
+                  {onboardingSteps.map((step, index) => {
+                    const isActive = onboardingStep === index;
+                    const isDone = onboardingStep > index;
+                    const StepIcon = step.icon;
+                    return (
+                      <div
+                        key={step.key}
+                        className={`flex flex-1 cursor-default items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold tracking-wide uppercase transition-all md:flex-none ${isActive ? 'bg-[var(--accent-color)] text-white shadow-lg ' : ''} ${isDone ? 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)]' : ''} ${!isActive && !isDone ? 'text-[var(--text-secondary)] opacity-50' : ''}`}
+                      >
+                        {isDone ? <Check className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
+                        <span className="hidden md:inline">{step.label}</span>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {onboardingStep === 0 && (
-                  <div className="animate-in fade-in slide-in-from-right-4 space-y-4 duration-300">
-                    {/* Auth Method Toggle — hidden in Ingress mode (always token) */}
-                    {!config.isIngress && renderAuthMethodToggle(true)}
+                {/* Onboarding Content Area */}
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <div className="flex items-center justify-between border-b border-[var(--glass-border)] p-6 md:hidden">
+                    <h3 className="text-lg font-bold tracking-wide uppercase">
+                      {onboardingSteps[onboardingStep].label}
+                    </h3>
+                  </div>
 
-                    {config.isIngress && (
-                      <div className="rounded-xl border border-[var(--accent-color)] bg-[var(--accent-bg)] p-3 text-xs leading-relaxed text-[var(--accent-color)]">
-                        <strong>Add-on Mode:</strong> URL is auto-detected. Just paste a Long-Lived
-                        Access Token from your HA Profile.
-                      </div>
-                    )}
+                  <div className="custom-scrollbar flex-1 overflow-y-auto p-4 md:p-5">
+                    <div className="mb-4 hidden items-center justify-between md:flex">
+                      <h2 className="text-xl font-bold">{onboardingSteps[onboardingStep].label}</h2>
+                    </div>
 
-                    <div className="space-y-3">
-                      {/* URL — hidden in Ingress (auto-detected), shown otherwise */}
-                      {!config.isIngress && (
-                        <div className="space-y-1.5">
-                          <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
-                            {t('system.haUrlPrimary')}
-                          </label>
-                          <input
-                            type="text"
-                            className={`w-full rounded-xl border-2 bg-[var(--glass-bg)] px-3 py-2 text-sm text-[var(--text-primary)] transition-all outline-none placeholder:text-[var(--text-muted)] ${onboardingUrlError ? 'border-[var(--status-error-border)]' : 'border-[var(--glass-border)] focus:border-[var(--accent-color)]'}`}
-                            value={config.url}
-                            onChange={(e) => {
-                              setConfig({ ...config, url: e.target.value.trim() });
-                              setOnboardingUrlError('');
-                              setConnectionTestResult(null);
-                            }}
-                            placeholder={t('onboarding.haUrlPlaceholder')}
-                          />
-                          {onboardingUrlError && (
-                            <p className="ml-1 text-xs font-bold text-[var(--status-error-fg)]">
-                              {onboardingUrlError}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                    {onboardingStep === 0 && (
+                      <div className="animate-in fade-in slide-in-from-right-4 space-y-4 duration-300">
+                        {/* Auth Method Toggle — hidden in Ingress mode (always token) */}
+                        {!config.isIngress && renderAuthMethodToggle(true)}
 
-                      {/* OAuth2 mode — show login button */}
-                      {!config.isIngress && isOAuth && (
-                        <div className="pt-2">{renderOAuthSection()}</div>
-                      )}
-
-                      {/* Token mode — show token + fallback */}
-                      {!isOAuth && (
-                        <>
-                          <div className="space-y-1.5">
-                            <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
-                              {t('system.token')}
-                            </label>
-                            <textarea
-                              className={`h-24 w-full rounded-xl border-2 bg-[var(--glass-bg)] px-3 py-2 font-mono text-xs leading-tight text-[var(--text-primary)] transition-all outline-none placeholder:text-[var(--text-muted)] ${onboardingTokenError ? 'border-[var(--status-error-border)]' : 'border-[var(--glass-border)] focus:border-[var(--accent-color)]'}`}
-                              value={config.token}
-                              onChange={(e) => {
-                                setConfig({ ...config, token: e.target.value.trim() });
-                                setOnboardingTokenError('');
-                                setConnectionTestResult(null);
-                              }}
-                              placeholder={t('onboarding.tokenPlaceholder')}
-                            />
-                            {onboardingTokenError && (
-                              <p className="ml-1 text-xs font-bold text-[var(--status-error-fg)]">
-                                {onboardingTokenError}
-                              </p>
-                            )}
+                        {config.isIngress && (
+                          <div className="rounded-xl border border-[var(--accent-color)] bg-[var(--accent-bg)] p-3 text-xs leading-relaxed text-[var(--accent-color)]">
+                            <strong>Add-on Mode:</strong> URL is auto-detected. Just paste a
+                            Long-Lived Access Token from your HA Profile.
                           </div>
+                        )}
 
+                        <div className="space-y-3">
+                          {/* URL — hidden in Ingress (auto-detected), shown otherwise */}
                           {!config.isIngress && (
                             <div className="space-y-1.5">
                               <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
-                                {t('system.haUrlFallback')}
+                                {t('system.haUrlPrimary')}
                               </label>
                               <input
                                 type="text"
-                                className="w-full rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-sm text-[var(--text-primary)] transition-all outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent-color)]"
-                                value={config.fallbackUrl}
-                                onChange={(e) =>
-                                  setConfig({ ...config, fallbackUrl: e.target.value.trim() })
-                                }
-                                placeholder={t('common.optional')}
+                                className={`w-full rounded-xl border-2 bg-[var(--glass-bg)] px-3 py-2 text-sm text-[var(--text-primary)] transition-all outline-none placeholder:text-[var(--text-muted)] ${onboardingUrlError ? 'border-[var(--status-error-border)]' : 'border-[var(--glass-border)] focus:border-[var(--accent-color)]'}`}
+                                value={config.url}
+                                onChange={(e) => {
+                                  setConfig({ ...config, url: e.target.value.trim() });
+                                  setOnboardingUrlError('');
+                                  setConnectionTestResult(null);
+                                }}
+                                placeholder={t('onboarding.haUrlPlaceholder')}
                               />
-                              <p className="ml-1 text-[10px] leading-tight text-[var(--text-muted)]">
-                                {t('onboarding.fallbackHint')}
-                              </p>
+                              {onboardingUrlError && (
+                                <p className="ml-1 text-xs font-bold text-[var(--status-error-fg)]">
+                                  {onboardingUrlError}
+                                </p>
+                              )}
                             </div>
                           )}
-                        </>
-                      )}
-                    </div>
 
-                    {/* Test Connection — token mode only */}
-                    {!isOAuth && (
-                      <>
-                        <button
-                          onClick={testConnection}
-                          disabled={
-                            !config.url ||
-                            !config.token ||
-                            !validateUrl(config.url) ||
-                            testingConnection
-                          }
-                          className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold tracking-widest uppercase shadow-lg transition-all ${!config.url || !config.token || !validateUrl(config.url) || testingConnection ? 'cursor-not-allowed bg-[var(--glass-bg)] text-[var(--text-secondary)] opacity-50' : 'bg-[var(--accent-color)] text-white hover:bg-[var(--accent-color)] '}`}
-                        >
-                          {testingConnection ? (
-                            <RefreshCw className="h-5 w-5 animate-spin" />
-                          ) : (
-                            <Wifi className="h-5 w-5" />
+                          {/* OAuth2 mode — show login button */}
+                          {!config.isIngress && isOAuth && (
+                            <div className="pt-2">{renderOAuthSection()}</div>
                           )}
-                          {testingConnection
-                            ? t('onboarding.testing')
-                            : t('onboarding.testConnection')}
-                        </button>
 
-                        {connectionTestResult && (
-                          <div
-                            className={`animate-in fade-in slide-in-from-bottom-2 flex items-center gap-2 rounded-xl p-3 ${connectionTestResult.success ? 'border border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)]' : 'border border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)]'}`}
-                          >
-                            {connectionTestResult.success ? (
-                              <Check className="h-4 w-4" />
-                            ) : (
-                              <X className="h-4 w-4" />
+                          {/* Token mode — show token + fallback */}
+                          {!isOAuth && (
+                            <>
+                              <div className="space-y-1.5">
+                                <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
+                                  {t('system.token')}
+                                </label>
+                                <textarea
+                                  className={`h-24 w-full rounded-xl border-2 bg-[var(--glass-bg)] px-3 py-2 font-mono text-xs leading-tight text-[var(--text-primary)] transition-all outline-none placeholder:text-[var(--text-muted)] ${onboardingTokenError ? 'border-[var(--status-error-border)]' : 'border-[var(--glass-border)] focus:border-[var(--accent-color)]'}`}
+                                  value={config.token}
+                                  onChange={(e) => {
+                                    setConfig({ ...config, token: e.target.value.trim() });
+                                    setOnboardingTokenError('');
+                                    setConnectionTestResult(null);
+                                  }}
+                                  placeholder={t('onboarding.tokenPlaceholder')}
+                                />
+                                {onboardingTokenError && (
+                                  <p className="ml-1 text-xs font-bold text-[var(--status-error-fg)]">
+                                    {onboardingTokenError}
+                                  </p>
+                                )}
+                              </div>
+
+                              {!config.isIngress && (
+                                <div className="space-y-1.5">
+                                  <label className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
+                                    {t('system.haUrlFallback')}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    className="w-full rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-sm text-[var(--text-primary)] transition-all outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent-color)]"
+                                    value={config.fallbackUrl}
+                                    onChange={(e) =>
+                                      setConfig({ ...config, fallbackUrl: e.target.value.trim() })
+                                    }
+                                    placeholder={t('common.optional')}
+                                  />
+                                  <p className="ml-1 text-[10px] leading-tight text-[var(--text-muted)]">
+                                    {t('onboarding.fallbackHint')}
+                                  </p>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+
+                        {/* Test Connection — token mode only */}
+                        {!isOAuth && (
+                          <>
+                            <button
+                              onClick={testConnection}
+                              disabled={
+                                !config.url ||
+                                !config.token ||
+                                !validateUrl(config.url) ||
+                                testingConnection
+                              }
+                              className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold tracking-widest uppercase shadow-lg transition-all ${!config.url || !config.token || !validateUrl(config.url) || testingConnection ? 'cursor-not-allowed bg-[var(--glass-bg)] text-[var(--text-secondary)] opacity-50' : 'bg-[var(--accent-color)] text-white hover:bg-[var(--accent-color)] '}`}
+                            >
+                              {testingConnection ? (
+                                <RefreshCw className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <Wifi className="h-5 w-5" />
+                              )}
+                              {testingConnection
+                                ? t('onboarding.testing')
+                                : t('onboarding.testConnection')}
+                            </button>
+
+                            {connectionTestResult && (
+                              <div
+                                className={`animate-in fade-in slide-in-from-bottom-2 flex items-center gap-2 rounded-xl p-3 ${connectionTestResult.success ? 'border border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)]' : 'border border-[var(--status-error-border)] bg-[var(--status-error-bg)] text-[var(--status-error-fg)]'}`}
+                              >
+                                {connectionTestResult.success ? (
+                                  <Check className="h-4 w-4" />
+                                ) : (
+                                  <X className="h-4 w-4" />
+                                )}
+                                <span className="text-sm font-bold">
+                                  {connectionTestResult.message}
+                                </span>
+                              </div>
                             )}
-                            <span className="text-sm font-bold">
-                              {connectionTestResult.message}
-                            </span>
-                          </div>
+                          </>
                         )}
-                      </>
+                      </div>
+                    )}
+
+                    {onboardingStep === 1 && (
+                      <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
+                        <div className="space-y-4">
+                          <p className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
+                            {t('settings.language')}
+                          </p>
+                          <ModernDropdown
+                            label={t('settings.language')}
+                            icon={Globe}
+                            options={['en', 'nb', 'nn', 'sv', 'de', 'zh', 'fr']}
+                            current={language}
+                            onChange={setLanguage}
+                            map={{
+                              en: t('language.en'),
+                              nb: t('language.nb'),
+                              nn: t('language.nn'),
+                              sv: t('language.sv'),
+                              de: t('language.de'),
+                              zh: t('language.zh'),
+                              fr: t('language.fr'),
+                            }}
+                            placeholder={t('dropdown.noneSelected')}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="ml-1 flex justify-between text-xs font-bold text-[var(--text-muted)] uppercase">
+                            {t('settings.inactivity')}
+                            <span className="text-[var(--text-primary)]">
+                              {inactivityTimeout === 0 ? t('common.off') : `${inactivityTimeout}s`}
+                            </span>
+                          </label>
+                          <div className="px-1 py-2">
+                            <M3Slider
+                              min={0}
+                              max={300}
+                              step={10}
+                              value={inactivityTimeout}
+                              onChange={(e) => {
+                                const val = Number.parseInt(e.target.value, 10);
+                                setInactivityTimeout(val);
+                                try {
+                                  localStorage.setItem('nyx_inactivity_timeout', String(val));
+                                } catch {}
+                              }}
+                              colorClass="bg-[var(--accent-color)]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {onboardingStep === 2 && (
+                      <div className="animate-in fade-in zoom-in flex h-full flex-col items-center justify-center space-y-6 p-4 text-center duration-500">
+                        <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full border border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)] shadow-xl">
+                          <Check className="h-12 w-12" />
+                        </div>
+                        <h4 className="text-3xl font-bold text-[var(--text-primary)]">
+                          {t('onboarding.finishTitle')}
+                        </h4>
+                        <p className="mt-2 max-w-sm text-lg text-[var(--text-secondary)]">
+                          {t('onboarding.finishBody')}
+                        </p>
+                      </div>
                     )}
                   </div>
-                )}
 
-                {onboardingStep === 1 && (
-                  <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
-                    <div className="space-y-4">
-                      <p className="ml-1 text-xs font-bold text-[var(--text-muted)] uppercase">
-                        {t('settings.language')}
-                      </p>
-                      <ModernDropdown
-                        label={t('settings.language')}
-                        icon={Globe}
-                        options={['en', 'nb', 'nn', 'sv', 'de', 'zh', 'fr']}
-                        current={language}
-                        onChange={setLanguage}
-                        map={{
-                          en: t('language.en'),
-                          nb: t('language.nb'),
-                          nn: t('language.nn'),
-                          sv: t('language.sv'),
-                          de: t('language.de'),
-                          zh: t('language.zh'),
-                          fr: t('language.fr'),
-                        }}
-                        placeholder={t('dropdown.noneSelected')}
-                      />
+                  {/* Onboarding Footer */}
+                  <div className="flex gap-3 border-t border-[var(--glass-border)] p-4">
+                    <button
+                      onClick={() => setOnboardingStep((s) => Math.max(0, s - 1))}
+                      className="flex-1 rounded-xl border border-[var(--glass-border)] py-3 font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+                      disabled={onboardingStep === 0}
+                      style={{
+                        opacity: onboardingStep === 0 ? 0 : 1,
+                        pointerEvents: onboardingStep === 0 ? 'none' : 'auto',
+                      }}
+                    >
+                      {t('onboarding.back')}
+                    </button>
+                    {onboardingStep < onboardingSteps.length - 1 ? (
+                      <button
+                        onClick={() =>
+                          setOnboardingStep((s) => Math.min(onboardingSteps.length - 1, s + 1))
+                        }
+                        disabled={!canAdvanceOnboarding}
+                        className={`flex-1 rounded-xl py-3 font-bold tracking-widest uppercase shadow-lg transition-all ${canAdvanceOnboarding ? 'bg-[var(--accent-color)] text-white hover:bg-[var(--accent-color)] ' : 'cursor-not-allowed border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] opacity-50'}`}
+                      >
+                        {t('onboarding.next')}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={onFinishOnboarding}
+                        className="flex-1 rounded-xl border border-[var(--status-success-border)] bg-[var(--status-success-bg)] py-3 font-bold tracking-widest text-[var(--status-success-fg)] uppercase shadow-lg transition-all hover:opacity-90"
+                      >
+                        {t('onboarding.finish')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // ═══ SYSTEM SETTINGS LAYOUT ═══
+              <div
+                className={`flex h-full ${isLayoutPreview ? 'flex-col' : 'flex-col md:flex-row'}`}
+              >
+                {/* Sidebar — icons only on mobile, full labels on desktop */}
+                {!isLayoutPreview && (
+                  <div className="animate-in fade-in slide-in-from-left-4 flex w-full flex-shrink-0 flex-row gap-1 border-b border-[var(--glass-border)] bg-[linear-gradient(160deg,var(--glass-bg),transparent_70%)] p-2 duration-300 md:w-56 md:flex-col md:border-r md:border-b-0 md:p-3">
+                    <div className="mb-2 hidden items-center gap-3 px-3 py-4 md:flex">
+                      <div className="rounded-lg bg-[var(--accent-bg)] p-2 text-[var(--accent-color)]">
+                        <Settings className="h-5 w-5" />
+                      </div>
+                      <span className="text-lg font-bold tracking-wide">{t('system.title')}</span>
                     </div>
-                    <div className="space-y-2">
-                      <label className="ml-1 flex justify-between text-xs font-bold text-[var(--text-muted)] uppercase">
-                        {t('settings.inactivity')}
-                        <span className="text-[var(--text-primary)]">
-                          {inactivityTimeout === 0 ? t('common.off') : `${inactivityTimeout}s`}
-                        </span>
-                      </label>
-                      <div className="px-1 py-2">
-                        <M3Slider
-                          min={0}
-                          max={300}
-                          step={10}
-                          value={inactivityTimeout}
-                          onChange={(e) => {
-                            const val = Number.parseInt(e.target.value, 10);
-                            setInactivityTimeout(val);
-                            try {
-                              localStorage.setItem('nyx_inactivity_timeout', String(val));
-                            } catch {}
-                          }}
-                          colorClass="bg-[var(--accent-color)]"
-                        />
+
+                    {availableTabs.map((tab) => {
+                      const active = configTab === tab.key;
+                      const TabIcon = tab.icon;
+                      return (
+                        <button
+                          key={tab.key}
+                          onClick={() => setConfigTab(tab.key)}
+                          className={`flex flex-1 items-center justify-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold tracking-wide uppercase transition-all md:flex-none md:justify-start md:px-4 md:py-3 ${
+                            active
+                              ? 'bg-[var(--accent-color)] text-white shadow-lg '
+                              : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          <TabIcon className="h-4 w-4 flex-shrink-0" />
+                          <span className="hidden text-xs md:inline">{tab.label}</span>
+                        </button>
+                      );
+                    })}
+
+                    <div className="mt-auto hidden flex-col gap-2 border-t border-[var(--glass-border)] pt-4 md:flex">
+                      <button
+                        onClick={onClose}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--status-success-border)] bg-[var(--status-success-bg)] py-3 text-sm font-bold tracking-widest text-[var(--status-success-fg)] uppercase shadow-lg transition-all hover:opacity-90"
+                      >
+                        <Check className="h-4 w-4" />
+                        {t('system.save')}
+                      </button>
+                      <div className="pt-2 text-center">
+                        <p className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase opacity-50">
+                          Nyx Dashboard v{__APP_VERSION__}
+                        </p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {onboardingStep === 2 && (
-                  <div className="animate-in fade-in zoom-in flex h-full flex-col items-center justify-center space-y-6 p-4 text-center duration-500">
-                    <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full border border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success-fg)] shadow-xl">
-                      <Check className="h-12 w-12" />
+                {/* Content Area */}
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <div
+                    className={`flex items-center justify-between border-b border-[var(--glass-border)] p-4 ${isLayoutPreview ? 'relative overflow-hidden bg-[var(--glass-bg)]' : 'md:hidden'}`}
+                  >
+                    {isLayoutPreview && (
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-[var(--accent-bg)]/50 via-transparent to-transparent" />
+                    )}
+                    <div className="relative flex items-center gap-3">
+                      <div className="rounded-lg bg-[var(--accent-bg)] p-2 text-[var(--accent-color)] shadow-inner">
+                        <LayoutGrid className="h-4 w-4" />
+                      </div>
+                      <h3 className="text-base font-bold tracking-wide uppercase">
+                        {availableTabs.find((tb) => tb.key === configTab)?.label}
+                      </h3>
                     </div>
-                    <h4 className="text-3xl font-bold text-[var(--text-primary)]">
-                      {t('onboarding.finishTitle')}
-                    </h4>
-                    <p className="mt-2 max-w-sm text-lg text-[var(--text-secondary)]">
-                      {t('onboarding.finishBody')}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Onboarding Footer */}
-              <div className="flex gap-3 border-t border-[var(--glass-border)] p-4">
-                <button
-                  onClick={() => setOnboardingStep((s) => Math.max(0, s - 1))}
-                  className="flex-1 rounded-xl border border-[var(--glass-border)] py-3 font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
-                  disabled={onboardingStep === 0}
-                  style={{
-                    opacity: onboardingStep === 0 ? 0 : 1,
-                    pointerEvents: onboardingStep === 0 ? 'none' : 'auto',
-                  }}
-                >
-                  {t('onboarding.back')}
-                </button>
-                {onboardingStep < onboardingSteps.length - 1 ? (
-                  <button
-                    onClick={() =>
-                      setOnboardingStep((s) => Math.min(onboardingSteps.length - 1, s + 1))
-                    }
-                    disabled={!canAdvanceOnboarding}
-                    className={`flex-1 rounded-xl py-3 font-bold tracking-widest uppercase shadow-lg transition-all ${canAdvanceOnboarding ? 'bg-[var(--accent-color)] text-white hover:bg-[var(--accent-color)] ' : 'cursor-not-allowed border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] opacity-50'}`}
-                  >
-                    {t('onboarding.next')}
-                  </button>
-                ) : (
-                  <button
-                    onClick={onFinishOnboarding}
-                    className="flex-1 rounded-xl border border-[var(--status-success-border)] bg-[var(--status-success-bg)] py-3 font-bold tracking-widest text-[var(--status-success-fg)] uppercase shadow-lg transition-all hover:opacity-90"
-                  >
-                    {t('onboarding.finish')}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          // ═══ SYSTEM SETTINGS LAYOUT ═══
-          <div className={`flex h-full ${isLayoutPreview ? 'flex-col' : 'flex-col md:flex-row'}`}>
-            {/* Sidebar — icons only on mobile, full labels on desktop */}
-            {!isLayoutPreview && (
-              <div className="animate-in fade-in slide-in-from-left-4 flex w-full flex-shrink-0 flex-row gap-1 border-b border-[var(--glass-border)] bg-[linear-gradient(160deg,var(--glass-bg),transparent_70%)] p-2 duration-300 md:w-56 md:flex-col md:border-r md:border-b-0 md:p-3">
-                <div className="mb-2 hidden items-center gap-3 px-3 py-4 md:flex">
-                  <div className="rounded-lg bg-[var(--accent-bg)] p-2 text-[var(--accent-color)]">
-                    <Settings className="h-5 w-5" />
-                  </div>
-                  <span className="text-lg font-bold tracking-wide">{t('system.title')}</span>
-                </div>
-
-                {availableTabs.map((tab) => {
-                  const active = configTab === tab.key;
-                  const TabIcon = tab.icon;
-                  return (
                     <button
-                      key={tab.key}
-                      onClick={() => setConfigTab(tab.key)}
-                      className={`flex flex-1 items-center justify-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold tracking-wide uppercase transition-all md:flex-none md:justify-start md:px-4 md:py-3 ${
-                        active
-                          ? 'bg-[var(--accent-color)] text-white shadow-lg '
-                          : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
-                      }`}
+                      type="button"
+                      onClick={onClose}
+                      className="modal-close relative"
+                      aria-label={t('common.close') || 'Close'}
                     >
-                      <TabIcon className="h-4 w-4 flex-shrink-0" />
-                      <span className="hidden text-xs md:inline">{tab.label}</span>
+                      <X className="h-4 w-4" />
                     </button>
-                  );
-                })}
-
-                <div className="mt-auto hidden flex-col gap-2 border-t border-[var(--glass-border)] pt-4 md:flex">
-                  <button
-                    onClick={onClose}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--status-success-border)] bg-[var(--status-success-bg)] py-3 text-sm font-bold tracking-widest text-[var(--status-success-fg)] uppercase shadow-lg transition-all hover:opacity-90"
-                  >
-                    <Check className="h-4 w-4" />
-                    {t('system.save')}
-                  </button>
-                  <div className="pt-2 text-center">
-                    <p className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase opacity-50">
-                      Nyx Dashboard v{__APP_VERSION__}
-                    </p>
                   </div>
+
+                  <div
+                    className={`custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain ${isLayoutPreview ? 'p-5 md:p-6' : 'p-5 md:p-8'}`}
+                    style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+                  >
+                    {/* Desktop Header */}
+                    {!isLayoutPreview && (
+                      <div className="mb-8 hidden items-center justify-between md:flex">
+                        <h2 className="text-2xl font-bold">
+                          {availableTabs.find((tab) => tab.key === configTab)?.label}
+                        </h2>
+                        <button
+                          type="button"
+                          onClick={handleClose}
+                          className="modal-close rounded-full p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
+                          aria-label={t('common.close') || 'Close'}
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+                    )}
+
+                    {configTab === 'connection' && renderConnectionTab()}
+                    {configTab === 'profiles' && renderProfilesTab()}
+                    {configTab === 'updates' && renderUpdatesTab()}
+                  </div>
+
+                  {/* Mobile Footer */}
+                  {!isLayoutPreview && (
+                    <div className="border-t border-[var(--glass-border)] p-3 md:hidden">
+                      <button
+                        onClick={onClose}
+                        className="w-full rounded-xl border border-[var(--status-success-border)] bg-[var(--status-success-bg)] py-2.5 text-sm font-bold tracking-widest text-[var(--status-success-fg)] uppercase shadow-lg transition-all hover:opacity-90"
+                      >
+                        {t('system.save')}
+                      </button>
+                      <div className="pt-2 text-center">
+                        <p className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase opacity-50">
+                          Nyx Dashboard v{__APP_VERSION__}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
-
-            {/* Content Area */}
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div
-                className={`flex items-center justify-between border-b border-[var(--glass-border)] p-4 ${isLayoutPreview ? 'relative overflow-hidden bg-[var(--glass-bg)]' : 'md:hidden'}`}
-              >
-                {isLayoutPreview && (
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-[var(--accent-bg)]/50 via-transparent to-transparent" />
-                )}
-                <div className="relative flex items-center gap-3">
-                  <div className="rounded-lg bg-[var(--accent-bg)] p-2 text-[var(--accent-color)] shadow-inner">
-                    <LayoutGrid className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-base font-bold tracking-wide uppercase">
-                    {availableTabs.find((tb) => tb.key === configTab)?.label}
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="modal-close relative"
-                  aria-label={t('common.close') || 'Close'}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div
-                className={`custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain ${isLayoutPreview ? 'p-5 md:p-6' : 'p-5 md:p-8'}`}
-                style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
-              >
-                {/* Desktop Header */}
-                {!isLayoutPreview && (
-                  <div className="mb-8 hidden items-center justify-between md:flex">
-                    <h2 className="text-2xl font-bold">
-                      {availableTabs.find((tab) => tab.key === configTab)?.label}
-                    </h2>
-                    <button
-                      type="button"
-                      onClick={handleClose}
-                      className="modal-close rounded-full p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]"
-                      aria-label={t('common.close') || 'Close'}
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
-                )}
-
-                {configTab === 'connection' && renderConnectionTab()}
-                {configTab === 'profiles' && renderProfilesTab()}
-                {configTab === 'updates' && renderUpdatesTab()}
-              </div>
-
-              {/* Mobile Footer */}
-              {!isLayoutPreview && (
-                <div className="border-t border-[var(--glass-border)] p-3 md:hidden">
-                  <button
-                    onClick={onClose}
-                    className="w-full rounded-xl border border-[var(--status-success-border)] bg-[var(--status-success-bg)] py-2.5 text-sm font-bold tracking-widest text-[var(--status-success-fg)] uppercase shadow-lg transition-all hover:opacity-90"
-                  >
-                    {t('system.save')}
-                  </button>
-                  <div className="pt-2 text-center">
-                    <p className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase opacity-50">
-                      Nyx Dashboard v{__APP_VERSION__}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
-        )}
-      </div>
         </>
       )}
     </AccessibleModalShell>
@@ -2358,6 +2404,8 @@ const autoSyncShape = PropTypes.shape({
   setEnabled: PropTypes.func,
   loadCurrentFromServer: PropTypes.func,
   publishCurrentToDevices: PropTypes.func,
+  publishConflicts: PropTypes.array,
+  overwriteServerWithLocal: PropTypes.func,
   renameKnownDevice: PropTypes.func,
   removeKnownDevice: PropTypes.func,
 });
@@ -2467,4 +2515,3 @@ ConfigModal.propTypes = {
   onFinishOnboarding: PropTypes.func,
   profiles: profilesShape,
 };
-

@@ -79,9 +79,7 @@ export function collectSnapshot() {
     },
     appearance: {
       theme: localStorage.getItem('nyx_theme') || 'dark',
-      language: normalizeSnapshotLanguage(
-        localStorage.getItem('nyx_language') || DEFAULT_LANGUAGE
-      ),
+      language: normalizeSnapshotLanguage(localStorage.getItem('nyx_language') || DEFAULT_LANGUAGE),
       appFont: localStorage.getItem('nyx_app_font') || 'sans',
       unitsMode: localStorage.getItem('nyx_units_mode') || 'follow_ha',
       bgMode: localStorage.getItem('nyx_bg_mode') || 'theme',
@@ -267,7 +265,8 @@ export function applySnapshot(snapshot, contextSetters = {}) {
  */
 export function isValidSnapshot(obj) {
   if (!obj || typeof obj !== 'object') return false;
-  if (!obj.version || typeof obj.version !== 'number') return false;
+  if (!Number.isInteger(obj.version) || obj.version < 1 || obj.version > SNAPSHOT_VERSION)
+    return false;
   if (!obj.layout || typeof obj.layout !== 'object') return false;
   if (!obj.appearance || typeof obj.appearance !== 'object') return false;
   return true;
