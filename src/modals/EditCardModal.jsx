@@ -5,6 +5,7 @@ import ConditionBuilder from '../components/ui/ConditionBuilder';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import { getRelatedEntityIds } from '../services/haClient';
 import { CarMappingsSection, SearchableSelect } from './editCard/CarMappingsSection';
+import LightScenesSection from './editCard/LightScenesSection';
 import { buildCarAnchorOptions } from './editCard/carAnchorOptions';
 import { RoomSettingsSection } from './editCard/RoomSettingsSection';
 import { CoverSettingsSection } from './editCard/CoverSettingsSection';
@@ -766,6 +767,7 @@ export default function EditCardModal({
   isEditRoom,
   isEditAndroidTV,
   isEditFan,
+  isEditLight,
   isEditVacuum,
   isEditCover,
   canEditCustomRows,
@@ -3222,6 +3224,16 @@ export default function EditCardModal({
                     </div>
                   );
                 })()}
+
+              {isEditLight && editSettingsKey && (
+                <LightScenesSection
+                  value={editSettings.lightScenes}
+                  sceneOptions={byDomain('scene')}
+                  entities={entities}
+                  onChange={(sceneIds) => saveCardSetting(editSettingsKey, 'lightScenes', sceneIds)}
+                  t={t}
+                />
+              )}
 
               {isEditFan && editSettingsKey && (
                 <div className="popup-surface rounded-2xl p-4">

@@ -1,9 +1,88 @@
-import { useRef, useEffect, useCallback, memo } from 'react';
+import { useRef, useEffect, useCallback, useState, memo } from 'react';
 import { getIconComponent } from '../../icons';
 import { Lightbulb } from '../../icons';
 import M3Slider from '../ui/M3Slider';
+import { Check, RefreshCw } from '../../icons';
+import { resolveLightScenes } from '../../utils/lightScenes';
 
 const SLIDER_DEBOUNCE_MS = 200;
+const SCENE_DONE_MS = 1500;
+
+/** Up to three scenes as quick picks under the slider of the large card. */
+function LightSceneChips({ sceneIds, entities, editMode, callService, label }) {
+  const [status, setStatus] = useState({});
+  const mountedRef = useRef(true);
+  const timersRef = useRef({});
+
+  useEffect(() => {
+    mountedRef.current = true;
+    const timers = timersRef.current;
+    return () => {
+      mountedRef.current = false;
+      Object.values(timers).forEach(clearTimeout);
+    };
+  }, []);
+
+  const setSceneStatus = (sceneId, next) => {
+    if (!mountedRef.current) return;
+    setStatus((prev) => {
+      const updated = { ...prev };
+      if (next) updated[sceneId] = next;
+      else delete updated[sceneId];
+      return updated;
+    });
+  };
+
+  const activate = (event, sceneId) => {
+    event.stopPropagation();
+    if (editMode || status[sceneId] === 'pending') return;
+    clearTimeout(timersRef.current[sceneId]);
+    setSceneStatus(sceneId, 'pending');
+    const done = () => {
+      setSceneStatus(sceneId, 'done');
+      timersRef.current[sceneId] = setTimeout(() => setSceneStatus(sceneId, null), SCENE_DONE_MS);
+    };
+    // callService shows the toast when the call fails or the scene is unavailable.
+    const failed = () => setSceneStatus(sceneId, null);
+    try {
+      Promise.resolve(callService('scene', 'turn_on', { entity_id: sceneId })).then(done, failed);
+    } catch {
+      failed();
+    }
+  };
+
+  return (
+    <div role="group" aria-label={label} className="relative z-30 mt-1.5 flex min-w-0 gap-1.5">
+      {sceneIds.map((sceneId) => {
+        const scene = entities[sceneId];
+        const sceneName = String(scene?.attributes?.friendly_name || sceneId);
+        const isPending = status[sceneId] === 'pending';
+        const isDone = status[sceneId] === 'done';
+        const isSceneUnavailable = scene?.state === 'unavailable';
+        return (
+          <button
+            key={sceneId}
+            type="button"
+            title={sceneName}
+            aria-busy={isPending}
+            disabled={editMode || isPending || isSceneUnavailable}
+            onClick={(event) => activate(event, sceneId)}
+            // Enter and Space belong to the chip; the card would open the light popup instead.
+            onKeyDown={(event) => event.stopPropagation()}
+            className={`flex h-7 min-w-0 cursor-pointer items-center gap-1 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] px-2.5 text-[11px] leading-none font-semibold text-[var(--text-secondary)] transition-[transform,background-color,color] duration-200 enabled:hover:bg-[var(--glass-bg-hover)] enabled:hover:text-[var(--text-primary)] enabled:active:scale-95 disabled:cursor-default ${isSceneUnavailable ? 'opacity-50' : ''}`}
+          >
+            {isPending ? (
+              <RefreshCw aria-hidden="true" className="h-3 w-3 shrink-0 animate-spin" />
+            ) : isDone ? (
+              <Check aria-hidden="true" className="h-3 w-3 shrink-0" />
+            ) : null}
+            <span className="truncate">{sceneName}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 /** @param {any} props */
 const LightCard = ({
@@ -47,6 +126,13 @@ const LightCard = ({
   const sizeSetting = cardSettings[settingsKey]?.size || cardSettings[cardId]?.size;
   const isSmall = sizeSetting === 'small';
   const isDenseMobile = isMobile && !isSmall;
+  // Scenes only fit on the large card; there they make the value and slider more compact.
+  const sceneIds = isSmall
+    ? []
+    : resolveLightScenes((cardSettings[settingsKey] || cardSettings[cardId])?.lightScenes).filter(
+        (sceneId) => entities[sceneId]
+      );
+  const hasScenes = sceneIds.length > 0;
 
   // Small cards show the brightness beside the slider; it follows the finger while dragging.
   const brightnessPct = Math.round(((optimisticLightBrightness[cardId] ?? br) / 255) * 100);
@@ -216,8 +302,8 @@ const LightCard = ({
         </div>
       </div>
       <div className={`${isDenseMobile ? 'mt-1' : 'mt-2'} font-sans`}>
-        {!isDenseMobile && (
-          <p className="mb-0.5 text-[10px] leading-none font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase opacity-60">
+        {(!isDenseMobile || hasScenes) && (
+          <p className="mb-0.5 truncate text-[10px] leading-none font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase opacity-60">
             {String(name || t('common.light'))}
           </p>
         )}
@@ -227,7 +313,7 @@ const LightCard = ({
           {isDimmable ? (
             <>
               <span
-                className={`${isDenseMobile ? 'text-3xl' : 'text-4xl'} leading-none font-thin text-[var(--text-primary)]`}
+                className={`${isDenseMobile || hasScenes ? 'text-3xl' : 'text-4xl'} leading-none font-thin text-[var(--text-primary)]`}
               >
                 {isUnavailable
                   ? '--'
@@ -236,7 +322,7 @@ const LightCard = ({
                     : '0'}
               </span>
               <span
-                className={`${isDenseMobile ? 'text-lg' : 'ml-1 text-xl'} font-light text-[var(--text-muted)]`}
+                className={`${isDenseMobile ? 'text-lg' : hasScenes ? 'ml-1 text-lg' : 'ml-1 text-xl'} font-light text-[var(--text-muted)]`}
               >
                 %
               </span>
@@ -244,35 +330,48 @@ const LightCard = ({
           ) : (
             /* Layout: maintain 4xl height but show nothing unless UNAVAILABLE */
             <span
-              className={`${isDenseMobile ? 'text-3xl' : 'text-4xl'} leading-none font-thin text-transparent select-none`}
+              className={`${isDenseMobile || hasScenes ? 'text-3xl' : 'text-4xl'} leading-none font-thin text-transparent select-none`}
             >
               {isUnavailable ? <span className="text-[var(--text-primary)]">--</span> : '0'}
             </span>
           )}
         </div>
-        {isDenseMobile && (
+        {isDenseMobile && !hasScenes && (
           <p className="mt-3 mb-1 text-[10px] leading-none font-bold tracking-[0.2em] text-[var(--text-secondary)] uppercase opacity-60">
             {String(name || t('common.light'))}
           </p>
         )}
         {/* Helper to keep layout consistent. For non-dimmable, we keep the empty space where slider would be. */}
-        <div
-          className={`flex w-full items-center ${isDenseMobile ? 'mt-2' : 'mt-3'} ${isDimmable ? '' : isDenseMobile ? 'h-8' : 'h-12'}`}
-        >
-          {isDimmable && (
-            <M3Slider
-              variant={isDenseMobile ? 'thinLg' : 'default'}
-              min={0}
-              max={255}
-              step={1}
-              value={optimisticLightBrightness[cardId] ?? br}
-              disabled={isUnavailable}
-              onChange={handleBrightnessChange}
-              colorClass="bg-amber-500"
-              ariaLabel={t('light.brightness')}
-            />
-          )}
-        </div>
+        {(isDimmable || !hasScenes) && (
+          <div
+            className={`flex w-full items-center ${hasScenes ? 'mt-1' : `${isDenseMobile ? 'mt-2' : 'mt-3'} ${isDimmable ? '' : isDenseMobile ? 'h-8' : 'h-12'}`}`}
+          >
+            {isDimmable && (
+              <div className="min-w-0 flex-1">
+                <M3Slider
+                  variant={isDenseMobile || hasScenes ? 'thinLg' : 'default'}
+                  min={0}
+                  max={255}
+                  step={1}
+                  value={optimisticLightBrightness[cardId] ?? br}
+                  disabled={isUnavailable}
+                  onChange={handleBrightnessChange}
+                  colorClass="bg-amber-500"
+                  ariaLabel={t('light.brightness')}
+                />
+              </div>
+            )}
+          </div>
+        )}
+        {hasScenes && (
+          <LightSceneChips
+            sceneIds={sceneIds}
+            entities={entities}
+            editMode={editMode}
+            callService={callService}
+            label={t('light.scenes')}
+          />
+        )}
       </div>
     </div>
   );
