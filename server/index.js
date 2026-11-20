@@ -9,6 +9,7 @@ import profilesRouter from './routes/profiles.js';
 import iconsRouter from './routes/icons.js';
 import settingsRouter from './routes/settings.js';
 import kioskRouter from './routes/kiosk.js';
+import { startBackupSchedule } from './db.js';
 import ingressIdentityRouter from './routes/ingressIdentity.js';
 import { createHomeAssistantAuthMiddleware, getTrustedSupervisorUser } from './haAuth.js';
 import {
@@ -398,6 +399,10 @@ if (isMainModule) {
     }
   }, RELAY_HEARTBEAT_INTERVAL_MS);
   relayHeartbeat.unref();
+
+  // Back up the SQLite database at startup if the newest copy is over a day
+  // old, then daily; seven copies are kept under DATA_DIR/backups.
+  startBackupSchedule();
 
   // Temporary diagnostics for tracking down a heap-growth crash-loop --
   // remove once the cause is confirmed fixed. Logs process memory alongside
