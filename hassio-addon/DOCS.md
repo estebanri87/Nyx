@@ -14,6 +14,10 @@ real-time entity updates, and drag-and-drop customisation.
 6. Paste the token and click **Test Connection**.
 7. Once the test succeeds, click **Next** and finish the setup.
 
+## Direct port access
+
+For access through the optional direct port (instead of the sidebar), set `internal_ha_url` in the add-on configuration to an HTTP(S) URL for your Home Assistant instance that the add-on can reach (for example `http://homeassistant:8123`). Profiles and settings sync require this trusted server address. `internal_ha_fallback_url` can point to an alternative address for the same instance. Browser-supplied addresses are never used to validate backend authentication. Sidebar access through Supervisor ingress needs no additional URL configuration.
+
 ## Features
 
 - **Real-time updates** via Home Assistant WebSocket API.

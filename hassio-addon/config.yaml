@@ -1,6 +1,6 @@
 name: 'Nyx'
 description: 'A modern, responsive dashboard for Home Assistant'
-version: "1.20.59-v1dev"
+version: "1.20.60-v1dev"
 slug: 'nyx'
 url: 'https://github.com/estebanri87/Nyx'
 init: false
@@ -19,10 +19,14 @@ ports:
 ports_description:
   3002/tcp: 'Nyx Web Interface (not needed when using Ingress)'
 options:
+  internal_ha_url: ''
+  internal_ha_fallback_url: ''
   data_encryption_mode: 'off'
   data_encryption_key: ''
   data_encryption_salt: ''
 schema:
+  internal_ha_url: 'str?'
+  internal_ha_fallback_url: 'str?'
   data_encryption_mode: 'list(off|dual|enc_only)?'
   data_encryption_key: 'password?'
   data_encryption_salt: 'password?'
