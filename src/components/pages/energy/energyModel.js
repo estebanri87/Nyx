@@ -243,7 +243,7 @@ const WEATHER_ICON = {
   sunny: 'clear-day',
   windy: 'wind',
   'windy-variant': 'wind',
-  exceptional: 'not-available', // Meteocons has no "extreme" icon
+  exceptional: 'thermometer', // Meteocons has no "extreme" icon
 };
 // After sunset the day icons swap to their night variant.
 const NIGHT_ICON = {

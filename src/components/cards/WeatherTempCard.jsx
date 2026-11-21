@@ -69,7 +69,7 @@ const getWeatherInfo = (condition, t) => {
     // Meteocons has no "extreme" icon.
     exceptional: {
       label: t?.('weather.condition.exceptional') || 'Extreme',
-      icon: 'not-available',
+      icon: 'thermometer',
     },
   };
   return map[condition] || { label: condition || 'Unknown', icon: 'not-available' };
