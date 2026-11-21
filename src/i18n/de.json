@@ -1978,5 +1978,8 @@
   "energy.config.stableMinutes": "Mittel über (min)",
   "energy.config.runW": "„Läuft“ ab (W)",
   "statusPills.typeEnergyAdvice": "Energie-Empfehlung",
-  "statusPills.energyAdviceHint": "Erscheint, sobald ein Gerät in den Sonnenstrom-Überschuss passt. Geräte und Schwellen stellst du auf der Energie-Seite im Bearbeitungsmodus ein."
+  "statusPills.energyAdviceHint": "Erscheint, sobald ein Gerät in den Sonnenstrom-Überschuss passt. Geräte und Schwellen stellst du auf der Energie-Seite im Bearbeitungsmodus ein.",
+  "energy.config.noData": "keine Laufwerte in 30 Tagen",
+  "energy.config.notPower": "kein Leistungs-Sensor ({unit})",
+  "energy.config.failed": "Abfrage fehlgeschlagen"
 }

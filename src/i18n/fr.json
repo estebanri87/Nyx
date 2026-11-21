@@ -1978,5 +1978,8 @@
   "energy.config.stableMinutes": "Moyenne sur (min)",
   "energy.config.runW": "« En marche » dès (W)",
   "statusPills.typeEnergyAdvice": "Conseil énergie",
-  "statusPills.energyAdviceHint": "Apparaît dès qu’un appareil tient dans le surplus solaire. Les appareils et seuils se règlent sur la page énergie en mode édition."
+  "statusPills.energyAdviceHint": "Apparaît dès qu’un appareil tient dans le surplus solaire. Les appareils et seuils se règlent sur la page énergie en mode édition.",
+  "energy.config.noData": "aucune valeur de marche sur 30 jours",
+  "energy.config.notPower": "pas un capteur de puissance ({unit})",
+  "energy.config.failed": "échec de la requête"
 }

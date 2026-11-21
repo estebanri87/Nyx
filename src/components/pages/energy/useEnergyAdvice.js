@@ -16,7 +16,7 @@ const DEMAND_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 // Shared between the energy page and the status pill, so both agree and the
 // history is only read once per session.
 const surplusSamples = new Map(); // setup key -> [{t, w}]
-const learnedDemand = new Map(); // entity id -> {value, at}
+const learnedDemand = new Map(); // entity id -> {value, at, state: pending|done|failed}
 
 const toPoints = (rows) =>
   (rows || [])
@@ -95,17 +95,24 @@ export function useEnergyAdvice(entities, conn, config) {
     deviceIds.split(',').forEach((statisticId) => {
       const known = learnedDemand.get(statisticId);
       if (known && Date.now() - known.at < DEMAND_MAX_AGE_MS) return;
-      learnedDemand.set(statisticId, { value: known?.value ?? null, at: Date.now() });
+      learnedDemand.set(statisticId, {
+        value: known?.value ?? null,
+        at: Date.now(),
+        state: known?.state === 'done' ? 'done' : 'pending',
+      });
       getStatistics(conn, { statisticId, start, end, period: 'hour', types: ['max'] })
         .then((rows) => {
           const value = learnDemand(
             rows.map((r) => r.max),
             advice.runW
           );
-          learnedDemand.set(statisticId, { value, at: Date.now() });
+          learnedDemand.set(statisticId, { value, at: Date.now(), state: 'done' });
           if (!cancelled) setVersion((v) => v + 1);
         })
-        .catch(() => {});
+        .catch(() => {
+          learnedDemand.set(statisticId, { value: null, at: Date.now(), state: 'failed' });
+          if (!cancelled) setVersion((v) => v + 1);
+        });
     });
     return () => {
       cancelled = true;
@@ -124,6 +131,7 @@ export function useEnergyAdvice(entities, conn, config) {
       name: d.name || entities?.[d.entity]?.attributes?.friendly_name || d.entity,
       powerW: readPowerW(entities, d.entity),
       demandW: learnedDemand.get(d.entity)?.value ?? null,
+      demandState: learnedDemand.get(d.entity)?.state ?? 'pending',
     })),
   });
 

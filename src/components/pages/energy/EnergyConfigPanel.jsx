@@ -62,7 +62,22 @@ function EnergyConfigPanel({ config, onChange, entities, adviceItems = [], local
   const setDevices = (list) => update({ devices: list });
   const setAdvice = (key, value) => update({ advice: { ...config.advice, [key]: value } });
   const adviceValue = (key) => config.advice[key] ?? ADVICE_DEFAULTS[key];
-  const learned = (id) => adviceItems.find((i) => i.id === id)?.demandW ?? null;
+  const learned = (id) => adviceItems.find((i) => i.id === id) || {};
+  // Why there is no demand yet: still loading, failed, no power sensor or no running hours.
+  const demandText = (id) => {
+    const { demandW, demandState } = learned(id);
+    const unit = entities[id]?.attributes?.unit_of_measurement;
+    if (unit && !['W', 'kW', 'mW', 'MW'].includes(unit))
+      return t('energy.config.notPower').replace('{unit}', unit);
+    if (demandW)
+      return t('energy.config.learned').replace(
+        '{kw}',
+        `${formatNumber(demandW / 1000, locale)} kW`
+      );
+    if (demandState === 'failed') return t('energy.config.failed');
+    if (demandState === 'done') return t('energy.config.noData');
+    return t('energy.config.learning');
+  };
   const moveDevice = (index, delta) => {
     const next = [...config.devices];
     const [item] = next.splice(index, 1);
@@ -255,7 +270,6 @@ function EnergyConfigPanel({ config, onChange, entities, adviceItems = [], local
         </p>
         <p className="text-[11px] text-[var(--text-muted)]">{t('energy.config.devicesHint')}</p>
         {config.devices.map((device, index) => {
-          const demand = learned(device.entity);
           return (
             <div
               key={device.entity}
@@ -276,13 +290,9 @@ function EnergyConfigPanel({ config, onChange, entities, adviceItems = [], local
                 }
                 className="popup-surface min-w-0 flex-1 rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none"
               />
-              <span className="text-[11px] whitespace-nowrap text-[var(--text-muted)] tabular-nums">
-                {demand
-                  ? t('energy.config.learned').replace(
-                      '{kw}',
-                      `${formatNumber(demand / 1000, locale)} kW`
-                    )
-                  : t('energy.config.learning')}
+              <span className="flex min-w-0 flex-col text-right text-[11px] text-[var(--text-muted)] tabular-nums">
+                <span className="whitespace-nowrap">{demandText(device.entity)}</span>
+                <span className="truncate opacity-70">{device.entity}</span>
               </span>
               <button
                 type="button"

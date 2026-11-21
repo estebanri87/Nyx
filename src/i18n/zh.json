@@ -1879,5 +1879,8 @@
   "energy.config.stableMinutes": "平均时长（分钟）",
   "energy.config.runW": "“运行”起点（W）",
   "statusPills.typeEnergyAdvice": "能源建议",
-  "statusPills.energyAdviceHint": "当设备可由富余太阳能覆盖时显示。设备和阈值在能源页面的编辑模式中设置。"
+  "statusPills.energyAdviceHint": "当设备可由富余太阳能覆盖时显示。设备和阈值在能源页面的编辑模式中设置。",
+  "energy.config.noData": "30 天内无运行数据",
+  "energy.config.notPower": "不是功率传感器（{unit}）",
+  "energy.config.failed": "查询失败"
 }

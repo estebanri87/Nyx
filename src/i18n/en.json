@@ -1978,5 +1978,8 @@
   "energy.config.stableMinutes": "Mean over (min)",
   "energy.config.runW": "“Running” from (W)",
   "statusPills.typeEnergyAdvice": "Energy suggestion",
-  "statusPills.energyAdviceHint": "Shows up when an appliance fits into the spare solar power. Set up appliances and thresholds on the energy page in edit mode."
+  "statusPills.energyAdviceHint": "Shows up when an appliance fits into the spare solar power. Set up appliances and thresholds on the energy page in edit mode.",
+  "energy.config.noData": "no running values in 30 days",
+  "energy.config.notPower": "not a power sensor ({unit})",
+  "energy.config.failed": "query failed"
 }

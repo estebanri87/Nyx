@@ -1978,5 +1978,8 @@
   "energy.config.stableMinutes": "Snitt over (min)",
   "energy.config.runW": "«Går» fra (W)",
   "statusPills.typeEnergyAdvice": "Energiforslag",
-  "statusPills.energyAdviceHint": "Vises når et apparat passer i solstrømoverskuddet. Apparater og terskler stilles inn på energisiden i redigeringsmodus."
+  "statusPills.energyAdviceHint": "Vises når et apparat passer i solstrømoverskuddet. Apparater og terskler stilles inn på energisiden i redigeringsmodus.",
+  "energy.config.noData": "ingen driftsverdier på 30 dager",
+  "energy.config.notPower": "ikke en effektsensor ({unit})",
+  "energy.config.failed": "spørring mislyktes"
 }

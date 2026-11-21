@@ -151,6 +151,47 @@ describe('EnergyPage', () => {
     pages.cardSettings = {};
   });
 
+  it('tells in edit mode what was learned and why not', async () => {
+    const statsConn = {
+      sendMessagePromise: vi.fn(async (msg) =>
+        msg.type === 'recorder/statistics_during_period'
+          ? {
+              [msg.statistic_ids[0]]:
+                msg.statistic_ids[0] === 'sensor.dryer_power'
+                  ? [870, 860, 850, 0].map((max) => ({ max }))
+                  : [0, 0].map((max) => ({ max })),
+            }
+          : { [msg.entity_ids[0]]: [] }
+      ),
+    };
+    renderPage({
+      editMode: true,
+      conn: statsConn,
+      entities: {
+        ...entities,
+        'sensor.dryer_power': sensor(0, 'W'),
+        'sensor.idle_power': sensor(0, 'W'),
+        'sensor.dryer_energy': sensor(244, 'kWh'),
+      },
+      pageSettings: {
+        energie: {
+          ...pageSettings.energie,
+          energy: {
+            ...pageSettings.energie.energy,
+            devices: [
+              { entity: 'sensor.dryer_power' },
+              { entity: 'sensor.idle_power' },
+              { entity: 'sensor.dryer_energy' },
+            ],
+          },
+        },
+      },
+    });
+    expect(await screen.findByText('ermittelt: 0,9 kW')).toBeTruthy();
+    expect(await screen.findByText('keine Laufwerte in 30 Tagen')).toBeTruthy();
+    expect(screen.getByText('kein Leistungs-Sensor (kWh)')).toBeTruthy();
+  });
+
   it('asks for setup when no entity is assigned', () => {
     renderPage({ pageSettings: { energie: { type: 'energy' } } });
     expect(screen.getByText(de['energy.empty'])).toBeTruthy();

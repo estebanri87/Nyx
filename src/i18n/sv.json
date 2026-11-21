@@ -1978,5 +1978,8 @@
   "energy.config.stableMinutes": "Medel över (min)",
   "energy.config.runW": "”Går” från (W)",
   "statusPills.typeEnergyAdvice": "Energiförslag",
-  "statusPills.energyAdviceHint": "Visas när en apparat ryms i solelsöverskottet. Apparater och trösklar ställs in på energisidan i redigeringsläge."
+  "statusPills.energyAdviceHint": "Visas när en apparat ryms i solelsöverskottet. Apparater och trösklar ställs in på energisidan i redigeringsläge.",
+  "energy.config.noData": "inga driftvärden på 30 dagar",
+  "energy.config.notPower": "ingen effektsensor ({unit})",
+  "energy.config.failed": "frågan misslyckades"
 }
