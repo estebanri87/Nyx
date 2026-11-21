@@ -45,9 +45,9 @@ const TONE = {
 const SPOTS = {
   gesamt: [
     ['pv', 50, 19],
-    ['bkw', 9, 47],
+    ['bkw', 10, 57],
     ['haus', 78, 38],
-    ['wp', 22, 61],
+    ['wp', 28, 62],
     ['batt', 52, 89],
     ['netz', 90, 68],
   ],
