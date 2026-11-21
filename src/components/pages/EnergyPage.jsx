@@ -477,6 +477,11 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
         value: kwh(houseToday),
         hint: t('energy.kpi.wholeHouse'),
       });
+      add(num('gridExportToday') !== null, {
+        label: label('gridExportToday'),
+        value: kwh(num('gridExportToday')),
+        hint: t('energy.kpi.exportHint'),
+      });
       add(autarky !== null, {
         label: t('energy.kpi.autarky'),
         value: `${autarky} %`,

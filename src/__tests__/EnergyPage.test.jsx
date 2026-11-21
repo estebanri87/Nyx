@@ -192,6 +192,23 @@ describe('EnergyPage', () => {
     expect(screen.getByText('kein Leistungs-Sensor (kWh)')).toBeTruthy();
   });
 
+  it('shows the export of today in the overview', () => {
+    renderPage({
+      entities: { ...entities, 'sensor.export_today': sensor(6.3, 'kWh') },
+      pageSettings: {
+        energie: {
+          ...pageSettings.energie,
+          energy: {
+            ...pageSettings.energie.energy,
+            slots: { ...pageSettings.energie.energy.slots, gridExportToday: 'sensor.export_today' },
+          },
+        },
+      },
+    });
+    expect(screen.getByText('Einspeisung heute')).toBeTruthy();
+    expect(screen.getByText('6,3 kWh')).toBeTruthy();
+  });
+
   it('asks for setup when no entity is assigned', () => {
     renderPage({ pageSettings: { energie: { type: 'energy' } } });
     expect(screen.getByText(de['energy.empty'])).toBeTruthy();
