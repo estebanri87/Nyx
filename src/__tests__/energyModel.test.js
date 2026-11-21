@@ -128,6 +128,7 @@ describe('weatherIconUrl', () => {
   it('uses the animated weather card icons', () => {
     expect(weatherIconUrl('sunny', false)).toMatch(/\/clear-day\.svg$/);
     expect(weatherIconUrl('rainy', false)).toMatch(/\/rain\.svg$/);
+    expect(weatherIconUrl('exceptional', false)).toMatch(/\/not-available\.svg$/);
   });
 
   it('switches to moon icons after sunset', () => {

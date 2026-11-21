@@ -66,7 +66,11 @@ const getWeatherInfo = (condition, t) => {
     sunny: { label: t?.('weather.condition.sunny') || 'Sunny', icon: 'clear-day' },
     windy: { label: t?.('weather.condition.windy') || 'Wind', icon: 'wind' },
     'windy-variant': { label: t?.('weather.condition.windy') || 'Wind', icon: 'wind' },
-    exceptional: { label: t?.('weather.condition.exceptional') || 'Extreme', icon: 'extreme' },
+    // Meteocons has no "extreme" icon.
+    exceptional: {
+      label: t?.('weather.condition.exceptional') || 'Extreme',
+      icon: 'not-available',
+    },
   };
   return map[condition] || { label: condition || 'Unknown', icon: 'not-available' };
 };
