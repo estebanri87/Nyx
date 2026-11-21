@@ -16,11 +16,13 @@ import {
   Clapperboard,
   Speaker,
   Shield,
+  Sun,
   getAllIconKeys,
   getIconComponent,
   preloadMdiIcons,
 } from '../icons';
 import StatusPill from '../components/cards/StatusPill';
+import { ENERGY_ADVICE_PILL_TYPE } from '../components/cards/EnergyAdvicePill';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import {
   DEFAULT_PILL_ANIMATION_PRESET,
@@ -359,6 +361,17 @@ export default function StatusPillsConfigModal({
       sessionSensorIds: [],
       sonosHeadingSource: 'song',
       sonosSubheadingSource: 'artist_player',
+      // Appliance recommendations: green, pulsing, opens the energy page.
+      ...(pillType === ENERGY_ADVICE_PILL_TYPE
+        ? {
+            icon: 'Sun',
+            bgColor: 'rgba(52, 211, 153, 0.08)',
+            iconBgColor: 'rgba(52, 211, 153, 0.18)',
+            iconColor: 'text-emerald-400',
+            clickable: true,
+            animationPreset: 'pulse-soft',
+          }
+        : {}),
     };
     setPills([...pills, newPill]);
     setEditingPill(newPill.id);
@@ -430,6 +443,7 @@ export default function StatusPillsConfigModal({
         const translated = t('statusPills.typeAlarm');
         return translated === 'statusPills.typeAlarm' ? 'Alarm' : translated;
       }
+      if (pillType === ENERGY_ADVICE_PILL_TYPE) return t('statusPills.typeEnergyAdvice');
       return t('statusPills.typeSonos');
     },
     [t]
@@ -657,6 +671,12 @@ export default function StatusPillsConfigModal({
           : t('statusPills.typeAlarm'),
       Icon: Shield,
       iconClass: 'bg-[var(--status-error-bg)] text-[var(--status-error-fg)]',
+    },
+    {
+      type: ENERGY_ADVICE_PILL_TYPE,
+      label: t('statusPills.typeEnergyAdvice'),
+      Icon: Sun,
+      iconClass: 'bg-[var(--glass-bg)] text-emerald-400',
     },
   ];
 
@@ -1072,8 +1092,22 @@ export default function StatusPillsConfigModal({
                         )}
                       </div>
 
-                      {/* Main Configuration Grid */}
-                      <div className="grid grid-cols-1 gap-4 md:gap-5">
+                      {pill.type === ENERGY_ADVICE_PILL_TYPE && (
+                        <section className={`${sectionShellClass} space-y-2`}>
+                          <p className="text-sm text-[var(--text-secondary)]">
+                            {t('statusPills.energyAdviceHint')}
+                          </p>
+                        </section>
+                      )}
+
+                      {/* Main Configuration Grid (sources and conditions do not apply to energy advice) */}
+                      <div
+                        className={
+                          pill.type === ENERGY_ADVICE_PILL_TYPE
+                            ? 'hidden'
+                            : 'grid grid-cols-1 gap-4 md:gap-5'
+                        }
+                      >
                         {/* Visuals Group */}
                         {(pill.type === 'conditional' || pill.type === STATUS_GROUP_PILL_TYPE) && (
                           <section className={`${sectionShellClass} space-y-3`}>

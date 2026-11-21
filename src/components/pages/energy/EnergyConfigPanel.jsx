@@ -1,7 +1,8 @@
 import { memo, useMemo, useState } from 'react';
-import { ChevronDown, Plus, X } from '../../../icons';
+import { ChevronDown, ChevronUp, Plus, X } from '../../../icons';
 import { SearchableSelect } from '../../../modals/editCard/CarMappingsSection';
-import { ENERGY_SLOT_GROUPS } from './energyModel';
+import { ADVICE_DEFAULTS } from './energyAdvice';
+import { ENERGY_SLOT_GROUPS, formatNumber } from './energyModel';
 
 const SECTION = 'rounded-3xl border border-[var(--glass-border)] bg-[var(--card-bg)]';
 const SMALL_BUTTON =
@@ -34,7 +35,7 @@ function Toggle({ label, hint, value, onChange }) {
   );
 }
 
-function EnergyConfigPanel({ config, onChange, entities, t }) {
+function EnergyConfigPanel({ config, onChange, entities, adviceItems = [], locale, t }) {
   const [openGroup, setOpenGroup] = useState('pv');
 
   const entityOptions = useMemo(
@@ -58,6 +59,16 @@ function EnergyConfigPanel({ config, onChange, entities, t }) {
   const setExtras = (group, list) => update({ extras: { ...config.extras, [group]: list } });
   const setStrings = (list) => update({ strings: list });
   const setAliases = (list) => update({ aliases: list });
+  const setDevices = (list) => update({ devices: list });
+  const setAdvice = (key, value) => update({ advice: { ...config.advice, [key]: value } });
+  const adviceValue = (key) => config.advice[key] ?? ADVICE_DEFAULTS[key];
+  const learned = (id) => adviceItems.find((i) => i.id === id)?.demandW ?? null;
+  const moveDevice = (index, delta) => {
+    const next = [...config.devices];
+    const [item] = next.splice(index, 1);
+    next.splice(index + delta, 0, item);
+    setDevices(next);
+  };
   const setName = (id, name) => update({ names: { ...config.names, [id]: name || undefined } });
 
   const select = (label, value, onSelect) => (
@@ -236,6 +247,95 @@ function EnergyConfigPanel({ config, onChange, entities, t }) {
           value={!!config.invertGrid}
           onChange={(v) => update({ invertGrid: v })}
         />
+      </div>
+
+      <div className="mt-5 space-y-3">
+        <p className="text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
+          {t('energy.config.devices')}
+        </p>
+        <p className="text-[11px] text-[var(--text-muted)]">{t('energy.config.devicesHint')}</p>
+        {config.devices.map((device, index) => {
+          const demand = learned(device.entity);
+          return (
+            <div
+              key={device.entity}
+              className="flex flex-wrap items-center gap-2 rounded-xl bg-[var(--glass-bg)] px-3 py-2"
+            >
+              <input
+                type="text"
+                aria-label={t('energy.config.deviceName')}
+                title={device.entity}
+                placeholder={entities[device.entity]?.attributes?.friendly_name || device.entity}
+                value={device.name || ''}
+                onChange={(e) =>
+                  setDevices(
+                    config.devices.map((d, i) =>
+                      i === index ? { ...d, name: e.target.value || undefined } : d
+                    )
+                  )
+                }
+                className="popup-surface min-w-0 flex-1 rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none"
+              />
+              <span className="text-[11px] whitespace-nowrap text-[var(--text-muted)] tabular-nums">
+                {demand
+                  ? t('energy.config.learned').replace(
+                      '{kw}',
+                      `${formatNumber(demand / 1000, locale)} kW`
+                    )
+                  : t('energy.config.learning')}
+              </span>
+              <button
+                type="button"
+                className={ICON_BUTTON}
+                aria-label={t('energy.config.moveUp')}
+                disabled={index === 0}
+                onClick={() => moveDevice(index, -1)}
+              >
+                <ChevronUp className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                className={ICON_BUTTON}
+                aria-label={t('energy.config.moveDown')}
+                disabled={index === config.devices.length - 1}
+                onClick={() => moveDevice(index, 1)}
+              >
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                className={ICON_BUTTON}
+                aria-label={t('common.delete')}
+                onClick={() => setDevices(config.devices.filter((_, i) => i !== index))}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          );
+        })}
+        {select(t('energy.config.addDevice'), null, (id) => {
+          if (id && !config.devices.some((d) => d.entity === id))
+            setDevices([...config.devices, { entity: id }]);
+        })}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {['battThreshold', 'stableMinutes', 'runW'].map((key) => (
+            <label key={key} className="popup-surface flex flex-col gap-1.5 rounded-2xl px-4 py-3">
+              <span className="text-xs font-bold tracking-widest text-[var(--text-muted)] uppercase">
+                {t(`energy.config.${key}`)}
+              </span>
+              <input
+                type="number"
+                min="0"
+                value={adviceValue(key)}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (Number.isFinite(value) && value >= 0) setAdvice(key, value);
+                }}
+                className="bg-transparent text-lg text-[var(--text-primary)] outline-none"
+              />
+            </label>
+          ))}
+        </div>
       </div>
 
       <div className="mt-5 space-y-3">

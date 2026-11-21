@@ -9,6 +9,8 @@ import SparkLine from '../charts/SparkLine';
 import WeatherEffects from '../effects/WeatherEffects';
 import EnergyScene from './energy/EnergyScene';
 import EnergyConfigPanel from './energy/EnergyConfigPanel';
+import EnergyAdviceCard from './energy/EnergyAdviceCard';
+import { useEnergyAdvice } from './energy/useEnergyAdvice';
 import {
   COMPONENT_OWNER,
   ENERGY_SLOTS,
@@ -49,7 +51,7 @@ const SPOTS = {
     ['pv', 50, 19],
     ['bkw', 10, 57],
     ['haus', 78, 38],
-    ['wp', 23, 62],
+    ['wp', 26, 62],
     ['batt', 52, 89],
     ['netz', 90, 68],
   ],
@@ -149,6 +151,7 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
     invertGrid: config.invertGrid,
   });
   const soc = num('battSoc');
+  const advice = useEnergyAdvice(entities, conn, config);
   const wpPower = num('wpPower');
   const weatherState = slot('weather') ? entities[slot('weather')]?.state : null;
   const isNight = entities['sun.sun']?.state === 'below_horizon';
@@ -587,7 +590,14 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
   return (
     <div className="animate-in fade-in px-4 pb-10 duration-500">
       {editMode && (
-        <EnergyConfigPanel config={config} onChange={saveConfig} entities={entities} t={t} />
+        <EnergyConfigPanel
+          config={config}
+          onChange={saveConfig}
+          entities={entities}
+          adviceItems={advice.items}
+          locale={locale}
+          t={t}
+        />
       )}
 
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -831,6 +841,10 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
                 </div>
               )}
             </section>
+          )}
+
+          {activeView === 'gesamt' && advice.enabled && (
+            <EnergyAdviceCard advice={advice} locale={locale} t={t} />
           )}
 
           {activeView === 'pv' && generators.length > 0 && (

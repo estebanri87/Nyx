@@ -1,5 +1,6 @@
 import { Edit2 } from '../icons';
 import StatusPill from '../components/cards/StatusPill';
+import EnergyAdvicePill, { ENERGY_ADVICE_PILL_TYPE } from '../components/cards/EnergyAdvicePill';
 import { useHomeAssistant, useModalActions, usePages } from '../contexts';
 import { isSonosMediaEntity, resolveStatusGroupPill, STATUS_GROUP_PILL_TYPE } from '../utils';
 
@@ -13,6 +14,7 @@ import { isSonosMediaEntity, resolveStatusGroupPill, STATUS_GROUP_PILL_TYPE } fr
  * @param {(entityId: string, attr: string, fallback?: any) => any} [props.getA] - Get entity attribute
  * @param {(url?: string) => string|null} [props.getEntityImageUrl] - Get entity image URL
  * @param {boolean} [props.isMobile] - Whether on mobile viewport
+ * @param {(pageId: string) => void} [props.onOpenPage] - Open a dashboard page
  */
 export default function StatusBar({
   editMode,
@@ -22,6 +24,7 @@ export default function StatusBar({
   getA,
   getEntityImageUrl,
   isMobile = false,
+  onOpenPage,
 }) {
   const { entities } = useHomeAssistant();
   const { statusPillsConfig = [] } = usePages();
@@ -316,6 +319,18 @@ export default function StatusBar({
                           })
                       : undefined
                   }
+                />
+              );
+            }
+
+            if (pill.type === ENERGY_ADVICE_PILL_TYPE) {
+              return (
+                <EnergyAdvicePill
+                  key={pill.id}
+                  pill={pill}
+                  t={t}
+                  isMobile={isMobile}
+                  onOpenPage={onOpenPage}
                 />
               );
             }

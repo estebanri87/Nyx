@@ -113,6 +113,8 @@ export default function Header({
   };
 
   const showClock = headerSettings.showClock && (!isMobile || showClockOnMobile);
+  // Without a title the date takes its place, beside the clock.
+  const dateInTitleRow = !headerSettings.showTitle && headerSettings.showDate && !isMobile;
 
   // ── Battery layout ──
   if (isBattery) {
@@ -208,11 +210,24 @@ export default function Header({
       <div
         className={`flex items-start justify-between leading-none ${isMobile ? 'flex-col items-center gap-4 text-center' : 'gap-10'}`}
       >
-        <div className={`flex items-center gap-4 ${isMobile ? 'w-full justify-center' : ''}`}>
+        <div
+          className={`flex items-center gap-4 ${isMobile ? 'w-full justify-center' : ''} ${dateInTitleRow ? 'self-center' : ''}`}
+        >
           {headerSettings.showTitle && (
             <h1 className="leading-none select-none" style={titleStyle}>
               {headerTitle || 'Nyx'}
             </h1>
+          )}
+          {dateInTitleRow && (
+            <p
+              className="leading-none font-medium tracking-[0.2em] text-[var(--text-muted)] uppercase opacity-50 md:tracking-[0.6em]"
+              style={{
+                fontSize: `calc(0.75rem * ${dateScale})`,
+                fontFamily: resolvedFontFamily,
+              }}
+            >
+              {dateStr}
+            </p>
           )}
         </div>
 
@@ -235,7 +250,7 @@ export default function Header({
         )}
       </div>
 
-      {headerSettings.showDate && !isMobile && (
+      {headerSettings.showDate && !isMobile && !dateInTitleRow && (
         <p
           className="mt-1 leading-none font-medium tracking-[0.2em] text-[var(--text-muted)] uppercase opacity-50 md:tracking-[0.6em]"
           style={{

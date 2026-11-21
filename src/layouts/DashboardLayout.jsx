@@ -268,6 +268,7 @@ export default function DashboardLayout(props) {
                     getA={getA}
                     getEntityImageUrl={getEntityImageUrl}
                     isMobile={isMobile}
+                    onOpenPage={setActivePage}
                   />
                 )}
               </div>

@@ -47,6 +47,8 @@ export const DEFAULT_ENERGY_CONFIG = {
   strings: [],
   aliases: [],
   names: {},
+  devices: [],
+  advice: {},
   bkwBehindMeter: true,
   invertBattery: false,
   invertGrid: false,
@@ -62,6 +64,8 @@ export function normalizeEnergyConfig(raw) {
     strings: Array.isArray(cfg.strings) ? cfg.strings : [],
     aliases: Array.isArray(cfg.aliases) ? cfg.aliases : [],
     names: cfg.names && typeof cfg.names === 'object' ? cfg.names : {},
+    devices: Array.isArray(cfg.devices) ? cfg.devices : [],
+    advice: cfg.advice && typeof cfg.advice === 'object' ? cfg.advice : {},
   };
 }
 

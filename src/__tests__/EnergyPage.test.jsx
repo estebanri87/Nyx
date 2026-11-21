@@ -107,6 +107,38 @@ describe('EnergyPage', () => {
     expect(screen.getByText('5,9 °C')).toBeTruthy();
   });
 
+  it('recommends appliances that fit into the spare solar power', async () => {
+    const statsConn = {
+      sendMessagePromise: vi.fn(async (msg) =>
+        msg.type === 'recorder/statistics_during_period'
+          ? { [msg.statistic_ids[0]]: [2130, 2100, 2150, 2130, 6].map((mean) => ({ mean })) }
+          : { [msg.entity_ids[0]]: [] }
+      ),
+    };
+    renderPage({
+      conn: statsConn,
+      entities: {
+        ...entities,
+        'sensor.grid': sensor(528, 'W'),
+        'sensor.batt_power': sensor(-2828, 'W'),
+        'sensor.batt_soc': sensor(91, '%'),
+        'sensor.washer_power': sensor(6, 'W'),
+      },
+      pageSettings: {
+        energie: {
+          ...pageSettings.energie,
+          energy: {
+            ...pageSettings.energie.energy,
+            devices: [{ entity: 'sensor.washer_power', name: 'Waschmaschine' }],
+          },
+        },
+      },
+    });
+    expect(await screen.findByText('Jetzt starten')).toBeTruthy();
+    expect(screen.getByText('3,4 kW')).toBeTruthy();
+    expect(screen.getByText('braucht bis 2,2 kW')).toBeTruthy();
+  });
+
   it('asks for setup when no entity is assigned', () => {
     renderPage({ pageSettings: { energie: { type: 'energy' } } });
     expect(screen.getByText(de['energy.empty'])).toBeTruthy();
