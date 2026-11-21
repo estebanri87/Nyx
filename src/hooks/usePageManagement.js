@@ -167,6 +167,15 @@ export function usePageManagement({
       defaultSlug: 'room_explorer',
     });
 
+  const createEnergyPage = () =>
+    createTypedPage({
+      labelKey: 'energy.pageLabel',
+      fallbackLabel: 'Energy',
+      defaultIcon: 'Zap',
+      defaultType: 'energy',
+      defaultSlug: 'energy',
+    });
+
   // ── Delete a page ──────────────────────────────────────────────────────
   const deletePage = async (pageId) => {
     if (!pageId || pageId === 'home') return;
@@ -236,6 +245,7 @@ export function usePageManagement({
     createLightsPage,
     createBatteryPage,
     createRoomExplorerPage,
+    createEnergyPage,
     deletePage,
     removeCard,
   };

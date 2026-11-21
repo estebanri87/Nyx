@@ -8,6 +8,7 @@ import {
   isLightsPage as _isLightsPage,
   isBatteryPage as _isBatteryPage,
   isRoomExplorerPage as _isRoomExplorerPage,
+  isEnergyPage as _isEnergyPage,
 } from '../utils/cardUtils';
 
 /** @param {any} deps */
@@ -200,6 +201,7 @@ export function useDashboardStateCoordinator(deps) {
   const isLightsPage = (pageId) => _isLightsPage(pageId, pageSettings);
   const isBatteryPage = (pageId) => _isBatteryPage(pageId, pageSettings);
   const isRoomExplorerPage = (pageId) => _isRoomExplorerPage(pageId, pageSettings);
+  const isEnergyPage = (pageId) => _isEnergyPage(pageId, pageSettings);
   const hasEnabledPopupTriggers = useMemo(
     () =>
       Object.values(cardSettings || {}).some(
@@ -222,6 +224,7 @@ export function useDashboardStateCoordinator(deps) {
     isLightsPage,
     isBatteryPage,
     isRoomExplorerPage,
+    isEnergyPage,
     hasEnabledPopupTriggers,
   };
 }

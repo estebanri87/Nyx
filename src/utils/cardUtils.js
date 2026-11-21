@@ -192,3 +192,12 @@ export function isRoomExplorerPage(pageId, pageSettings) {
   const settings = pageSettings[pageId];
   return settings?.type === 'room_explorer' || pageId.startsWith('room_explorer');
 }
+
+/**
+ * Check if a page is an Energy page.
+ */
+export function isEnergyPage(pageId, pageSettings) {
+  if (!pageId) return false;
+  const settings = pageSettings[pageId];
+  return settings?.type === 'energy';
+}

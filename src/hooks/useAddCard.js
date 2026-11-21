@@ -20,6 +20,7 @@ export function useAddCard({
   isLightsPage = () => false,
   isBatteryPage = () => false,
   isRoomExplorerPage = () => false,
+  isEnergyPage = () => false,
   pagesConfig,
   persistConfig,
   cardSettings,
@@ -93,7 +94,7 @@ export function useAddCard({
   // ── Infer card type from target page ───────────────────────────────────
   useEffect(() => {
     if (!showAddCardModal) return;
-    if (isMediaPage(addCardTargetPage) || isSonosPage(addCardTargetPage) || isLightsPage(addCardTargetPage) || isBatteryPage(addCardTargetPage) || isRoomExplorerPage(addCardTargetPage)) {
+    if (isMediaPage(addCardTargetPage) || isSonosPage(addCardTargetPage) || isLightsPage(addCardTargetPage) || isBatteryPage(addCardTargetPage) || isRoomExplorerPage(addCardTargetPage) || isEnergyPage(addCardTargetPage)) {
       setAddCardType('entity');
       return;
     }

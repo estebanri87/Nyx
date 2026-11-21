@@ -276,6 +276,7 @@
  * @property {() => void} createLightsPage
  * @property {() => void} createBatteryPage
  * @property {() => void} createRoomExplorerPage
+ * @property {() => void} createEnergyPage
  * @property {(pageId: string) => void} deletePage
  * @property {(cardId: string, listName?: string) => void} removeCard
  */
@@ -286,6 +287,7 @@
  * @property {string} activePage
  * @property {(pageId: string) => boolean} isMediaPage
  * @property {(pageId: string) => boolean} isSonosPage
+ * @property {(pageId: string) => boolean} [isEnergyPage]
  * @property {PagesConfig} pagesConfig
  * @property {(newConfig: PagesConfig) => void} persistConfig
  * @property {CardSettingsMap} cardSettings

@@ -586,3 +586,39 @@ html[data-density='spacious'] .touch-feedback h3 {
 .dashboard-card-slot[data-card-offline] * {
   pointer-events: none;
 }
+
+/* ── Energy page scene ── */
+.nyx-energy-part {
+  transition: opacity 0.35s ease;
+}
+.nyx-energy-flow {
+  stroke-dasharray: 14 12;
+  animation: nyx-energy-flow 1.6s linear infinite;
+}
+.nyx-energy-flow--slow {
+  stroke-dasharray: 10 14;
+  animation-duration: 3.6s;
+}
+.nyx-energy-flow--reverse {
+  animation-direction: reverse;
+}
+@keyframes nyx-energy-flow {
+  to {
+    stroke-dashoffset: -52;
+  }
+}
+.nyx-energy-fan {
+  transform-origin: 350px 675px;
+  animation: nyx-energy-spin 2.4s linear infinite;
+}
+@keyframes nyx-energy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nyx-energy-flow,
+  .nyx-energy-fan {
+    animation: none;
+  }
+}
