@@ -49,7 +49,8 @@ describe('LayoutSidebar', () => {
     render(<Harness />);
     fireEvent.click(screen.getByText('settings.layoutCards'));
 
-    const colorInput = screen.getByDisplayValue('#1f291f');
+    const colorInput = screen.getByPlaceholderText('#1f2937');
+    expect(colorInput.value).toBe('#1f291f');
     const sliders = screen.getAllByRole('slider');
     const redSlider = sliders.find((slider) => slider.getAttribute('aria-valuenow') === '31');
 
@@ -57,7 +58,20 @@ describe('LayoutSidebar', () => {
     // M3Slider forwards the change on the next animation frame.
     await act(() => new Promise((resolve) => requestAnimationFrame(resolve)));
 
-    expect(screen.getByDisplayValue('#78291f')).toBe(colorInput);
+    expect(screen.getByPlaceholderText('#1f2937')).toBe(colorInput);
+    expect(colorInput.value).toBe('#78291f');
     expect(redSlider.isConnected).toBe(true);
+  });
+
+  it('sets the card color from the color picker swatch', () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByText('settings.layoutCards'));
+
+    const picker = screen.getByLabelText('settings.cardBackgroundColor');
+    expect(picker.getAttribute('type')).toBe('color');
+
+    fireEvent.change(picker, { target: { value: '#336699' } });
+
+    expect(screen.getByPlaceholderText('#1f2937').value).toBe('#336699');
   });
 });

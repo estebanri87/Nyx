@@ -728,12 +728,23 @@ export default function LayoutSidebar({
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div
-                  className="h-12 w-12 rounded-xl border shadow-lg"
-                  style={{
-                    borderColor: 'var(--glass-border)',
-                    backgroundColor: effectiveCardColor,
-                  }}
-                />
+                  className="group relative h-12 w-12 shrink-0 cursor-pointer overflow-hidden rounded-xl border shadow-lg"
+                  style={{ borderColor: 'var(--glass-border)' }}
+                >
+                  <input
+                    id="card-bg-color-picker"
+                    name="card_bg_color_picker"
+                    type="color"
+                    aria-label={t('settings.cardBackgroundColor')}
+                    value={toHexColor(rgb)}
+                    onChange={(e) => setCardBgColor(e.target.value)}
+                    className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                  />
+                  <div
+                    className="h-full w-full transition-colors"
+                    style={{ backgroundColor: effectiveCardColor }}
+                  />
+                </div>
                 <div className="flex-1 space-y-0.5">
                   <input
                     id="card-bg-color-input"
