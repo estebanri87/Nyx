@@ -10,14 +10,18 @@ import EnergyScene from './energy/EnergyScene';
 import EnergyConfigPanel from './energy/EnergyConfigPanel';
 import {
   COMPONENT_OWNER,
+  ENERGY_SLOTS,
   FLOW_THRESHOLD_W,
+  POWER_SLOTS,
   computeAutarky,
   computeEnergyFlow,
   formatEntityState,
   formatNumber,
   formatWatts,
   normalizeEnergyConfig,
+  readEnergyKwh,
   readNumber,
+  readPowerW,
 } from './energy/energyModel';
 
 const CARD = 'rounded-3xl border border-[var(--glass-border)] bg-[var(--card-bg)]';
@@ -102,7 +106,13 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
   );
 
   const slot = (key) => config.slots[key] || null;
-  const num = (key) => readNumber(entities, slot(key));
+  // Power slots are read in W and energy slots in kWh, whatever the sensor's unit.
+  const num = (key) =>
+    POWER_SLOTS.has(key)
+      ? readPowerW(entities, slot(key))
+      : ENERGY_SLOTS.has(key)
+        ? readEnergyKwh(entities, slot(key))
+        : readNumber(entities, slot(key));
   const fmt = (key) =>
     formatEntityState(slot(key) ? entities[slot(key)] : null, locale, config.aliases);
   const W = (value) => formatWatts(value, locale);
@@ -276,8 +286,10 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
     : spots.find((s) => s.id === DEFAULT_SELECTION[activeView])?.id || spots[0]?.id || null;
 
   // ── Detail rows per component ────────────────────────────────────────
+  const slotValue = (key) =>
+    POWER_SLOTS.has(key) ? W(num(key)) : ENERGY_SLOTS.has(key) ? kwh(num(key)) : fmt(key);
   const slotRow = (key, overrideValue) =>
-    slot(key) ? { label: label(key), value: overrideValue ?? fmt(key) } : null;
+    slot(key) ? { label: label(key), value: overrideValue ?? slotValue(key) } : null;
   const extrasRows = (group) =>
     (config.extras[group] || [])
       .filter((id) => entities[id])
@@ -313,7 +325,7 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
       rows.push(slotRow('pvToday'));
       config.strings.forEach((s, i) => {
         if (!s.power) return;
-        const parts = [W(readNumber(entities, s.power))];
+        const parts = [W(readPowerW(entities, s.power))];
         if (s.voltage) parts.push(formatEntityState(entities[s.voltage], locale));
         if (s.current) parts.push(formatEntityState(entities[s.current], locale));
         rows.push({
@@ -527,7 +539,7 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
         key: `str${i}`,
         target: 'pv',
         name: t('energy.string.name').replace('{n}', String(i + 1)),
-        w: readNumber(entities, s.power),
+        w: readPowerW(entities, s.power),
         sub: [
           s.voltage && formatEntityState(entities[s.voltage], locale),
           s.current && formatEntityState(entities[s.current], locale),

@@ -72,6 +72,49 @@ export function readNumber(entities, entityId) {
   return Number.isFinite(value) ? value : null;
 }
 
+/** Slots holding power, read as watts whatever unit the sensor reports. */
+export const POWER_SLOTS = new Set([
+  'pvPower',
+  'bkwPower',
+  'battPower',
+  'gridPower',
+  'houseConsumption',
+  'wpPower',
+]);
+
+/** Slots holding energy, read as kWh whatever unit the sensor reports. */
+export const ENERGY_SLOTS = new Set([
+  'pvToday',
+  'pvTotal',
+  'bkwToday',
+  'bkwTotal',
+  'battChargeToday',
+  'battDischargeToday',
+  'gridImportToday',
+  'gridExportToday',
+  'houseToday',
+  'wpToday',
+]);
+
+const POWER_FACTOR = { mW: 0.001, W: 1, kW: 1000, MW: 1000000 };
+const ENERGY_FACTOR = { Wh: 0.001, kWh: 1, MWh: 1000 };
+
+const unitOf = (entities, entityId) => entities?.[entityId]?.attributes?.unit_of_measurement;
+
+/** Power in watts; kW and MW sensors are converted. */
+export function readPowerW(entities, entityId) {
+  const value = readNumber(entities, entityId);
+  if (value === null) return null;
+  return value * (POWER_FACTOR[unitOf(entities, entityId)] ?? 1);
+}
+
+/** Energy in kWh; Wh and MWh sensors are converted. */
+export function readEnergyKwh(entities, entityId) {
+  const value = readNumber(entities, entityId);
+  if (value === null) return null;
+  return value * (ENERGY_FACTOR[unitOf(entities, entityId)] ?? 1);
+}
+
 /** Replace a raw HA state with the user's display name for it, if one is set. */
 export function applyAlias(value, aliases) {
   if (value === null || value === undefined) return value;

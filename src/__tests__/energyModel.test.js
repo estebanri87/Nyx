@@ -5,7 +5,9 @@ import {
   computeEnergyFlow,
   formatEntityState,
   normalizeEnergyConfig,
+  readEnergyKwh,
   readNumber,
+  readPowerW,
 } from '../components/pages/energy/energyModel';
 
 describe('computeEnergyFlow', () => {
@@ -79,6 +81,19 @@ describe('energy helpers', () => {
       formatEntityState({ state: '1.9', attributes: { unit_of_measurement: 'bar' } }, 'de-DE')
     ).toBe('1,9 bar');
     expect(formatEntityState({ state: 'unavailable', attributes: {} }, 'de-DE')).toBe('–');
+  });
+
+  it('converts Wh to kWh and kW to W', () => {
+    const entities = {
+      'sensor.wp_today': { state: '9258', attributes: { unit_of_measurement: 'Wh' } },
+      'sensor.pv_today': { state: '4.2', attributes: { unit_of_measurement: 'kWh' } },
+      'sensor.pv_kw': { state: '2.5', attributes: { unit_of_measurement: 'kW' } },
+      'sensor.pv_w': { state: '2500', attributes: { unit_of_measurement: 'W' } },
+    };
+    expect(readEnergyKwh(entities, 'sensor.wp_today')).toBeCloseTo(9.258);
+    expect(readEnergyKwh(entities, 'sensor.pv_today')).toBe(4.2);
+    expect(readPowerW(entities, 'sensor.pv_kw')).toBe(2500);
+    expect(readPowerW(entities, 'sensor.pv_w')).toBe(2500);
   });
 
   it('normalizes a missing config to safe defaults', () => {
