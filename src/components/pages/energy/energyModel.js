@@ -148,7 +148,9 @@ export function formatEntityState(entity, locale, aliases) {
   const value = Number(state);
   if (state !== '' && Number.isFinite(value)) {
     const unit = attributes?.unit_of_measurement;
-    const decimals = unit === 'V' ? 3 : unit === 'W' ? 0 : 1;
+    // Number entities (e.g. a heating curve with step 0.05) keep their step's precision.
+    const stepDecimals = (String(attributes?.step ?? '').split('.')[1] || '').length;
+    const decimals = unit === 'V' ? 3 : unit === 'W' ? 0 : Math.max(1, stepDecimals);
     const rounded = unit === 'W' ? Math.round(value) : value;
     const text = formatNumber(rounded, locale, decimals);
     return unit ? `${text} ${unit}` : text;

@@ -81,6 +81,7 @@ describe('energy helpers', () => {
       formatEntityState({ state: '1.9', attributes: { unit_of_measurement: 'bar' } }, 'de-DE')
     ).toBe('1,9 bar');
     expect(formatEntityState({ state: 'unavailable', attributes: {} }, 'de-DE')).toBe('–');
+    expect(formatEntityState({ state: '0.25', attributes: { step: 0.05 } }, 'de-DE')).toBe('0,25');
   });
 
   it('converts Wh to kWh and kW to W', () => {
