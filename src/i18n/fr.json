@@ -1962,7 +1962,7 @@
   "energy.advice.hint.running": "Pas proposé tant qu’il fonctionne.",
   "energy.advice.hint.short": "Il manque {kw}.",
   "energy.advice.hint.learning": "Pas encore assez de mesures.",
-  "energy.advice.footnote": "Disponible = injection, plus charge de la batterie à partir de {soc} %, moyenne sur {min} minutes. Nyx apprend le besoin à partir des mesures des 10 derniers jours.",
+  "energy.advice.footnote": "Disponible = injection, plus charge de la batterie à partir de {soc} %, moyenne sur {min} minutes. Nyx apprend le besoin à partir des mesures des 30 derniers jours.",
   "energy.advice.pill.one": "Lancer {name}",
   "energy.advice.pill.many": "{n} appareils peuvent tourner",
   "energy.advice.pill.sub": "{kw} solaires disponibles",

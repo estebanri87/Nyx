@@ -5,7 +5,7 @@
 export const ADVICE_DEFAULTS = { battThreshold: 90, stableMinutes: 10, runW: 50 };
 
 /** How far back an appliance's power statistics are read to learn its demand. */
-export const DEMAND_LOOKBACK_DAYS = 10;
+export const DEMAND_LOOKBACK_DAYS = 30;
 
 /**
  * Spare solar power in W: what goes to the grid, plus battery charging once
@@ -29,9 +29,9 @@ export function computeSurplus({
 }
 
 /**
- * Typical demand of an appliance from its 5-minute mean power values: the
- * value 90 % of its running time stays below, rounded to 10 W. Null until
- * there are at least three running samples.
+ * Typical peak demand of an appliance from its hourly maximum power values:
+ * the value 90 % of its running hours stay below, rounded to 10 W. A single
+ * spike does not decide it. Null until there are at least three running hours.
  */
 export function learnDemand(values, runW = ADVICE_DEFAULTS.runW) {
   const running = (values || [])

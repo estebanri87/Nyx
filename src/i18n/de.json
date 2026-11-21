@@ -1962,7 +1962,7 @@
   "energy.advice.hint.running": "Wird nicht empfohlen, solange es läuft.",
   "energy.advice.hint.short": "Es fehlen {kw}.",
   "energy.advice.hint.learning": "Noch zu wenig Messwerte für eine Empfehlung.",
-  "energy.advice.footnote": "Übrig = Einspeisung, plus Batterieladung ab {soc} % Ladestand, gemittelt über {min} Minuten. Den Bedarf ermittelt Nyx aus den Messwerten der letzten 10 Tage.",
+  "energy.advice.footnote": "Übrig = Einspeisung, plus Batterieladung ab {soc} % Ladestand, gemittelt über {min} Minuten. Den Bedarf ermittelt Nyx aus den Messwerten der letzten 30 Tage.",
   "energy.advice.pill.one": "{name} jetzt starten",
   "energy.advice.pill.many": "{n} Geräte können laufen",
   "energy.advice.pill.sub": "{kw} Sonnenstrom übrig",

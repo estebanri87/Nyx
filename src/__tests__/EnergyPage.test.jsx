@@ -3,8 +3,11 @@ import { describe, expect, it, vi } from 'vitest';
 import EnergyPage from '../components/pages/EnergyPage';
 import de from '../i18n/de.json';
 
+const pages = vi.hoisted(() => ({ cardSettings: {} }));
+
 vi.mock('../contexts', () => ({
   useConfig: () => ({ language: 'de' }),
+  usePages: () => pages,
 }));
 
 const t = (key) => de[key] ?? key;
@@ -111,7 +114,7 @@ describe('EnergyPage', () => {
     const statsConn = {
       sendMessagePromise: vi.fn(async (msg) =>
         msg.type === 'recorder/statistics_during_period'
-          ? { [msg.statistic_ids[0]]: [2130, 2100, 2150, 2130, 6].map((mean) => ({ mean })) }
+          ? { [msg.statistic_ids[0]]: [2130, 2100, 2150, 2130, 6].map((max) => ({ max })) }
           : { [msg.entity_ids[0]]: [] }
       ),
     };
@@ -137,6 +140,15 @@ describe('EnergyPage', () => {
     expect(await screen.findByText('Jetzt starten')).toBeTruthy();
     expect(screen.getByText('3,4 kW')).toBeTruthy();
     expect(screen.getByText('braucht bis 2,2 kW')).toBeTruthy();
+  });
+
+  it('uses the weather card entity for the weather icon', () => {
+    pages.cardSettings = { 'weather_temp_1::home': { weatherId: 'weather.home' } };
+    const { container } = renderPage({
+      entities: { ...entities, 'weather.home': { state: 'sunny', attributes: {} } },
+    });
+    expect(container.querySelector('image').getAttribute('href')).toMatch(/\/clear-day\.svg$/);
+    pages.cardSettings = {};
   });
 
   it('asks for setup when no entity is assigned', () => {

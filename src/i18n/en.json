@@ -1962,7 +1962,7 @@
   "energy.advice.hint.running": "Not suggested while it runs.",
   "energy.advice.hint.short": "{kw} short.",
   "energy.advice.hint.learning": "Too few readings for a suggestion yet.",
-  "energy.advice.footnote": "Spare = export, plus battery charging from {soc} % charge, averaged over {min} minutes. Nyx learns the demand from the readings of the last 10 days.",
+  "energy.advice.footnote": "Spare = export, plus battery charging from {soc} % charge, averaged over {min} minutes. Nyx learns the demand from the readings of the last 30 days.",
   "energy.advice.pill.one": "Start {name} now",
   "energy.advice.pill.many": "{n} appliances can run",
   "energy.advice.pill.sub": "{kw} solar power to spare",

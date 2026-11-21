@@ -31,7 +31,7 @@ const energyPage = (devices) => ({
 const statsConn = {
   sendMessagePromise: vi.fn(async (msg) =>
     msg.type === 'recorder/statistics_during_period'
-      ? { [msg.statistic_ids[0]]: [760, 750, 780, 770, 0].map((mean) => ({ mean })) }
+      ? { [msg.statistic_ids[0]]: [760, 750, 780, 770, 0].map((max) => ({ max })) }
       : { [msg.entity_ids[0]]: [] }
   ),
 };

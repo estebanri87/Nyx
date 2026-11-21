@@ -1962,7 +1962,7 @@
   "energy.advice.hint.running": "Foreslås ikke mens den går.",
   "energy.advice.hint.short": "Mangler {kw}.",
   "energy.advice.hint.learning": "For få målinger ennå.",
-  "energy.advice.footnote": "Til overs = eksport, pluss batterilading fra {soc} %, snitt over {min} minutter. Nyx lærer behovet fra målingene de siste 10 dagene.",
+  "energy.advice.footnote": "Til overs = eksport, pluss batterilading fra {soc} %, snitt over {min} minutter. Nyx lærer behovet fra målingene de siste 30 dagene.",
   "energy.advice.pill.one": "Start {name} nå",
   "energy.advice.pill.many": "{n} apparater kan gå",
   "energy.advice.pill.sub": "{kw} solstrøm til overs",

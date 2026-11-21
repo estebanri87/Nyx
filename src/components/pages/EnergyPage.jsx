@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { UtilityPole } from 'lucide-react';
 import { Battery, Flame, Home, Sun, Zap } from '../../icons';
-import { useConfig } from '../../contexts';
+import { useConfig, usePages } from '../../contexts';
 import { getLocaleForLanguage } from '../../i18n';
 import { getHistory, getStatistics } from '../../services/haClient';
 import { downsampleTimeSeries } from '../../utils';
@@ -101,6 +101,7 @@ async function fetchLastNumeric(conn, entityId) {
 
 function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, editMode, t }) {
   const { language } = useConfig();
+  const { cardSettings } = usePages();
   const locale = getLocaleForLanguage(language);
   const config = useMemo(
     () => normalizeEnergyConfig(pageSettings?.[pageId]?.energy),
@@ -153,7 +154,11 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
   const soc = num('battSoc');
   const advice = useEnergyAdvice(entities, conn, config);
   const wpPower = num('wpPower');
-  const weatherState = slot('weather') ? entities[slot('weather')]?.state : null;
+  // Without an own weather entity, use the one of the weather card.
+  const weatherId =
+    slot('weather') ||
+    Object.values(cardSettings || {}).find((s) => s?.weatherId && entities[s.weatherId])?.weatherId;
+  const weatherState = weatherId ? entities[weatherId]?.state : null;
   const isNight = entities['sun.sun']?.state === 'below_horizon';
   const heat = heatPumpActivity(slot('wpState') ? entities[slot('wpState')]?.state : null, wpPower);
   const battState =

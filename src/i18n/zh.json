@@ -1863,7 +1863,7 @@
   "energy.advice.hint.running": "运行期间不再推荐。",
   "energy.advice.hint.short": "还差 {kw}。",
   "energy.advice.hint.learning": "测量值还不够。",
-  "energy.advice.footnote": "富余 = 上网电量，加上电池电量达到 {soc} % 后的充电功率，按 {min} 分钟平均。Nyx 根据最近 10 天的测量值学习需求。",
+  "energy.advice.footnote": "富余 = 上网电量，加上电池电量达到 {soc} % 后的充电功率，按 {min} 分钟平均。Nyx 根据最近 30 天的测量值学习需求。",
   "energy.advice.pill.one": "现在启动{name}",
   "energy.advice.pill.many": "{n} 台设备可运行",
   "energy.advice.pill.sub": "富余太阳能 {kw}",

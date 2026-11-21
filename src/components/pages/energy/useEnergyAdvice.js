@@ -96,10 +96,10 @@ export function useEnergyAdvice(entities, conn, config) {
       const known = learnedDemand.get(statisticId);
       if (known && Date.now() - known.at < DEMAND_MAX_AGE_MS) return;
       learnedDemand.set(statisticId, { value: known?.value ?? null, at: Date.now() });
-      getStatistics(conn, { statisticId, start, end, period: '5minute', types: ['mean'] })
+      getStatistics(conn, { statisticId, start, end, period: 'hour', types: ['max'] })
         .then((rows) => {
           const value = learnDemand(
-            rows.map((r) => r.mean),
+            rows.map((r) => r.max),
             advice.runW
           );
           learnedDemand.set(statisticId, { value, at: Date.now() });

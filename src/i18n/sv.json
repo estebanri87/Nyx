@@ -1962,7 +1962,7 @@
   "energy.advice.hint.running": "Föreslås inte medan den går.",
   "energy.advice.hint.short": "{kw} saknas.",
   "energy.advice.hint.learning": "För få mätvärden än.",
-  "energy.advice.footnote": "Över = export, plus batteriladdning från {soc} %, medel över {min} minuter. Nyx lär sig behovet från mätvärdena de senaste 10 dagarna.",
+  "energy.advice.footnote": "Över = export, plus batteriladdning från {soc} %, medel över {min} minuter. Nyx lär sig behovet från mätvärdena de senaste 30 dagarna.",
   "energy.advice.pill.one": "Starta {name} nu",
   "energy.advice.pill.many": "{n} apparater kan gå",
   "energy.advice.pill.sub": "{kw} solel över",
