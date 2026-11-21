@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   buildSurplusSamples,
   computeSurplus,
+  lastRunFrom,
   learnDemand,
+  prerequisiteMet,
   recommendDevices,
   windowAverage,
 } from '../components/pages/energy/energyAdvice';
@@ -90,5 +92,44 @@ describe('recommendDevices', () => {
   it('recommends nothing without surplus', () => {
     const items = recommendDevices({ surplusW: 0, devices, runW: 50 });
     expect(items.some((i) => i.status === 'fits')).toBe(false);
+  });
+});
+
+describe('only after another appliance', () => {
+  const now = new Date(2026, 10, 21, 13, 0).getTime();
+  const at = (day, hour) => new Date(2026, 10, day, hour, 0).getTime();
+
+  it('finds the last hour an appliance ran', () => {
+    const rows = [
+      { start: at(19, 9), max: 2400 },
+      { start: at(20, 10), max: 2100 },
+      { start: new Date(at(20, 11)).toISOString(), max: 300 },
+      { start: at(20, 12), max: 6 },
+    ];
+    expect(lastRunFrom(rows, 50)).toBe(at(20, 11));
+    expect(lastRunFrom([{ start: at(20, 10), max: 6 }], 50)).toBeNull();
+  });
+
+  it('suggests the dryer once after a wash from today or yesterday', () => {
+    expect(prerequisiteMet({ otherLastRun: at(20, 11), ownLastRun: at(17, 15), now })).toBe(true);
+    expect(prerequisiteMet({ otherLastRun: at(21, 9), ownLastRun: null, now })).toBe(true);
+  });
+
+  it('waits while washing, after drying and for old washes', () => {
+    expect(
+      prerequisiteMet({ otherLastRun: at(21, 12), otherRunning: true, ownLastRun: null, now })
+    ).toBe(false);
+    expect(prerequisiteMet({ otherLastRun: at(20, 11), ownLastRun: at(20, 14), now })).toBe(false);
+    expect(prerequisiteMet({ otherLastRun: at(19, 11), ownLastRun: null, now })).toBe(false);
+    expect(prerequisiteMet({ otherLastRun: null, ownLastRun: null, now })).toBe(false);
+  });
+
+  it('shows a waiting appliance instead of recommending it', () => {
+    const items = recommendDevices({
+      surplusW: 3000,
+      runW: 50,
+      devices: [{ id: 'tr', powerW: 0, demandW: 870, waitingFor: 'Waschmaschine' }],
+    });
+    expect(items[0].status).toBe('waiting');
   });
 });

@@ -1981,5 +1981,9 @@
   "statusPills.energyAdviceHint": "Vises når et apparat passer i solstrømoverskuddet. Apparater og terskler stilles inn på energisiden i redigeringsmodus.",
   "energy.config.noData": "ingen driftsverdier på 30 dager",
   "energy.config.notPower": "ikke en effektsensor ({unit})",
-  "energy.config.failed": "spørring mislyktes"
+  "energy.config.failed": "spørring mislyktes",
+  "energy.advice.status.waiting": "Venter på {name}",
+  "energy.advice.hint.waiting": "Først når {name} har gått i dag eller i går og er ferdig.",
+  "energy.config.after": "Bare etter",
+  "energy.config.always": "alltid"
 }

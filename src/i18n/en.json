@@ -1981,5 +1981,9 @@
   "statusPills.energyAdviceHint": "Shows up when an appliance fits into the spare solar power. Set up appliances and thresholds on the energy page in edit mode.",
   "energy.config.noData": "no running values in 30 days",
   "energy.config.notPower": "not a power sensor ({unit})",
-  "energy.config.failed": "query failed"
+  "energy.config.failed": "query failed",
+  "energy.advice.status.waiting": "Waiting for {name}",
+  "energy.advice.hint.waiting": "Only once {name} has run today or yesterday and has finished.",
+  "energy.config.after": "Only after",
+  "energy.config.always": "always"
 }

@@ -5,18 +5,25 @@ import {
   DEMAND_LOOKBACK_DAYS,
   buildSurplusSamples,
   computeSurplus,
+  lastRunFrom,
   learnDemand,
+  prerequisiteMet,
   recommendDevices,
   windowAverage,
 } from './energyAdvice';
 import { readNumber, readPowerW } from './energyModel';
 
 const DEMAND_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+const RETRY_MS = 30 * 1000;
 
 // Shared between the energy page and the status pill, so both agree and the
 // history is only read once per session.
 const surplusSamples = new Map(); // setup key -> [{t, w}]
-const learnedDemand = new Map(); // entity id -> {value, at, state: pending|done|failed}
+// entity id -> {value, lastRun, at, state: pending|done|failed, conn, error}
+const learnedDemand = new Map();
+// entity id -> last time (ms) the appliance was seen running in this session;
+// the hourly statistics only cover finished hours.
+const seenRunning = new Map();
 
 const toPoints = (rows) =>
   (rows || [])
@@ -47,6 +54,7 @@ export function useEnergyAdvice(entities, conn, config) {
     battery: readPowerW(entities, slots.battPower),
   });
   const [, setVersion] = useState(0);
+  const [retry, setRetry] = useState(0);
   const enabled = devices.length > 0 && !!slots.gridPower;
 
   // Seed the surplus history once, so a fresh page can judge stability at once.
@@ -92,50 +100,95 @@ export function useEnergyAdvice(entities, conn, config) {
     let cancelled = false;
     const end = new Date();
     const start = new Date(end.getTime() - DEMAND_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
+    let retryTimer = null;
     deviceIds.split(',').forEach((statisticId) => {
       const known = learnedDemand.get(statisticId);
-      if (known && Date.now() - known.at < DEMAND_MAX_AGE_MS) return;
+      const age = known ? Date.now() - known.at : Infinity;
+      // A request in flight on this connection, a fresh result or a recent
+      // failure on this connection is kept; a new connection retries at once.
+      if (known?.state === 'pending' && known.conn === conn) return;
+      if (known?.state === 'done' && age < DEMAND_MAX_AGE_MS) return;
+      if (known?.state === 'failed' && known.conn === conn && age < RETRY_MS) return;
       learnedDemand.set(statisticId, {
-        value: known?.value ?? null,
+        ...known,
         at: Date.now(),
+        conn,
         state: known?.state === 'done' ? 'done' : 'pending',
       });
       getStatistics(conn, { statisticId, start, end, period: 'hour', types: ['max'] })
         .then((rows) => {
-          const value = learnDemand(
-            rows.map((r) => r.max),
-            advice.runW
-          );
-          learnedDemand.set(statisticId, { value, at: Date.now(), state: 'done' });
+          learnedDemand.set(statisticId, {
+            value: learnDemand(
+              rows.map((r) => r.max),
+              advice.runW
+            ),
+            lastRun: lastRunFrom(rows, advice.runW),
+            at: Date.now(),
+            conn,
+            state: 'done',
+          });
           if (!cancelled) setVersion((v) => v + 1);
         })
         .catch((err) => {
           const error =
             err?.message || err?.error || (err?.code ? `code ${err.code}` : String(err));
-          learnedDemand.set(statisticId, { value: null, at: Date.now(), state: 'failed', error });
-          if (!cancelled) setVersion((v) => v + 1);
+          learnedDemand.set(statisticId, {
+            ...learnedDemand.get(statisticId),
+            at: Date.now(),
+            conn,
+            state: 'failed',
+            error,
+          });
+          if (cancelled) return;
+          setVersion((v) => v + 1);
+          clearTimeout(retryTimer);
+          retryTimer = setTimeout(() => setRetry((r) => r + 1), RETRY_MS);
         });
     });
     return () => {
       cancelled = true;
+      clearTimeout(retryTimer);
     };
-  }, [conn, deviceIds, advice.runW]);
+  }, [conn, deviceIds, advice.runW, retry]);
 
-  const { average, coveredMs } = windowAverage(surplusSamples.get(key) || [], Date.now(), windowMs);
+  // Remember when each appliance was last seen running.
+  const now = Date.now();
+  devices.forEach((d) => {
+    if ((readPowerW(entities, d.entity) || 0) >= advice.runW) seenRunning.set(d.entity, now);
+  });
+  const lastRun = (id) => {
+    const values = [learnedDemand.get(id)?.lastRun, seenRunning.get(id)].filter(Number.isFinite);
+    return values.length ? Math.max(...values) : null;
+  };
+  const nameOf = (d) => d.name || entities?.[d.entity]?.attributes?.friendly_name || d.entity;
+
+  const { average, coveredMs } = windowAverage(surplusSamples.get(key) || [], now, windowMs);
   const stable = average !== null && coveredMs >= windowMs * 0.8;
   const usableW = stable ? Math.min(current.surplusW, average) : current.surplusW;
 
   const items = recommendDevices({
     surplusW: usableW,
     runW: advice.runW,
-    devices: devices.map((d) => ({
-      id: d.entity,
-      name: d.name || entities?.[d.entity]?.attributes?.friendly_name || d.entity,
-      powerW: readPowerW(entities, d.entity),
-      demandW: learnedDemand.get(d.entity)?.value ?? null,
-      demandState: learnedDemand.get(d.entity)?.state ?? 'pending',
-      demandError: learnedDemand.get(d.entity)?.error ?? null,
-    })),
+    devices: devices.map((d) => {
+      const other = d.after ? devices.find((o) => o.entity === d.after) : null;
+      const waiting =
+        other &&
+        !prerequisiteMet({
+          otherLastRun: lastRun(other.entity),
+          otherRunning: (readPowerW(entities, other.entity) || 0) >= advice.runW,
+          ownLastRun: lastRun(d.entity),
+          now,
+        });
+      return {
+        id: d.entity,
+        name: nameOf(d),
+        waitingFor: waiting ? nameOf(other) : null,
+        powerW: readPowerW(entities, d.entity),
+        demandW: learnedDemand.get(d.entity)?.value ?? null,
+        demandState: learnedDemand.get(d.entity)?.state ?? 'pending',
+        demandError: learnedDemand.get(d.entity)?.error ?? null,
+      };
+    }),
   });
 
   return {

@@ -1981,5 +1981,9 @@
   "statusPills.energyAdviceHint": "Erscheint, sobald ein Gerät in den Sonnenstrom-Überschuss passt. Geräte und Schwellen stellst du auf der Energie-Seite im Bearbeitungsmodus ein.",
   "energy.config.noData": "keine Laufwerte in 30 Tagen",
   "energy.config.notPower": "kein Leistungs-Sensor ({unit})",
-  "energy.config.failed": "Abfrage fehlgeschlagen"
+  "energy.config.failed": "Abfrage fehlgeschlagen",
+  "energy.advice.status.waiting": "Wartet auf {name}",
+  "energy.advice.hint.waiting": "Kommt erst, wenn {name} heute oder gestern gelaufen und fertig ist.",
+  "energy.config.after": "Nur nach",
+  "energy.config.always": "immer"
 }

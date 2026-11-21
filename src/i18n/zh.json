@@ -1882,5 +1882,9 @@
   "statusPills.energyAdviceHint": "当设备可由富余太阳能覆盖时显示。设备和阈值在能源页面的编辑模式中设置。",
   "energy.config.noData": "30 天内无运行数据",
   "energy.config.notPower": "不是功率传感器（{unit}）",
-  "energy.config.failed": "查询失败"
+  "energy.config.failed": "查询失败",
+  "energy.advice.status.waiting": "等待{name}",
+  "energy.advice.hint.waiting": "仅在{name}今天或昨天运行并完成后推荐。",
+  "energy.config.after": "仅在之后",
+  "energy.config.always": "始终"
 }

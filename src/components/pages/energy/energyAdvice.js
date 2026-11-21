@@ -42,6 +42,31 @@ export function learnDemand(values, runW = ADVICE_DEFAULTS.runW) {
   return Math.round(p90 / 10) * 10;
 }
 
+/** Start time (ms) of the latest statistics row in which the appliance ran. */
+export function lastRunFrom(rows, runW = ADVICE_DEFAULTS.runW) {
+  let last = null;
+  (rows || []).forEach((r) => {
+    if (!Number.isFinite(r?.max) || r.max < runW) return;
+    const t = typeof r.start === 'number' ? r.start : Date.parse(r.start);
+    if (Number.isFinite(t) && (last === null || t > last)) last = t;
+  });
+  return last;
+}
+
+/**
+ * Whether an appliance that should only run after another one may be
+ * suggested: the other one ran today or yesterday, has finished, and ran
+ * after this appliance's own last run (so one wash means one dryer run).
+ */
+export function prerequisiteMet({ otherLastRun, otherRunning, ownLastRun, now }) {
+  if (otherRunning || !otherLastRun) return false;
+  const startOfYesterday = new Date(now);
+  startOfYesterday.setHours(0, 0, 0, 0);
+  startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+  if (otherLastRun < startOfYesterday.getTime()) return false;
+  return !ownLastRun || otherLastRun > ownLastRun;
+}
+
 /**
  * Surplus over time from grid and battery power histories ([{t, v}], sorted).
  * Each change of either value starts a new step.
@@ -97,6 +122,7 @@ export function recommendDevices({ surplusW, devices, runW = ADVICE_DEFAULTS.run
   let left = Math.max(0, surplusW || 0);
   return (devices || []).map((d) => {
     if ((d.powerW || 0) >= runW) return { ...d, status: 'running' };
+    if (d.waitingFor) return { ...d, status: 'waiting' };
     if (!d.demandW) return { ...d, status: 'learning' };
     if (d.demandW <= left) {
       left -= d.demandW;

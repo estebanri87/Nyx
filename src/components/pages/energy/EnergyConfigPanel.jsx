@@ -293,6 +293,29 @@ function EnergyConfigPanel({ config, onChange, entities, adviceItems = [], local
                 }
                 className="popup-surface min-w-0 flex-1 rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none"
               />
+              <label className="flex items-center gap-2 text-[11px] text-[var(--text-muted)]">
+                {t('energy.config.after')}
+                <select
+                  value={device.after || ''}
+                  onChange={(e) =>
+                    setDevices(
+                      config.devices.map((d, i) =>
+                        i === index ? { ...d, after: e.target.value || undefined } : d
+                      )
+                    )
+                  }
+                  className="popup-surface rounded-xl px-2 py-2 text-sm text-[var(--text-primary)] outline-none"
+                >
+                  <option value="">{t('energy.config.always')}</option>
+                  {config.devices
+                    .filter((o) => o.entity !== device.entity)
+                    .map((o) => (
+                      <option key={o.entity} value={o.entity}>
+                        {o.name || entities[o.entity]?.attributes?.friendly_name || o.entity}
+                      </option>
+                    ))}
+                </select>
+              </label>
               <span className="flex min-w-0 flex-col text-right text-[11px] text-[var(--text-muted)] tabular-nums">
                 <span className="max-w-[420px] truncate" title={demandText(device.entity)}>
                   {demandText(device.entity)}

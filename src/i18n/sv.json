@@ -1981,5 +1981,9 @@
   "statusPills.energyAdviceHint": "Visas när en apparat ryms i solelsöverskottet. Apparater och trösklar ställs in på energisidan i redigeringsläge.",
   "energy.config.noData": "inga driftvärden på 30 dagar",
   "energy.config.notPower": "ingen effektsensor ({unit})",
-  "energy.config.failed": "frågan misslyckades"
+  "energy.config.failed": "frågan misslyckades",
+  "energy.advice.status.waiting": "Väntar på {name}",
+  "energy.advice.hint.waiting": "Först när {name} har gått i dag eller i går och är klar.",
+  "energy.config.after": "Bara efter",
+  "energy.config.always": "alltid"
 }

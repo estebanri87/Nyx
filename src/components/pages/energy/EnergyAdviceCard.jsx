@@ -10,6 +10,7 @@ const STATUS = {
   running: { Icon: Play, color: '#60a5fa', tint: 'rgba(96,165,250,0.16)', text: '#93c5fd' },
   short: { Icon: Clock, color: '#f59e0b', tint: 'rgba(245,158,11,0.14)', text: '#fcd34d' },
   learning: { Icon: Clock, color: '#94a3b8', tint: 'rgba(148,163,184,0.14)', text: '#cbd5e1' },
+  waiting: { Icon: Clock, color: '#94a3b8', tint: 'rgba(148,163,184,0.14)', text: '#cbd5e1' },
 };
 
 /** kW with one decimal, e.g. "2,1 kW". */
@@ -127,10 +128,12 @@ function EnergyAdviceCard({ advice, locale, t }) {
                 style={{ background: style.tint, color: style.text }}
               >
                 <style.Icon className="h-3.5 w-3.5" />
-                {t(`energy.advice.status.${item.status}`)}
+                {t(`energy.advice.status.${item.status}`).replace('{name}', item.waitingFor || '')}
               </span>
               <p className="text-[13px] text-[var(--text-secondary)]">
-                {t(`energy.advice.hint.${item.status}`).replace('{kw}', kw(item.missingW))}
+                {t(`energy.advice.hint.${item.status}`)
+                  .replace('{kw}', kw(item.missingW))
+                  .replace('{name}', item.waitingFor || '')}
               </p>
             </div>
           );

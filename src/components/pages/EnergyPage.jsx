@@ -157,7 +157,9 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
   // Without an own weather entity, use the one of the weather card.
   const weatherId =
     slot('weather') ||
-    Object.values(cardSettings || {}).find((s) => s?.weatherId && entities[s.weatherId])?.weatherId;
+    Object.values(/** @type {Record<string, any>} */ (cardSettings || {})).find(
+      (s) => s?.weatherId && entities[s.weatherId]
+    )?.weatherId;
   const weatherState = weatherId ? entities[weatherId]?.state : null;
   const isNight = entities['sun.sun']?.state === 'below_horizon';
   const heat = heatPumpActivity(slot('wpState') ? entities[slot('wpState')]?.state : null, wpPower);

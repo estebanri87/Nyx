@@ -1981,5 +1981,9 @@
   "statusPills.energyAdviceHint": "Apparaît dès qu’un appareil tient dans le surplus solaire. Les appareils et seuils se règlent sur la page énergie en mode édition.",
   "energy.config.noData": "aucune valeur de marche sur 30 jours",
   "energy.config.notPower": "pas un capteur de puissance ({unit})",
-  "energy.config.failed": "échec de la requête"
+  "energy.config.failed": "échec de la requête",
+  "energy.advice.status.waiting": "Attend {name}",
+  "energy.advice.hint.waiting": "Seulement quand {name} a tourné aujourd’hui ou hier et a terminé.",
+  "energy.config.after": "Seulement après",
+  "energy.config.always": "toujours"
 }
