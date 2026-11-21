@@ -58,6 +58,7 @@ function EnergyConfigPanel({ config, onChange, entities, t }) {
   const setExtras = (group, list) => update({ extras: { ...config.extras, [group]: list } });
   const setStrings = (list) => update({ strings: list });
   const setAliases = (list) => update({ aliases: list });
+  const setName = (id, name) => update({ names: { ...config.names, [id]: name || undefined } });
 
   const select = (label, value, onSelect) => (
     <SearchableSelect
@@ -181,9 +182,15 @@ function EnergyConfigPanel({ config, onChange, entities, t }) {
                         key={id}
                         className="flex items-center justify-between gap-3 rounded-xl bg-[var(--glass-bg)] px-3 py-2"
                       >
-                        <span className="min-w-0 truncate text-sm text-[var(--text-secondary)]">
-                          {entities[id]?.attributes?.friendly_name || id}
-                        </span>
+                        <input
+                          type="text"
+                          aria-label={t('energy.config.extraName')}
+                          title={id}
+                          placeholder={entities[id]?.attributes?.friendly_name || id}
+                          value={config.names[id] || ''}
+                          onChange={(e) => setName(id, e.target.value)}
+                          className="popup-surface min-w-0 flex-1 rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none"
+                        />
                         <button
                           type="button"
                           className={ICON_BUTTON}

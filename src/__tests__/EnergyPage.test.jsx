@@ -25,6 +25,11 @@ const entities = {
   'sensor.flow': sensor(28.75, '°C'),
   'sensor.flow_set': sensor(29.14, '°C'),
   'select.ems': sensor('Nur Solar'),
+  'sensor.outdoor_wp': sensor(5.5, '°C'),
+  'sensor.outdoor_station': {
+    state: '5.9',
+    attributes: { unit_of_measurement: '°C', friendly_name: 'Außentemperatur' },
+  },
 };
 
 const pageSettings = {
@@ -42,7 +47,10 @@ const pageSettings = {
         wpControl: 'select.ems',
         flowTemp: 'sensor.flow',
         flowSetpoint: 'sensor.flow_set',
+        outdoorTemp: 'sensor.outdoor_wp',
       },
+      extras: { aussen: ['sensor.outdoor_station'] },
+      names: { 'sensor.outdoor_station': 'Wetterstation' },
       aliases: [{ from: 'Nur Solar', to: 'Solar optimiert' }],
     },
   },
@@ -84,6 +92,19 @@ describe('EnergyPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Wärmepumpe', pressed: false }));
     expect(screen.getByText('Solar optimiert')).toBeTruthy();
     expect(screen.queryByText('Nur Solar')).toBeNull();
+  });
+
+  it('shows the balcony plant badge in the overview', () => {
+    renderPage();
+    expect(screen.getAllByRole('button', { name: /Balkonkraftwerk/ }).length).toBeGreaterThan(0);
+  });
+
+  it('labels extra values with the name given by the user', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Wärmepumpe', pressed: false }));
+    fireEvent.click(screen.getAllByRole('button', { name: /^Außen/ })[0]);
+    expect(screen.getByText('Wetterstation')).toBeTruthy();
+    expect(screen.getByText('5,9 °C')).toBeTruthy();
   });
 
   it('asks for setup when no entity is assigned', () => {

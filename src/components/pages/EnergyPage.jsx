@@ -44,6 +44,7 @@ const TONE = {
 const SPOTS = {
   gesamt: [
     ['pv', 50, 19],
+    ['bkw', 11, 63],
     ['haus', 78, 38],
     ['wp', 22, 61],
     ['batt', 52, 89],
@@ -294,7 +295,7 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
     (config.extras[group] || [])
       .filter((id) => entities[id])
       .map((id) => ({
-        label: entities[id]?.attributes?.friendly_name || id,
+        label: config.names[id] || entities[id]?.attributes?.friendly_name || id,
         value: formatEntityState(entities[id], locale, config.aliases),
       }));
 
