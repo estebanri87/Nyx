@@ -489,6 +489,17 @@ export const ConfigProvider = ({ children }) => {
       // Fallback
       document.documentElement.style.setProperty('--card-bg', baseColor);
     }
+
+    // Opaque materials (neumorphic, elevated) ignore --card-bg; give them the
+    // custom card color as a solid surface when the user picked one.
+    if (cardBgColor && parsed) {
+      document.documentElement.style.setProperty(
+        '--card-solid-bg',
+        `rgb(${parsed.r}, ${parsed.g}, ${parsed.b})`
+      );
+    } else {
+      document.documentElement.style.removeProperty('--card-solid-bg');
+    }
   }, [cardTransparency, currentTheme, cardBgColor]);
 
   // Apply card border opacity to DOM
