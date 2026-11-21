@@ -9,7 +9,7 @@ export const FLOW_THRESHOLD_W = 10;
  * belong to. `power` slots are read as watts for the flow calculation.
  */
 export const ENERGY_SLOT_GROUPS = [
-  { id: 'pv', slots: ['pvPower', 'pvToday', 'pvTotal'] },
+  { id: 'pv', slots: ['pvPower', 'pvToday', 'pvTotal', 'weather'] },
   { id: 'wr', slots: ['inverterMode', 'emsMode', 'inverterTemp'] },
   { id: 'bkw', slots: ['bkwPower', 'bkwToday', 'bkwTotal'] },
   {
@@ -221,6 +221,42 @@ export function computeEnergyFlow({
     total,
     headline,
   };
+}
+
+// Meteocons icon per Home Assistant weather condition, as in the weather card.
+const WEATHER_ICON = {
+  'clear-night': 'clear-night',
+  cloudy: 'overcast',
+  fog: 'fog',
+  hail: 'hail',
+  lightning: 'thunderstorms',
+  'lightning-rainy': 'thunderstorms-rain',
+  partlycloudy: 'partly-cloudy-day',
+  pouring: 'extreme-rain',
+  rainy: 'rain',
+  snowy: 'snow',
+  'snowy-rainy': 'sleet',
+  sunny: 'clear-day',
+  windy: 'wind',
+  'windy-variant': 'wind',
+  exceptional: 'extreme',
+};
+// After sunset the day icons swap to their night variant.
+const NIGHT_ICON = {
+  'clear-day': 'clear-night',
+  'partly-cloudy-day': 'partly-cloudy-night',
+  overcast: 'overcast-night',
+  fog: 'fog-night',
+  rain: 'partly-cloudy-night-rain',
+  snow: 'partly-cloudy-night-snow',
+};
+
+/** Animated weather icon URL for a condition, or null when unknown. */
+export function weatherIconUrl(condition, isNight) {
+  const day = WEATHER_ICON[condition];
+  if (!day) return null;
+  const icon = isNight ? NIGHT_ICON[day] || day : day;
+  return `https://cdn.jsdelivr.net/gh/basmilius/meteocons@v2.0.0/production/fill/all/${icon}.svg`;
 }
 
 /** Heat pump draw above its standby electronics (e.g. 10 W) means the compressor runs. */

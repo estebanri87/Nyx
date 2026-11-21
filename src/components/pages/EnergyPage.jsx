@@ -6,6 +6,7 @@ import { getLocaleForLanguage } from '../../i18n';
 import { getHistory, getStatistics } from '../../services/haClient';
 import { downsampleTimeSeries } from '../../utils';
 import SparkLine from '../charts/SparkLine';
+import WeatherEffects from '../effects/WeatherEffects';
 import EnergyScene from './energy/EnergyScene';
 import EnergyConfigPanel from './energy/EnergyConfigPanel';
 import {
@@ -19,6 +20,7 @@ import {
   formatNumber,
   formatWatts,
   heatPumpActivity,
+  weatherIconUrl,
   normalizeEnergyConfig,
   readEnergyKwh,
   readNumber,
@@ -148,6 +150,8 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
   });
   const soc = num('battSoc');
   const wpPower = num('wpPower');
+  const weatherState = slot('weather') ? entities[slot('weather')]?.state : null;
+  const isNight = entities['sun.sun']?.state === 'below_horizon';
   const heat = heatPumpActivity(slot('wpState') ? entities[slot('wpState')]?.state : null, wpPower);
   const battState =
     flow.battCharge >= FLOW_THRESHOLD_W
@@ -635,8 +639,10 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
                 className="relative w-full overflow-hidden rounded-2xl"
                 style={{ aspectRatio: '16 / 9', background: 'var(--glass-bg)' }}
               >
+                <WeatherEffects condition={weatherState} />
                 <EnergyScene
                   view={activeView}
+                  weatherIcon={weatherIconUrl(weatherState, isNight)}
                   show={{
                     pv: has.pv || has.bkw,
                     bkw: has.bkw,

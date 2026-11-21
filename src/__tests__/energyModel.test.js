@@ -9,6 +9,7 @@ import {
   readEnergyKwh,
   readNumber,
   readPowerW,
+  weatherIconUrl,
 } from '../components/pages/energy/energyModel';
 
 describe('computeEnergyFlow', () => {
@@ -120,5 +121,23 @@ describe('heatPumpActivity', () => {
   it('falls back to power when the state is unavailable', () => {
     expect(heatPumpActivity('unavailable', 800)).toEqual({ running: true, heating: true, dhw: true });
     expect(heatPumpActivity(undefined, 0)).toEqual({ running: false, heating: false, dhw: false });
+  });
+});
+
+describe('weatherIconUrl', () => {
+  it('uses the animated weather card icons', () => {
+    expect(weatherIconUrl('sunny', false)).toMatch(/\/clear-day\.svg$/);
+    expect(weatherIconUrl('rainy', false)).toMatch(/\/rain\.svg$/);
+  });
+
+  it('switches to moon icons after sunset', () => {
+    expect(weatherIconUrl('sunny', true)).toMatch(/\/clear-night\.svg$/);
+    expect(weatherIconUrl('partlycloudy', true)).toMatch(/\/partly-cloudy-night\.svg$/);
+    expect(weatherIconUrl('lightning', true)).toMatch(/\/thunderstorms\.svg$/);
+  });
+
+  it('keeps the drawn sun for unknown or missing weather', () => {
+    expect(weatherIconUrl('unavailable', false)).toBeNull();
+    expect(weatherIconUrl(null, false)).toBeNull();
   });
 });

@@ -41,7 +41,7 @@ function EnergyConfigPanel({ config, onChange, entities, t }) {
     () =>
       Object.keys(entities || {})
         .filter((id) =>
-          /^(sensor|binary_sensor|select|number|switch|input_number|input_select|water_heater|climate)\./.test(
+          /^(sensor|binary_sensor|select|number|switch|input_number|input_select|water_heater|climate|weather)\./.test(
             id
           )
         )

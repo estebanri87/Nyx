@@ -1844,6 +1844,7 @@
   "energy.slot.pvPower": "Soleffekt",
   "energy.slot.pvToday": "Produsert i dag",
   "energy.slot.pvTotal": "Produsert totalt",
+  "energy.slot.weather": "Vêr",
   "energy.slot.inverterMode": "Drift",
   "energy.slot.emsMode": "EMS-modus",
   "energy.slot.inverterTemp": "Temperatur",

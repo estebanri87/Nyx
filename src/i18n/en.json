@@ -1844,6 +1844,7 @@
   "energy.slot.pvPower": "Solar power",
   "energy.slot.pvToday": "Produced today",
   "energy.slot.pvTotal": "Produced total",
+  "energy.slot.weather": "Weather",
   "energy.slot.inverterMode": "Operation",
   "energy.slot.emsMode": "EMS mode",
   "energy.slot.inverterTemp": "Temperature",

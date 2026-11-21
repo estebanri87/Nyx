@@ -1745,6 +1745,7 @@
   "energy.slot.pvPower": "光伏功率",
   "energy.slot.pvToday": "今日发电",
   "energy.slot.pvTotal": "累计发电",
+  "energy.slot.weather": "天气",
   "energy.slot.inverterMode": "运行状态",
   "energy.slot.emsMode": "EMS 模式",
   "energy.slot.inverterTemp": "温度",

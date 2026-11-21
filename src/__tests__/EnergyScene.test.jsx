@@ -65,4 +65,12 @@ describe('EnergyScene', () => {
     [WP_POWER, WP_OUT, TO_TANK, FLOOR].forEach((d) => expect(has(paths, d)).toBeUndefined());
     expect(container.querySelector('.nyx-energy-fan')).toBeNull();
   });
+
+  it('replaces the drawn sun with the weather icon', () => {
+    const { container } = render(
+      <EnergyScene view="gesamt" show={SHOW} flow={IDLE} weatherIcon="https://x/rain.svg" />
+    );
+    expect(container.querySelector('image').getAttribute('href')).toBe('https://x/rain.svg');
+    expect(container.querySelector('circle[fill="#ca8a04"]')).toBeNull();
+  });
 });

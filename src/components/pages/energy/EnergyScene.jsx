@@ -29,7 +29,7 @@ function Flow({ d, color, casing, width = 6, active, reverse = false, slow = fal
 const PANEL = { fill: '#1e3a5f', stroke: '#3b5f8a', strokeWidth: 2 };
 const BOX = { fill: 'var(--glass-bg-hover)', stroke: 'var(--glass-border)', strokeWidth: 4 };
 
-function EnergyScene({ view, show, flow }) {
+function EnergyScene({ view, show, flow, weatherIcon = null }) {
   const pvOpacity = view === 'wp' ? DIM : 1;
   const heatOpacity = view === 'pv' ? DIM : 1;
 
@@ -70,8 +70,14 @@ function EnergyScene({ view, show, flow }) {
 
       {show.pv && (
         <g className="nyx-energy-part" opacity={pvOpacity}>
-          <circle cx="1500" cy="110" r="50" fill="rgba(250,204,21,0.18)" />
-          <circle cx="1500" cy="110" r="32" fill="#ca8a04" />
+          {weatherIcon ? (
+            <image href={weatherIcon} x="1410" y="20" width="180" height="180" />
+          ) : (
+            <>
+              <circle cx="1500" cy="110" r="50" fill="rgba(250,204,21,0.18)" />
+              <circle cx="1500" cy="110" r="32" fill="#ca8a04" />
+            </>
+          )}
           <g transform="translate(590,250) rotate(-20.56)">
             {[0, 94, 188, 282, 376].map((x) => (
               <rect key={x} x={x} y="-40" width="88" height="30" rx="3" {...PANEL} />

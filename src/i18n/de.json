@@ -1844,6 +1844,7 @@
   "energy.slot.pvPower": "Leistung PV",
   "energy.slot.pvToday": "Erzeugt heute",
   "energy.slot.pvTotal": "Erzeugt gesamt",
+  "energy.slot.weather": "Wetter",
   "energy.slot.inverterMode": "Betrieb",
   "energy.slot.emsMode": "EMS-Modus",
   "energy.slot.inverterTemp": "Temperatur",
