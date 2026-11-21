@@ -26,6 +26,63 @@ const ChevronDownIcon = (props) => (
   </svg>
 );
 
+// Defined at module level: a component declared inside LayoutSidebar gets a new
+// identity on every render, so React remounts its subtree on each slider change,
+// which resets the sidebar scroll position and drops the active slider drag.
+const ResetButton = ({ onClick, title }) => (
+  <button
+    onClick={onClick}
+    className="rounded-full p-1.5 transition-all hover:bg-white/10"
+    style={{ color: 'var(--text-secondary)' }}
+    title={title}
+  >
+    <RefreshCw className="h-3.5 w-3.5" />
+  </button>
+);
+
+// Accordion section wrapper
+const Section = ({ isOpen, onToggle, icon: Icon, title, children }) => (
+  <div
+    className={`rounded-2xl border transition-all ${isOpen ? '' : 'border-transparent'}`}
+    style={isOpen ? { backgroundColor: 'var(--glass-bg)', borderColor: 'var(--glass-border)' } : {}}
+  >
+    <button
+      type="button"
+      onClick={onToggle}
+      className="group flex w-full items-center gap-3 px-3 py-3 text-left transition-colors"
+    >
+      <div
+        className={`rounded-xl p-2 transition-colors ${isOpen ? '' : 'group-hover:bg-white/5'}`}
+        style={
+          isOpen
+            ? { backgroundColor: 'var(--accent-bg)', color: 'var(--accent-color)' }
+            : { color: 'var(--text-secondary)' }
+        }
+      >
+        <Icon className="h-4.5 w-4.5" />
+      </div>
+      <span
+        className="flex-1 text-[13px] font-semibold transition-colors"
+        style={{ color: isOpen ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+      >
+        {title}
+      </span>
+      <ChevronDownIcon
+        className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+        style={{ color: 'var(--text-secondary)' }}
+      />
+    </button>
+    <div
+      className="grid transition-all duration-300 ease-in-out"
+      style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
+    >
+      <div className="overflow-hidden">
+        <div className="space-y-6 px-4 pb-4">{children}</div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function LayoutSidebar({
   open,
   onClose,
@@ -90,65 +147,6 @@ export default function LayoutSidebar({
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
   }, []);
-
-  const ResetButton = ({ onClick }) => (
-    <button
-      onClick={onClick}
-      className="rounded-full p-1.5 transition-all hover:bg-white/10"
-      style={{ color: 'var(--text-secondary)' }}
-      title={t('settings.reset')}
-    >
-      <RefreshCw className="h-3.5 w-3.5" />
-    </button>
-  );
-
-  // Accordion section wrapper
-  const Section = ({ id, icon: Icon, title, children }) => {
-    const isOpen = layoutSections[id];
-    return (
-      <div
-        className={`rounded-2xl border transition-all ${isOpen ? '' : 'border-transparent'}`}
-        style={
-          isOpen ? { backgroundColor: 'var(--glass-bg)', borderColor: 'var(--glass-border)' } : {}
-        }
-      >
-        <button
-          type="button"
-          onClick={() => toggleSection(id)}
-          className="group flex w-full items-center gap-3 px-3 py-3 text-left transition-colors"
-        >
-          <div
-            className={`rounded-xl p-2 transition-colors ${isOpen ? '' : 'group-hover:bg-white/5'}`}
-            style={
-              isOpen
-                ? { backgroundColor: 'var(--accent-bg)', color: 'var(--accent-color)' }
-                : { color: 'var(--text-secondary)' }
-            }
-          >
-            <Icon className="h-4.5 w-4.5" />
-          </div>
-          <span
-            className="flex-1 text-[13px] font-semibold transition-colors"
-            style={{ color: isOpen ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-          >
-            {title}
-          </span>
-          <ChevronDownIcon
-            className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-            style={{ color: 'var(--text-secondary)' }}
-          />
-        </button>
-        <div
-          className="grid transition-all duration-300 ease-in-out"
-          style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
-        >
-          <div className="overflow-hidden">
-            <div className="space-y-6 px-4 pb-4">{children}</div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   const hts = sectionSpacing?.headerToStatus ?? 16;
   const stn = sectionSpacing?.statusToNav ?? 24;
@@ -231,7 +229,12 @@ export default function LayoutSidebar({
         </div>
 
         {/* ── Grid Section ── */}
-        <Section id="grid" icon={Columns} title={t('settings.layoutGrid')}>
+        <Section
+          isOpen={layoutSections.grid}
+          onToggle={() => toggleSection('grid')}
+          icon={Columns}
+          title={t('settings.layoutGrid')}
+        >
           {/* Grid Columns */}
           <div>
             <div className="mb-2 flex items-center justify-between">
@@ -327,7 +330,10 @@ export default function LayoutSidebar({
                   </button>
                 )}
                 {!hasPageOverride && gridColumns !== 4 && (
-                  <ResetButton onClick={() => setGridColumns(Math.min(4, maxGridColumns))} />
+                  <ResetButton
+                    title={t('settings.reset')}
+                    onClick={() => setGridColumns(Math.min(4, maxGridColumns))}
+                  />
                 )}
               </div>
             </div>
@@ -355,7 +361,9 @@ export default function LayoutSidebar({
                 >
                   {gridGapH}px
                 </span>
-                {gridGapH !== 16 && <ResetButton onClick={() => setGridGapH(16)} />}
+                {gridGapH !== 16 && (
+                  <ResetButton title={t('settings.reset')} onClick={() => setGridGapH(16)} />
+                )}
               </div>
             </div>
             <M3Slider
@@ -382,7 +390,9 @@ export default function LayoutSidebar({
                 >
                   {gridGapV}px
                 </span>
-                {gridGapV !== 16 && <ResetButton onClick={() => setGridGapV(16)} />}
+                {gridGapV !== 16 && (
+                  <ResetButton title={t('settings.reset')} onClick={() => setGridGapV(16)} />
+                )}
               </div>
             </div>
             <M3Slider
@@ -396,7 +406,12 @@ export default function LayoutSidebar({
         </Section>
 
         {/* ── Spacing Section ── */}
-        <Section id="spacing" icon={Maximize2} title={t('settings.sectionSpacing')}>
+        <Section
+          isOpen={layoutSections.spacing}
+          onToggle={() => toggleSection('spacing')}
+          icon={Maximize2}
+          title={t('settings.sectionSpacing')}
+        >
           {/* Header -> Status */}
           <div>
             <div className="mb-2 flex items-center justify-between">
@@ -414,7 +429,10 @@ export default function LayoutSidebar({
                   {hts}px
                 </span>
                 {hts !== 16 && (
-                  <ResetButton onClick={() => updateSectionSpacing({ headerToStatus: 16 })} />
+                  <ResetButton
+                    title={t('settings.reset')}
+                    onClick={() => updateSectionSpacing({ headerToStatus: 16 })}
+                  />
                 )}
               </div>
             </div>
@@ -445,7 +463,10 @@ export default function LayoutSidebar({
                   {stn}px
                 </span>
                 {stn !== 24 && (
-                  <ResetButton onClick={() => updateSectionSpacing({ statusToNav: 24 })} />
+                  <ResetButton
+                    title={t('settings.reset')}
+                    onClick={() => updateSectionSpacing({ statusToNav: 24 })}
+                  />
                 )}
               </div>
             </div>
@@ -474,7 +495,10 @@ export default function LayoutSidebar({
                   {ntg}px
                 </span>
                 {ntg !== 24 && (
-                  <ResetButton onClick={() => updateSectionSpacing({ navToGrid: 24 })} />
+                  <ResetButton
+                    title={t('settings.reset')}
+                    onClick={() => updateSectionSpacing({ navToGrid: 24 })}
+                  />
                 )}
               </div>
             </div>
@@ -489,7 +513,12 @@ export default function LayoutSidebar({
         </Section>
 
         {/* ── Card Style Section ── */}
-        <Section id="cards" icon={Eye} title={t('settings.layoutCards')}>
+        <Section
+          isOpen={layoutSections.cards}
+          onToggle={() => toggleSection('cards')}
+          icon={Eye}
+          title={t('settings.layoutCards')}
+        >
           {/* Card Material */}
           <div className="space-y-2">
             <span
@@ -573,7 +602,9 @@ export default function LayoutSidebar({
                 >
                   {cardScale}%
                 </span>
-                {cardScale !== 100 && <ResetButton onClick={() => setCardScale(100)} />}
+                {cardScale !== 100 && (
+                  <ResetButton title={t('settings.reset')} onClick={() => setCardScale(100)} />
+                )}
               </div>
             </div>
             <M3Slider
@@ -601,7 +632,12 @@ export default function LayoutSidebar({
                 >
                   {cardBorderRadius}px
                 </span>
-                {cardBorderRadius !== 16 && <ResetButton onClick={() => setCardBorderRadius(16)} />}
+                {cardBorderRadius !== 16 && (
+                  <ResetButton
+                    title={t('settings.reset')}
+                    onClick={() => setCardBorderRadius(16)}
+                  />
+                )}
               </div>
             </div>
             <M3Slider
@@ -628,7 +664,12 @@ export default function LayoutSidebar({
                 >
                   {cardTransparency}%
                 </span>
-                {cardTransparency !== 40 && <ResetButton onClick={() => setCardTransparency(40)} />}
+                {cardTransparency !== 40 && (
+                  <ResetButton
+                    title={t('settings.reset')}
+                    onClick={() => setCardTransparency(40)}
+                  />
+                )}
               </div>
             </div>
             <M3Slider
@@ -655,7 +696,12 @@ export default function LayoutSidebar({
                 >
                   {cardBorderOpacity}%
                 </span>
-                {cardBorderOpacity !== 5 && <ResetButton onClick={() => setCardBorderOpacity(5)} />}
+                {cardBorderOpacity !== 5 && (
+                  <ResetButton
+                    title={t('settings.reset')}
+                    onClick={() => setCardBorderOpacity(5)}
+                  />
+                )}
               </div>
             </div>
             <M3Slider
@@ -675,7 +721,9 @@ export default function LayoutSidebar({
               >
                 {t('settings.cardBackgroundColor')}
               </span>
-              {cardBgColor && <ResetButton onClick={() => setCardBgColor('')} />}
+              {cardBgColor && (
+                <ResetButton title={t('settings.reset')} onClick={() => setCardBgColor('')} />
+              )}
             </div>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
