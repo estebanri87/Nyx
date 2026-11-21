@@ -223,6 +223,23 @@ export function computeEnergyFlow({
   };
 }
 
+/** Heat pump draw above its standby electronics (e.g. 10 W) means the compressor runs. */
+export const HEAT_PUMP_RUN_W = 50;
+
+/**
+ * Which heat circuits are active. The heat pump state (HEATING, DHW, STANDBY)
+ * decides between space heating and hot water; without a usable state the
+ * power alone decides and both circuits follow it.
+ */
+export function heatPumpActivity(state, powerW) {
+  const running = (powerW || 0) >= HEAT_PUMP_RUN_W;
+  const mode = String(state ?? '').trim().toUpperCase();
+  if (mode === 'HEATING') return { running, heating: true, dhw: false };
+  if (mode === 'DHW') return { running, heating: false, dhw: true };
+  if (mode === 'STANDBY') return { running, heating: false, dhw: false };
+  return { running, heating: running, dhw: running };
+}
+
 /** Share of today's consumption not drawn from the grid, in percent. */
 export function computeAutarky(consumptionToday, importToday) {
   if (!Number.isFinite(consumptionToday) || consumptionToday <= 0) return null;

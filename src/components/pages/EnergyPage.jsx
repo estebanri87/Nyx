@@ -18,6 +18,7 @@ import {
   formatEntityState,
   formatNumber,
   formatWatts,
+  heatPumpActivity,
   normalizeEnergyConfig,
   readEnergyKwh,
   readNumber,
@@ -44,7 +45,7 @@ const TONE = {
 const SPOTS = {
   gesamt: [
     ['pv', 50, 19],
-    ['bkw', 11, 63],
+    ['bkw', 9, 47],
     ['haus', 78, 38],
     ['wp', 22, 61],
     ['batt', 52, 89],
@@ -147,6 +148,7 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
   });
   const soc = num('battSoc');
   const wpPower = num('wpPower');
+  const heat = heatPumpActivity(slot('wpState') ? entities[slot('wpState')]?.state : null, wpPower);
   const battState =
     flow.battCharge >= FLOW_THRESHOLD_W
       ? 'charging'
@@ -653,7 +655,9 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
                         : flow.gridImport >= FLOW_THRESHOLD_W
                           ? -1
                           : 0,
-                    heat: (wpPower || 0) >= FLOW_THRESHOLD_W,
+                    heatRun: heat.running,
+                    heating: heat.heating,
+                    dhw: heat.dhw,
                   }}
                 />
                 <div className="hidden sm:block">

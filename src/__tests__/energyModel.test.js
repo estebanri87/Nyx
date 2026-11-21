@@ -4,6 +4,7 @@ import {
   computeAutarky,
   computeEnergyFlow,
   formatEntityState,
+  heatPumpActivity,
   normalizeEnergyConfig,
   readEnergyKwh,
   readNumber,
@@ -102,5 +103,22 @@ describe('energy helpers', () => {
     expect(cfg.slots).toEqual({});
     expect(cfg.strings).toEqual([]);
     expect(cfg.bkwBehindMeter).toBe(true);
+  });
+});
+
+describe('heatPumpActivity', () => {
+  it('follows the heat pump state for heating and hot water', () => {
+    expect(heatPumpActivity('HEATING', 900)).toEqual({ running: true, heating: true, dhw: false });
+    expect(heatPumpActivity('DHW', 1500)).toEqual({ running: true, heating: false, dhw: true });
+    expect(heatPumpActivity('STANDBY', 10)).toEqual({ running: false, heating: false, dhw: false });
+  });
+
+  it('treats standby electronics as not running', () => {
+    expect(heatPumpActivity(null, 10).running).toBe(false);
+  });
+
+  it('falls back to power when the state is unavailable', () => {
+    expect(heatPumpActivity('unavailable', 800)).toEqual({ running: true, heating: true, dhw: true });
+    expect(heatPumpActivity(undefined, 0)).toEqual({ running: false, heating: false, dhw: false });
   });
 });

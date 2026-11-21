@@ -176,7 +176,7 @@ function EnergyScene({ view, show, flow }) {
             stroke="var(--glass-border)"
             strokeWidth="4"
           />
-          <g className={flow.heat ? 'nyx-energy-fan' : ''} fill="var(--text-muted)">
+          <g className={flow.heatRun ? 'nyx-energy-fan' : ''} fill="var(--text-muted)">
             <ellipse cx="350" cy="645" rx="11" ry="26" />
             <ellipse cx="350" cy="705" rx="11" ry="26" />
             <ellipse cx="320" cy="675" rx="26" ry="11" />
@@ -187,14 +187,14 @@ function EnergyScene({ view, show, flow }) {
               d="M620 650 H470"
               color="#34d399"
               casing="rgba(52,211,153,0.15)"
-              active={flow.heat}
+              active={flow.heatRun}
             />
           )}
           <Flow
             d="M470 605 H560 V545 H950 V570"
             color="#f59e0b"
             casing="rgba(245,158,11,0.15)"
-            active={flow.heat}
+            active={flow.heating || flow.dhw}
           />
           <rect x="900" y="570" width="100" height="170" rx="10" {...BOX} />
           <circle
@@ -209,7 +209,7 @@ function EnergyScene({ view, show, flow }) {
             d="M1000 640 H1040"
             color="#f97316"
             casing="rgba(249,115,22,0.15)"
-            active={flow.heat}
+            active={flow.dhw}
           />
           <path d="M1040 560 q45 -24 90 0 V740 q-45 24 -90 0 Z" {...BOX} />
           <path d="M1044 590 q41 -18 82 0 V738 q-41 20 -82 0 Z" fill="#c2410c" opacity="0.45" />
@@ -224,7 +224,7 @@ function EnergyScene({ view, show, flow }) {
             color="#d97706"
             casing="rgba(217,119,6,0.12)"
             width={5}
-            active={flow.heat}
+            active={flow.heating}
             slow
           />
         </g>
