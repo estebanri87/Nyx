@@ -65,7 +65,7 @@ function EnergyConfigPanel({ config, onChange, entities, adviceItems = [], local
   const learned = (id) => adviceItems.find((i) => i.id === id) || {};
   // Why there is no demand yet: still loading, failed, no power sensor or no running hours.
   const demandText = (id) => {
-    const { demandW, demandState } = learned(id);
+    const { demandW, demandState, demandError } = learned(id);
     const unit = entities[id]?.attributes?.unit_of_measurement;
     if (unit && !['W', 'kW', 'mW', 'MW'].includes(unit))
       return t('energy.config.notPower').replace('{unit}', unit);
@@ -74,7 +74,10 @@ function EnergyConfigPanel({ config, onChange, entities, adviceItems = [], local
         '{kw}',
         `${formatNumber(demandW / 1000, locale)} kW`
       );
-    if (demandState === 'failed') return t('energy.config.failed');
+    if (demandState === 'failed')
+      return demandError
+        ? `${t('energy.config.failed')}: ${demandError}`
+        : t('energy.config.failed');
     if (demandState === 'done') return t('energy.config.noData');
     return t('energy.config.learning');
   };
@@ -291,7 +294,9 @@ function EnergyConfigPanel({ config, onChange, entities, adviceItems = [], local
                 className="popup-surface min-w-0 flex-1 rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none"
               />
               <span className="flex min-w-0 flex-col text-right text-[11px] text-[var(--text-muted)] tabular-nums">
-                <span className="whitespace-nowrap">{demandText(device.entity)}</span>
+                <span className="max-w-[420px] truncate" title={demandText(device.entity)}>
+                  {demandText(device.entity)}
+                </span>
                 <span className="truncate opacity-70">{device.entity}</span>
               </span>
               <button

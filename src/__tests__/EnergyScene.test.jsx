@@ -73,4 +73,16 @@ describe('EnergyScene', () => {
     expect(container.querySelector('image').getAttribute('href')).toBe('https://x/rain.svg');
     expect(container.querySelector('circle[fill="#ca8a04"]')).toBeNull();
   });
+
+  it('puts four panels on each roof slope, all below the ridge', () => {
+    const { container } = render(<EnergyScene view="gesamt" show={SHOW} flow={IDLE} />);
+    const groups = [...container.querySelectorAll('g[transform*="rotate(-20.56)"]')];
+    expect(groups).toHaveLength(2);
+    groups.forEach((g) => expect(g.querySelectorAll('rect')).toHaveLength(4));
+    // Top corner of the last panel, measured along the 512 px slope from the eave.
+    const rad = (20.56 * Math.PI) / 180;
+    const along = 319 + 89;
+    const topY = 272 - along * Math.sin(rad) - 30 * Math.cos(rad);
+    expect(topY).toBeGreaterThan(92); // ridge
+  });
 });

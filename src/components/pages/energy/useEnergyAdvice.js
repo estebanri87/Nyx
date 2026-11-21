@@ -109,8 +109,10 @@ export function useEnergyAdvice(entities, conn, config) {
           learnedDemand.set(statisticId, { value, at: Date.now(), state: 'done' });
           if (!cancelled) setVersion((v) => v + 1);
         })
-        .catch(() => {
-          learnedDemand.set(statisticId, { value: null, at: Date.now(), state: 'failed' });
+        .catch((err) => {
+          const error =
+            err?.message || err?.error || (err?.code ? `code ${err.code}` : String(err));
+          learnedDemand.set(statisticId, { value: null, at: Date.now(), state: 'failed', error });
           if (!cancelled) setVersion((v) => v + 1);
         });
     });
@@ -132,6 +134,7 @@ export function useEnergyAdvice(entities, conn, config) {
       powerW: readPowerW(entities, d.entity),
       demandW: learnedDemand.get(d.entity)?.value ?? null,
       demandState: learnedDemand.get(d.entity)?.state ?? 'pending',
+      demandError: learnedDemand.get(d.entity)?.error ?? null,
     })),
   });
 

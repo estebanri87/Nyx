@@ -27,6 +27,8 @@ function Flow({ d, color, casing, width = 6, active, reverse = false, slow = fal
 }
 
 const PANEL = { fill: '#1e3a5f', stroke: '#3b5f8a', strokeWidth: 2 };
+// Distance of each panel from the eave along the 512 px long roof slope.
+const PANEL_OFFSETS = [34, 129, 224, 319];
 const BOX = { fill: 'var(--glass-bg-hover)', stroke: 'var(--glass-border)', strokeWidth: 4 };
 
 function EnergyScene({ view, show, flow, weatherIcon = null }) {
@@ -78,11 +80,18 @@ function EnergyScene({ view, show, flow, weatherIcon = null }) {
               <circle cx="1500" cy="110" r="32" fill="#ca8a04" />
             </>
           )}
-          <g transform="translate(590,250) rotate(-20.56)">
-            {[0, 94, 188, 282, 376].map((x) => (
-              <rect key={x} x={x} y="-40" width="88" height="30" rx="3" {...PANEL} />
-            ))}
-          </g>
+          {/* Panels on both roof slopes, measured from each eave; they end
+              below the ridge so none sticks out over the top. */}
+          {[
+            'translate(530,272) rotate(-20.56)',
+            'translate(1490,272) scale(-1,1) rotate(-20.56)',
+          ].map((transform) => (
+            <g key={transform} transform={transform}>
+              {PANEL_OFFSETS.map((x) => (
+                <rect key={x} x={x} y="-30" width="89" height="24" rx="3" {...PANEL} />
+              ))}
+            </g>
+          ))}
 
           {show.bkw && (
             <>
