@@ -1,16 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  X,
-  Cloud,
-  CloudRain,
-  Sun,
-  Moon,
-  CloudSun,
-  Wind,
-  Snowflake,
-  Zap,
-  AlertTriangle,
-} from '../icons';
+import { X, Cloud, CloudRain, Sun, Moon, CloudSun, Wind, Snowflake, Zap } from '../icons';
 import SensorHistoryGraph from '../components/charts/SensorHistoryGraph';
 import { getForecast, getHistory, getStatistics } from '../services/haClient';
 import { getIconComponent } from '../icons';
@@ -29,7 +18,7 @@ import {
   getEffectiveUnitMode,
 } from '../utils';
 
-const getWeatherInfo = (condition, t) => {
+const getWeatherInfo = (condition, t, isNight = false) => {
   const map = {
     'clear-night': {
       label: t?.('weather.condition.clearNight') || 'Clear',
@@ -101,10 +90,13 @@ const getWeatherInfo = (condition, t) => {
       Icon: Wind,
       color: 'text-[var(--text-secondary)]',
     },
+    // KNX stations report "exceptional" when it is too dark to judge the sky.
     exceptional: {
-      label: t?.('weather.condition.exceptional') || 'Extreme',
-      Icon: AlertTriangle,
-      color: 'text-[var(--status-error-fg)]',
+      label: isNight
+        ? t?.('weather.condition.dark') || 'Dark'
+        : t?.('weather.condition.dull') || 'Dull',
+      Icon: isNight ? Moon : Cloud,
+      color: 'text-[var(--text-secondary)]',
     },
   };
   return (
@@ -144,7 +136,8 @@ export default function WeatherModal({
   };
   const effectiveUnitMode = getEffectiveUnitMode(unitsMode, haConfig);
   const condition = activeWeatherEntity.state;
-  const info = getWeatherInfo(condition, t);
+  const isNight = entities['sun.sun']?.state === 'below_horizon';
+  const info = getWeatherInfo(condition, t, isNight);
   const MainIcon = info.Icon;
   const modalTitleId = `weather-modal-title-${activeWeatherEntity?.entity_id?.replace(/[^a-zA-Z0-9_-]/g, '-') || 'weather'}`;
 

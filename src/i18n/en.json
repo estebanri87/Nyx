@@ -1607,6 +1607,8 @@
   "weather.condition.clearNight": "Clear",
   "weather.condition.cloudy": "Cloudy",
   "weather.condition.exceptional": "Extreme",
+  "weather.condition.dull": "Dull",
+  "weather.condition.dark": "Dark",
   "weather.condition.fog": "Fog",
   "weather.condition.hail": "Hail",
   "weather.condition.lightning": "Lightning",

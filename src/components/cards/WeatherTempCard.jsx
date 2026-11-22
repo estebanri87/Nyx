@@ -44,7 +44,7 @@ const WeatherCardItem = ({ item, entities, compact }) => {
   );
 };
 
-const getWeatherInfo = (condition, t) => {
+const getWeatherInfo = (condition, t, isNight = false) => {
   const map = {
     'clear-night': { label: t?.('weather.condition.clearNight') || 'Clear', icon: 'clear-night' },
     cloudy: { label: t?.('weather.condition.cloudy') || 'Cloudy', icon: 'overcast' },
@@ -66,11 +66,11 @@ const getWeatherInfo = (condition, t) => {
     sunny: { label: t?.('weather.condition.sunny') || 'Sunny', icon: 'clear-day' },
     windy: { label: t?.('weather.condition.windy') || 'Wind', icon: 'wind' },
     'windy-variant': { label: t?.('weather.condition.windy') || 'Wind', icon: 'wind' },
-    // Meteocons has no "extreme" icon.
-    exceptional: {
-      label: t?.('weather.condition.exceptional') || 'Extreme',
-      icon: 'thermometer',
-    },
+    // KNX stations report "exceptional" when it is too dark to judge the sky
+    // and no night signal is set, so it reads as dull by day and dark at night.
+    exceptional: isNight
+      ? { label: t?.('weather.condition.dark') || 'Dark', icon: 'overcast-night' }
+      : { label: t?.('weather.condition.dull') || 'Dull', icon: 'overcast' },
   };
   return map[condition] || { label: condition || 'Unknown', icon: 'not-available' };
 };
@@ -113,7 +113,7 @@ const WeatherTempCard = memo(
     // The rain animation can be driven by an own sensor instead of the weather
     // condition, for stations that report precipitation separately.
     const effectCondition = resolveEffectCondition(state, settings, entities);
-    const info = getWeatherInfo(state, t);
+    const info = getWeatherInfo(state, t, entities['sun.sun']?.state === 'below_horizon');
     const iconUrl = `https://cdn.jsdelivr.net/gh/basmilius/meteocons@v2.0.0/production/fill/all/${info.icon}.svg`;
 
     const tempValueRaw = tempEntity?.state ?? weatherEntity?.attributes?.temperature;

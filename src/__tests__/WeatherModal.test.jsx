@@ -109,4 +109,22 @@ describe('WeatherModal', () => {
     });
     expect(screen.queryByText(/PM/)).not.toBeInTheDocument();
   });
+  it('shows exceptional KNX weather as dull by day and dark at night', async () => {
+    const props = {
+      show: true,
+      onClose: vi.fn(),
+      conn: {},
+      weatherEntity: { ...weatherEntity, state: 'exceptional' },
+      tempEntity: null,
+      language: 'de',
+      t,
+    };
+    const { rerender } = render(
+      <WeatherModal {...props} entities={{ 'sun.sun': { state: 'above_horizon' } }} />
+    );
+    expect(screen.getAllByText('weather.condition.dull').length).toBeGreaterThan(0);
+    rerender(<WeatherModal {...props} entities={{ 'sun.sun': { state: 'below_horizon' } }} />);
+    expect(screen.getAllByText('weather.condition.dark').length).toBeGreaterThan(0);
+    await waitFor(() => expect(screen.getAllByText('12:00').length).toBeGreaterThan(0));
+  });
 });

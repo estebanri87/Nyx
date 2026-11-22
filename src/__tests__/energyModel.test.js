@@ -128,13 +128,14 @@ describe('weatherIconUrl', () => {
   it('uses the animated weather card icons', () => {
     expect(weatherIconUrl('sunny', false)).toMatch(/\/clear-day\.svg$/);
     expect(weatherIconUrl('rainy', false)).toMatch(/\/rain\.svg$/);
-    expect(weatherIconUrl('exceptional', false)).toMatch(/\/thermometer\.svg$/);
+    expect(weatherIconUrl('exceptional', false)).toMatch(/\/overcast\.svg$/);
   });
 
   it('switches to moon icons after sunset', () => {
     expect(weatherIconUrl('sunny', true)).toMatch(/\/clear-night\.svg$/);
     expect(weatherIconUrl('partlycloudy', true)).toMatch(/\/partly-cloudy-night\.svg$/);
     expect(weatherIconUrl('lightning', true)).toMatch(/\/thunderstorms\.svg$/);
+    expect(weatherIconUrl('exceptional', true)).toMatch(/\/overcast-night\.svg$/);
   });
 
   it('keeps the drawn sun for unknown or missing weather', () => {

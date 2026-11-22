@@ -1607,6 +1607,8 @@
   "weather.condition.clearNight": "Dégagé",
   "weather.condition.cloudy": "Nuageux",
   "weather.condition.exceptional": "Extrême",
+  "weather.condition.dull": "Couvert",
+  "weather.condition.dark": "Sombre",
   "weather.condition.fog": "Brouillard",
   "weather.condition.hail": "Grêle",
   "weather.condition.lightning": "Orage",

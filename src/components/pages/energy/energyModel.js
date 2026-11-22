@@ -243,7 +243,7 @@ const WEATHER_ICON = {
   sunny: 'clear-day',
   windy: 'wind',
   'windy-variant': 'wind',
-  exceptional: 'thermometer', // Meteocons has no "extreme" icon
+  exceptional: 'overcast', // KNX: too dark to judge the sky, no night signal
 };
 // After sunset the day icons swap to their night variant.
 const NIGHT_ICON = {

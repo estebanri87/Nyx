@@ -1508,6 +1508,8 @@
   "weather.condition.clearNight": "清除",
   "weather.condition.cloudy": "多云",
   "weather.condition.exceptional": "极端",
+  "weather.condition.dull": "阴暗",
+  "weather.condition.dark": "天黑",
   "weather.condition.fog": "多雾路段",
   "weather.condition.hail": "冰雹",
   "weather.condition.lightning": "闪电",

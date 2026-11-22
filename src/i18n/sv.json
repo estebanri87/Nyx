@@ -1607,6 +1607,8 @@
   "weather.condition.clearNight": "Klart",
   "weather.condition.cloudy": "Molnigt",
   "weather.condition.exceptional": "Extremt",
+  "weather.condition.dull": "Mulet",
+  "weather.condition.dark": "Mörkt",
   "weather.condition.fog": "Dimma",
   "weather.condition.hail": "Hagel",
   "weather.condition.lightning": "Blixtar",

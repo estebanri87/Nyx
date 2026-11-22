@@ -1607,6 +1607,8 @@
   "weather.condition.clearNight": "Klart",
   "weather.condition.cloudy": "Skya",
   "weather.condition.exceptional": "Ekstremt",
+  "weather.condition.dull": "Grått",
+  "weather.condition.dark": "Mørkt",
   "weather.condition.fog": "Tåke",
   "weather.condition.hail": "Hagl",
   "weather.condition.lightning": "Lyn",

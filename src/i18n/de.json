@@ -1607,6 +1607,8 @@
   "weather.condition.clearNight": "Klar",
   "weather.condition.cloudy": "Bewölkt",
   "weather.condition.exceptional": "Extrem",
+  "weather.condition.dull": "Trüb",
+  "weather.condition.dark": "Dunkel",
   "weather.condition.fog": "Nebel",
   "weather.condition.hail": "Hagel",
   "weather.condition.lightning": "Gewitter",
