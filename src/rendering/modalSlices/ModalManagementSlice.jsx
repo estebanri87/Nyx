@@ -2,6 +2,13 @@ import { lazy } from 'react';
 import { ModalSuspense, getServerInfo } from '../../components';
 import { formatDuration } from '../../utils';
 import { buildRoomCardsPayload } from './roomCardUtils';
+import { useOptionalToast } from '../../contexts/ToastContext';
+import {
+  canDuplicateCard,
+  duplicateCard,
+  pageOfSettingsKey,
+  replaceCardEntity,
+} from '../../utils/cardEdits';
 
 const AddPageModal = lazy(() => import('../../modals/AddPageModal'));
 const AddCardContent = lazy(() => import('../../modals/AddCardContent'));
@@ -123,6 +130,64 @@ export function ModalManagementSlice({
     saveStatusPillsConfig,
   } = cardConfig;
   const { callService, getEntityImageUrl, getA, isSonosActive, isMediaActive } = entityHelpers;
+  const addToast = useOptionalToast()?.addToast;
+
+  const editCardId = showEditCardModal;
+  const editPageId = pageOfSettingsKey(editModalProps.editSettingsKey);
+  const closeEditCard = () => {
+    setEditCardModalVisibility(null);
+    setEditCardSettingsKey(null);
+  };
+
+  const handleDuplicateCard = () => {
+    const result = duplicateCard({
+      cardId: editCardId,
+      pageId: editPageId,
+      pagesConfig,
+      cardSettings,
+    });
+    if (!result) return;
+    persistConfig(result.pagesConfig);
+    persistCardSettings(result.cardSettings);
+    if (customNames[editCardId]) saveCustomName(result.newCardId, customNames[editCardId]);
+    if (customIcons[editCardId]) saveCustomIcon(result.newCardId, customIcons[editCardId]);
+    closeEditCard();
+    addToast?.(t('toast.cardDuplicated'), 'success');
+  };
+
+  const handleChangeEntity = (field, value) => {
+    if (field.settingKey) {
+      saveCardSetting(editModalProps.editSettingsKey, field.settingKey, value);
+      return;
+    }
+    // Cards named after their entity take the new entity as their id.
+    const result = replaceCardEntity({
+      cardId: editCardId,
+      newEntityId: value,
+      pageId: editPageId,
+      pagesConfig,
+      cardSettings,
+      customNames,
+      customIcons,
+    });
+    if (!result) {
+      addToast?.(t('editCard.entityOnPage'), 'error');
+      return;
+    }
+    persistConfig(result.pagesConfig);
+    persistCardSettings(result.cardSettings);
+    if (result.customNames?.[value] && !customNames[value]) {
+      saveCustomName(value, result.customNames[value]);
+    }
+    if (result.customIcons?.[value] && !customIcons[value]) {
+      saveCustomIcon(value, result.customIcons[value]);
+    }
+    if (hiddenCards.includes(editCardId) && !hiddenCards.includes(value)) {
+      toggleCardVisibility(value);
+    }
+    setEditCardModalVisibility(value);
+    setEditCardSettingsKey(`${editPageId}::${value}`);
+  };
 
   return (
     <>
@@ -242,10 +307,7 @@ export function ModalManagementSlice({
         <ModalSuspense>
           <EditCardModal
             isOpen={!!showEditCardModal}
-            onClose={() => {
-              setEditCardModalVisibility(null);
-              setEditCardSettingsKey(null);
-            }}
+            onClose={closeEditCard}
             t={t}
             entityId={showEditCardModal}
             entities={entities}
@@ -260,6 +322,12 @@ export function ModalManagementSlice({
             gridColumns={core.gridColumns}
             pagesConfig={pagesConfig}
             pageSettings={pageSettings}
+            onChangeEntity={Array.isArray(pagesConfig[editPageId]) ? handleChangeEntity : undefined}
+            onDuplicate={
+              canDuplicateCard(editCardId, editPageId, pagesConfig)
+                ? handleDuplicateCard
+                : undefined
+            }
             {...editModalProps}
           />
         </ModalSuspense>

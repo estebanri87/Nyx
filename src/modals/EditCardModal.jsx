@@ -1,11 +1,13 @@
 import React from 'react';
-import { X, Check, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Check, Plus, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import IconPicker from '../components/ui/IconPicker';
 import ConditionBuilder from '../components/ui/ConditionBuilder';
 import AccessibleModalShell from '../components/ui/AccessibleModalShell';
 import { getRelatedEntityIds } from '../services/haClient';
 import { CarMappingsSection, SearchableSelect } from './editCard/CarMappingsSection';
 import LightScenesSection from './editCard/LightScenesSection';
+import CardEntitySection from './editCard/CardEntitySection';
+import { getCardEntityFields } from '../utils/cardEdits';
 import { buildCarAnchorOptions } from './editCard/carAnchorOptions';
 import { RoomSettingsSection } from './editCard/RoomSettingsSection';
 import { CoverSettingsSection } from './editCard/CoverSettingsSection';
@@ -783,6 +785,8 @@ export default function EditCardModal({
   customIcons,
   saveCustomIcon,
   saveCardSetting,
+  onChangeEntity,
+  onDuplicate,
 }) {
   const [mediaSearch, setMediaSearch] = React.useState('');
   const [showVisibilityLogic, setShowVisibilityLogic] = React.useState(false);
@@ -894,6 +898,7 @@ export default function EditCardModal({
     (domain) => entityIdsByDomain[domain] || [],
     [entityIdsByDomain]
   );
+  const entityFields = React.useMemo(() => getCardEntityFields(entityId), [entityId]);
   const carMatch = React.useMemo(() => matchCarEntities(entities || {}), [entities]);
   const batteryOptions = carMatch.options?.batteryId || EMPTY_ENTITY_IDS;
   const rangeOptions = carMatch.options?.rangeId || EMPTY_ENTITY_IDS;
@@ -1238,6 +1243,18 @@ export default function EditCardModal({
             </h3>
 
             <div className="custom-scrollbar flex-1 space-y-6 overflow-y-auto pr-2">
+              {onChangeEntity && editSettingsKey && entityFields.length > 0 && (
+                <CardEntitySection
+                  fields={entityFields}
+                  cardId={entityId}
+                  editSettings={editSettings}
+                  entities={entities}
+                  byDomain={byDomain}
+                  onChange={onChangeEntity}
+                  t={t}
+                />
+              )}
+
               {(canEditName || editSettingsKey) && (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {canEditName && (
@@ -1246,6 +1263,8 @@ export default function EditCardModal({
                         {t('form.name')}
                       </label>
                       <input
+                        // A new entity brings its own name.
+                        key={entityId}
                         type="text"
                         className="popup-surface w-full rounded-2xl px-4 py-3 text-[var(--text-primary)] transition-colors outline-none focus:border-[var(--glass-border)]"
                         defaultValue={
@@ -4025,7 +4044,17 @@ export default function EditCardModal({
               )}
             </div>
 
-            <div className="mt-5 flex justify-end border-t border-[var(--glass-border)] pt-5">
+            <div className="mt-5 flex items-center justify-end gap-3 border-t border-[var(--glass-border)] pt-5">
+              {onDuplicate && (
+                <button
+                  type="button"
+                  onClick={onDuplicate}
+                  className="popup-surface popup-surface-hover mr-auto flex min-h-11 items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-colors"
+                >
+                  <Copy className="h-4 w-4" aria-hidden="true" />
+                  {t('tooltip.duplicateCard')}
+                </button>
+              )}
               <button
                 onClick={onClose}
                 className="popup-surface popup-surface-hover rounded-2xl px-6 py-2.5 text-xs font-bold tracking-widest text-[var(--text-secondary)] uppercase transition-colors"
