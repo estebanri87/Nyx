@@ -936,7 +936,7 @@ function MediaPage({
                           shuffle: !shuffle,
                         })
                       }
-                      className={`rounded-full p-[clamp(0.25rem,1vw,0.5rem)] transition-all active:scale-95 ${shuffle ? '' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'}`}
+                      className={`tap-target rounded-full p-[clamp(0.25rem,1vw,0.5rem)] transition-all active:scale-95 ${shuffle ? '' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'}`}
                       style={
                         shuffle
                           ? {
@@ -957,7 +957,7 @@ function MediaPage({
                         onClick={() =>
                           callService('media_player', 'media_previous_track', { entity_id: mpId })
                         }
-                        className="rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
+                        className="tap-target rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
                       >
                         <SkipBack className="h-[clamp(1.1rem,2.6vw,1.5rem)] w-[clamp(1.1rem,2.6vw,1.5rem)] text-[var(--text-secondary)]" />
                       </button>
@@ -985,7 +985,7 @@ function MediaPage({
                         onClick={() =>
                           callService('media_player', 'media_next_track', { entity_id: mpId })
                         }
-                        className="rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
+                        className="tap-target rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-95"
                       >
                         <SkipForward className="h-[clamp(1.1rem,2.6vw,1.5rem)] w-[clamp(1.1rem,2.6vw,1.5rem)] text-[var(--text-secondary)]" />
                       </button>
@@ -994,7 +994,7 @@ function MediaPage({
                           onClick={() =>
                             callService('media_player', powerAction, { entity_id: mpId })
                           }
-                          className={`rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all active:scale-95 ${isPowerOffAction ? 'text-[var(--status-error-fg)] hover:bg-[var(--status-error-bg)]' : 'text-[var(--status-success-fg)] hover:bg-[var(--status-success-bg)]'}`}
+                          className={`tap-target rounded-full p-[clamp(0.2rem,1vw,0.5rem)] transition-all active:scale-95 ${isPowerOffAction ? 'text-[var(--status-error-fg)] hover:bg-[var(--status-error-bg)]' : 'text-[var(--status-success-fg)] hover:bg-[var(--status-success-bg)]'}`}
                           title={isPowerOffAction ? t('status.off') : t('status.on')}
                         >
                           <Power className="h-[clamp(1.1rem,2.6vw,1.5rem)] w-[clamp(1.1rem,2.6vw,1.5rem)]" />
@@ -1010,7 +1010,7 @@ function MediaPage({
                           repeat: nextMode,
                         });
                       }}
-                      className={`rounded-full p-[clamp(0.25rem,1vw,0.5rem)] transition-all active:scale-95 ${repeat !== 'off' ? '' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'}`}
+                      className={`tap-target rounded-full p-[clamp(0.25rem,1vw,0.5rem)] transition-all active:scale-95 ${repeat !== 'off' ? '' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'}`}
                       style={
                         repeat !== 'off'
                           ? {
@@ -1036,7 +1036,7 @@ function MediaPage({
                 <div className="flex items-center gap-2 border-t border-[var(--glass-border)] px-1 pt-2">
                   <button
                     onClick={() => changeVolumeByStep(-VOLUME_STEP)}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
+                    className="tap-target flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
                     aria-label="Volume down"
                     title="Volume down"
                   >
@@ -1049,7 +1049,7 @@ function MediaPage({
                         is_volume_muted: !isMuted,
                       })
                     }
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
+                    className="tap-target flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
                     type="button"
                     aria-pressed={isMuted}
                     aria-label={isMuted ? t('media.volume.unmute') || 'Unmute' : t('media.volume.mute') || 'Mute'}
@@ -1081,7 +1081,7 @@ function MediaPage({
                   </div>
                   <button
                     onClick={() => changeVolumeByStep(VOLUME_STEP)}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
+                    className="tap-target flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)] active:scale-95"
                     aria-label="Volume up"
                     title="Volume up"
                   >
@@ -1105,7 +1105,7 @@ function MediaPage({
                   <button
                     type="button"
                     onClick={() => setRightPanelView('players')}
-                    className={`rounded-lg px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-colors ${rightPanelView === 'players' ? 'border' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                    className={`tap-target rounded-lg px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-colors ${rightPanelView === 'players' ? 'border' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                     style={
                       rightPanelView === 'players'
                         ? {
@@ -1121,7 +1121,7 @@ function MediaPage({
                   <button
                     type="button"
                     onClick={() => setRightPanelView('choose')}
-                    className={`rounded-lg px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-colors ${rightPanelView === 'choose' ? 'border' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                    className={`tap-target rounded-lg px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-colors ${rightPanelView === 'choose' ? 'border' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                     style={
                       rightPanelView === 'choose'
                         ? {
@@ -1138,7 +1138,7 @@ function MediaPage({
                     <button
                       type="button"
                       onClick={() => setRightPanelView('manage')}
-                      className={`rounded-lg px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-colors ${rightPanelView === 'manage' ? 'border' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                      className={`tap-target rounded-lg px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-colors ${rightPanelView === 'manage' ? 'border' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                       style={
                         rightPanelView === 'manage'
                           ? {
@@ -1156,7 +1156,7 @@ function MediaPage({
                 {isSonosMode && rightPanelView === 'players' && listPlayers.length > 1 && (
                   <button
                     onClick={toggleGroupAll}
-                    className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-colors"
+                    className="tap-target inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-colors"
                     style={{
                       backgroundColor: 'var(--glass-bg)',
                       borderColor: 'var(--glass-border)',
@@ -1244,7 +1244,7 @@ function MediaPage({
                                   });
                                 }
                               }}
-                              className={`rounded-full p-2.5 transition-all ${isMember ? '' : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'}`}
+                              className={`tap-target rounded-full p-2.5 transition-all ${isMember ? '' : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'}`}
                               style={
                                 isMember
                                   ? {
@@ -1272,7 +1272,7 @@ function MediaPage({
                                 e.stopPropagation();
                                 toggleGroupAll();
                               }}
-                              className="rounded-full p-2.5 transition-colors"
+                              className="tap-target rounded-full p-2.5 transition-colors"
                               style={{
                                 backgroundColor: 'var(--glass-bg)',
                                 color: 'var(--text-secondary)',
@@ -1301,7 +1301,7 @@ function MediaPage({
                         key={tab}
                         type="button"
                         onClick={() => setChooseTab(tab)}
-                        className={`rounded-lg px-2.5 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-colors ${chooseTab === tab ? 'border' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                        className={`tap-target rounded-lg px-2.5 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-colors ${chooseTab === tab ? 'border' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                         style={
                           chooseTab === tab
                             ? {

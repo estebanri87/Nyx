@@ -265,6 +265,21 @@
     border-color 0.25s;
   -webkit-tap-highlight-color: transparent;
 }
+/* Grows the tap target of a small control to at least 44 px around it, without changing how it
+   looks or where it sits. Only for controls that are not positioned themselves. */
+.tap-target {
+  position: relative;
+}
+.tap-target::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
 /* The highlight is a ring inside the card: the grid slot clips everything outside the card to a
    square, so an outer shadow or a lifted card would show square edges there. */
 .touch-feedback::after {

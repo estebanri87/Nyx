@@ -277,7 +277,7 @@ const EntityRow = memo(function EntityRow({ entityId, entity, callService, conn,
           )}
           <button
             onClick={handleToggle}
-            className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all active:scale-90 ${
+            className={`tap-target flex h-9 w-9 items-center justify-center rounded-xl transition-all active:scale-90 ${
               isOn
                 ? 'text-white shadow-md'
                 : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
@@ -298,7 +298,7 @@ const EntityRow = memo(function EntityRow({ entityId, entity, callService, conn,
       {(domain === 'switch' || domain === 'fan' || domain === 'input_boolean' || domain === 'automation') && !isUnavailable && (
         <button
           onClick={handleToggle}
-          className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all active:scale-90 ${
+          className={`tap-target flex h-9 w-9 items-center justify-center rounded-xl transition-all active:scale-90 ${
             isOn
               ? 'bg-[var(--accent-color)] text-white shadow-md shadow-[var(--accent-color)]/30'
               : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
@@ -318,7 +318,7 @@ const EntityRow = memo(function EntityRow({ entityId, entity, callService, conn,
             <button
               key={svc}
               onClick={() => callService('cover', svc, { entity_id: entityId })}
-              className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs transition-all active:scale-90 ${
+              className={`tap-target flex h-8 w-8 items-center justify-center rounded-lg text-xs transition-all active:scale-90 ${
                 (svc === 'open_cover' && state === 'open') || (svc === 'close_cover' && state === 'closed')
                   ? 'bg-[var(--accent-color)]/15 text-[var(--accent-color)]'
                   : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
@@ -333,7 +333,7 @@ const EntityRow = memo(function EntityRow({ entityId, entity, callService, conn,
       {domain === 'lock' && !isUnavailable && (
         <button
           onClick={() => callService('lock', state === 'locked' ? 'unlock' : 'lock', { entity_id: entityId })}
-          className={`flex h-9 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-all active:scale-90 ${
+          className={`tap-target flex h-9 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-all active:scale-90 ${
             state === 'locked'
               ? 'bg-blue-500/20 text-blue-400'
               : 'bg-orange-500/20 text-orange-400'
@@ -350,13 +350,13 @@ const EntityRow = memo(function EntityRow({ entityId, entity, callService, conn,
         <div className="flex items-center gap-1">
           <button
             onClick={() => callService('media_player', 'media_previous_track', { entity_id: entityId })}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--glass-bg)] text-[var(--text-muted)] transition-all hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-secondary)] active:scale-90"
+            className="tap-target flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--glass-bg)] text-[var(--text-muted)] transition-all hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-secondary)] active:scale-90"
           >
             <SkipBack className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => callService('media_player', state === 'playing' ? 'media_pause' : 'media_play', { entity_id: entityId })}
-            className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all active:scale-90 ${
+            className={`tap-target flex h-9 w-9 items-center justify-center rounded-xl transition-all active:scale-90 ${
               state === 'playing'
                 ? 'bg-purple-500/20 text-purple-400'
                 : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
@@ -366,7 +366,7 @@ const EntityRow = memo(function EntityRow({ entityId, entity, callService, conn,
           </button>
           <button
             onClick={() => callService('media_player', 'media_next_track', { entity_id: entityId })}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--glass-bg)] text-[var(--text-muted)] transition-all hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-secondary)] active:scale-90"
+            className="tap-target flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--glass-bg)] text-[var(--text-muted)] transition-all hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-secondary)] active:scale-90"
           >
             <SkipForward className="h-3.5 w-3.5" />
           </button>
@@ -377,7 +377,7 @@ const EntityRow = memo(function EntityRow({ entityId, entity, callService, conn,
         <div className="flex items-center gap-1">
           <button
             onClick={() => callService('vacuum', state === 'cleaning' ? 'pause' : 'start', { entity_id: entityId })}
-            className={`flex h-8 items-center justify-center rounded-lg px-3 text-[10px] font-bold tracking-wider uppercase transition-all active:scale-90 ${
+            className={`tap-target flex h-8 items-center justify-center rounded-lg px-3 text-[10px] font-bold tracking-wider uppercase transition-all active:scale-90 ${
               state === 'cleaning'
                 ? 'bg-green-500/20 text-green-400'
                 : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
@@ -387,7 +387,7 @@ const EntityRow = memo(function EntityRow({ entityId, entity, callService, conn,
           </button>
           <button
             onClick={() => callService('vacuum', 'return_to_base', { entity_id: entityId })}
-            className="flex h-8 items-center justify-center rounded-lg bg-[var(--glass-bg)] px-3 text-[10px] font-bold tracking-wider text-[var(--text-secondary)] uppercase transition-all hover:bg-[var(--glass-bg-hover)] active:scale-90"
+            className="tap-target flex h-8 items-center justify-center rounded-lg bg-[var(--glass-bg)] px-3 text-[10px] font-bold tracking-wider text-[var(--text-secondary)] uppercase transition-all hover:bg-[var(--glass-bg-hover)] active:scale-90"
           >
             {t('roomExplorer.vacuum.dock')}
           </button>
@@ -397,7 +397,7 @@ const EntityRow = memo(function EntityRow({ entityId, entity, callService, conn,
       {(domain === 'scene' || domain === 'script') && !isUnavailable && (
         <button
           onClick={() => callService(domain, 'turn_on', { entity_id: entityId })}
-          className="flex h-8 items-center justify-center rounded-lg bg-[var(--accent-color)]/15 px-3 text-[10px] font-bold tracking-wider text-[var(--accent-color)] uppercase transition-all hover:bg-[var(--accent-color)]/25 active:scale-90"
+          className="tap-target flex h-8 items-center justify-center rounded-lg bg-[var(--accent-color)]/15 px-3 text-[10px] font-bold tracking-wider text-[var(--accent-color)] uppercase transition-all hover:bg-[var(--accent-color)]/25 active:scale-90"
         >
           {t('roomExplorer.run') || 'Run'}
         </button>
@@ -406,7 +406,7 @@ const EntityRow = memo(function EntityRow({ entityId, entity, callService, conn,
       {(domain === 'button' || domain === 'input_button') && !isUnavailable && (
         <button
           onClick={() => callService(domain, 'press', { entity_id: entityId })}
-          className="flex h-8 items-center justify-center rounded-lg bg-[var(--glass-bg)] px-3 text-[10px] font-bold tracking-wider text-[var(--text-secondary)] uppercase transition-all hover:bg-[var(--glass-bg-hover)] active:scale-90"
+          className="tap-target flex h-8 items-center justify-center rounded-lg bg-[var(--glass-bg)] px-3 text-[10px] font-bold tracking-wider text-[var(--text-secondary)] uppercase transition-all hover:bg-[var(--glass-bg-hover)] active:scale-90"
         >
           {t('roomExplorer.press') || 'Press'}
         </button>
@@ -596,7 +596,7 @@ const RoomSummaryBar = memo(function RoomSummaryBar({ entityIds, entities, callS
       <div className="flex-1" />
       <button
         onClick={toggleAllLights}
-        className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-all active:scale-90 ${
+        className={`tap-target flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-all active:scale-90 ${
           stats.lightsOn > 0
             ? 'bg-amber-500/20 text-amber-400'
             : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'
@@ -787,7 +787,7 @@ function RoomExplorerPage({ entities, callService, conn, pageSettings, pageId, s
         {selectedAreaId && (
           <button
             onClick={handleBack}
-            className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-90"
+            className="tap-target flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-all hover:bg-[var(--glass-bg-hover)] active:scale-90"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>

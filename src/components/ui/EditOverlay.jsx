@@ -53,10 +53,10 @@ function EditOverlay({
   const gapClass = isCompactSpacer ? 'gap-1' : 'gap-2';
   const buttonClass = isCompactSpacer
     ? 'p-1 rounded-full text-white border border-white/20 shadow-lg bg-black/60'
-    : 'p-2 rounded-full text-white border border-white/20 shadow-lg bg-black/60';
+    : 'tap-target p-2 rounded-full text-white border border-white/20 shadow-lg bg-black/60';
   const hoverButtonClass = isCompactSpacer
     ? 'p-1 rounded-full transition-colors hover:bg-[var(--accent-bg)] text-white border border-white/20 shadow-lg bg-black/60'
-    : 'p-2 rounded-full transition-colors hover:bg-[var(--accent-bg)] text-white border border-white/20 shadow-lg bg-black/60';
+    : 'tap-target p-2 rounded-full transition-colors hover:bg-[var(--accent-bg)] text-white border border-white/20 shadow-lg bg-black/60';
   const iconClass = isCompactSpacer ? 'w-3 h-3' : 'w-4 h-4';
   const dragHandleClass = isCompactSpacer
     ? 'flex items-center justify-center p-1.5 rounded-full bg-black/50 border border-white/10 text-white/80 shadow-lg pointer-events-auto'
@@ -115,7 +115,7 @@ function EditOverlay({
             e.stopPropagation();
             onToggleVisibility();
           }}
-          className={`${isCompactSpacer ? 'p-1' : 'p-2'} rounded-full border border-white/20 text-white shadow-lg transition-colors hover:bg-white/20`}
+          className={`${isCompactSpacer ? 'p-1' : 'tap-target p-2'} rounded-full border border-white/20 text-white shadow-lg transition-colors hover:bg-white/20`}
           style={{ backgroundColor: isHidden ? 'rgba(239, 68, 68, 0.8)' : 'rgba(0, 0, 0, 0.6)' }}
           title={isHidden ? t('tooltip.showCard') : t('tooltip.hideCard')}
           aria-label={isHidden ? t('tooltip.showCard') : t('tooltip.hideCard')}
@@ -128,7 +128,7 @@ function EditOverlay({
               e.stopPropagation();
               onSaveSize(getNextSize(currentSize));
             }}
-            className={`${isCompactSpacer ? 'p-1' : 'p-2'} rounded-full border border-white/20 text-white shadow-lg transition-colors hover:bg-[var(--accent-color)]`}
+            className={`${isCompactSpacer ? 'p-1' : 'tap-target p-2'} rounded-full border border-white/20 text-white shadow-lg transition-colors hover:bg-[var(--accent-color)]`}
             style={{ backgroundColor: isSmall ? 'var(--accent-color)' : 'rgba(0, 0, 0, 0.6)' }}
             title={t('tooltip.cycleSize') || 'Cycle size'}
             aria-label={t('tooltip.cycleSize') || 'Cycle size'}
@@ -142,7 +142,7 @@ function EditOverlay({
               e.stopPropagation();
               onRemove();
             }}
-            className={`${isCompactSpacer ? 'p-1' : 'p-2'} rounded-full border border-white/20 bg-black/60 text-white shadow-lg transition-colors hover:bg-red-500/80`}
+            className={`${isCompactSpacer ? 'p-1' : 'tap-target p-2'} rounded-full border border-white/20 bg-black/60 text-white shadow-lg transition-colors hover:bg-red-500/80`}
             title={t('tooltip.removeCard')}
             aria-label={t('tooltip.removeCard')}
           >

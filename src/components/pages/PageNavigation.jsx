@@ -202,7 +202,7 @@ export default function PageNavigation({
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
       {/* Scrollable page pills */}
-      <div className="scrollbar-hide flex min-w-0 flex-1 items-center gap-4 overflow-x-auto pb-2">
+      <div className="scrollbar-hide -mt-2 flex min-w-0 flex-1 items-center gap-4 overflow-x-auto pt-2 pb-2">
         {pages.map((page) => {
           const settings = pageSettings[page.id] || {};
           const label = settings.label || page.label;
@@ -242,7 +242,7 @@ export default function PageNavigation({
                 movePage(sourceId, page.id);
               }}
               onDragEnd={() => setDragOverId(null)}
-              className={`flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-[10px] font-bold tracking-wide whitespace-nowrap transition-all sm:gap-2 sm:rounded-full sm:px-5 sm:py-2.5 sm:text-xs ${
+              className={`tap-target flex items-center gap-1.5 rounded-2xl border px-4 py-2 text-[10px] font-bold tracking-wide whitespace-nowrap transition-all sm:gap-2 sm:rounded-full sm:px-5 sm:py-2.5 sm:text-xs ${
                 activePage === page.id
                   ? 'border-[var(--glass-border)] bg-[var(--glass-bg-hover)] text-[var(--text-primary)]'
                   : 'border-transparent bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'
@@ -261,7 +261,7 @@ export default function PageNavigation({
           <button
             type="button"
             onClick={toggleManager}
-            className={`flex items-center gap-1.5 rounded-full border px-3 py-2 text-[10px] font-bold tracking-widest whitespace-nowrap uppercase transition-all sm:px-4 sm:py-2.5 sm:text-xs ${
+            className={`tap-target flex items-center gap-1.5 rounded-full border px-3 py-2 text-[10px] font-bold tracking-widest whitespace-nowrap uppercase transition-all sm:px-4 sm:py-2.5 sm:text-xs ${
               showManager
                 ? 'border-[var(--accent-color)] bg-[var(--glass-bg-hover)] text-[var(--accent-color)]'
                 : 'border-dashed border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-primary)]'

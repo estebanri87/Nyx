@@ -35,7 +35,7 @@ export default function SettingsDropdown({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`group relative z-50 rounded-full p-2 transition-all duration-300 ${isOpen ? 'bg-[var(--accent-color)] text-white shadow-lg ' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
+        className={`tap-target group relative z-50 rounded-full p-2 transition-all duration-300 ${isOpen ? 'bg-[var(--accent-color)] text-white shadow-lg ' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
         aria-label={t('menu.settings')}
         data-testid="settings-dropdown-trigger"
       >

@@ -15,7 +15,7 @@ const PersonStatus = ({
   onOpenPerson,
   onEditCard,
   onRemoveCard,
-  t: _t,
+  t,
 }) => {
   const entity = entities[id];
   if (!entity && !editMode) return null;
@@ -73,24 +73,31 @@ const PersonStatus = ({
       }}
     >
       {editMode && (
-        <div className="absolute -top-2 -right-2 z-50 flex gap-1">
+        // The badges stay small; each button around one is a full 44 px tap target.
+        <div className="absolute -top-5 -right-5 z-50 flex">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onEditCard(id, headerSettingsKey);
             }}
-            className="rounded-full bg-[var(--accent-color)] p-1 text-white shadow-sm"
+            className="flex h-11 w-11 items-center justify-center"
+            aria-label={t('tooltip.editCard')}
           >
-            <Edit2 className="h-3 w-3" />
+            <span className="rounded-full bg-[var(--accent-color)] p-1 text-white shadow-sm">
+              <Edit2 className="h-3 w-3" />
+            </span>
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
               onRemoveCard(id, 'header');
             }}
-            className="rounded-full bg-red-500/60 p-1 text-white shadow-sm"
+            className="flex h-11 w-11 items-center justify-center"
+            aria-label={t('tooltip.removeCard')}
           >
-            <Trash2 className="h-3 w-3" />
+            <span className="rounded-full bg-red-500/60 p-1 text-white shadow-sm">
+              <Trash2 className="h-3 w-3" />
+            </span>
           </button>
         </div>
       )}

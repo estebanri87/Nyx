@@ -154,7 +154,7 @@ export default function StatusGroupPillModal({
                         {hasAction && rowActionLabel && (
                           <button
                             onClick={() => runAction([id])}
-                            className="rounded-full bg-[var(--accent-bg)] px-3 py-1.5 text-[10px] font-bold text-[var(--accent-color)] transition-opacity hover:opacity-90"
+                            className="tap-target rounded-full bg-[var(--accent-bg)] px-3 py-1.5 text-[10px] font-bold text-[var(--accent-color)] transition-opacity hover:opacity-90"
                           >
                             {rowActionLabel}
                           </button>
