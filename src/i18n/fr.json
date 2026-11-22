@@ -1889,7 +1889,7 @@
   "energy.detail.now": "Actuel",
   "energy.detail.ofWhichHeat": "dont pompe à chaleur",
   "energy.detail.today": "Aujourd’hui",
-  "energy.detail.inverter": "Onduleur",
+  "energy.detail.inverter": "Consommation selon l'onduleur",
   "energy.detail.plusBkw": "+ Kit balcon",
   "energy.detail.pvTotal": "Solaire total",
   "energy.detail.deviation": "Écart",

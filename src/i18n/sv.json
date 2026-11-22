@@ -1889,7 +1889,7 @@
   "energy.detail.now": "Just nu",
   "energy.detail.ofWhichHeat": "varav värmepump",
   "energy.detail.today": "Idag",
-  "energy.detail.inverter": "Växelriktare",
+  "energy.detail.inverter": "Förbrukning enligt växelriktare",
   "energy.detail.plusBkw": "+ Balkongkraftverk",
   "energy.detail.pvTotal": "Sol totalt",
   "energy.detail.deviation": "Avvikelse",

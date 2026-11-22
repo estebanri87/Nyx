@@ -1790,7 +1790,7 @@
   "energy.detail.now": "当前",
   "energy.detail.ofWhichHeat": "其中热泵",
   "energy.detail.today": "今天",
-  "energy.detail.inverter": "逆变器",
+  "energy.detail.inverter": "逆变器测得的用电",
   "energy.detail.plusBkw": "+ 阳台电站",
   "energy.detail.pvTotal": "光伏总计",
   "energy.detail.deviation": "偏差",

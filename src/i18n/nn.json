@@ -1889,7 +1889,7 @@
   "energy.detail.now": "No",
   "energy.detail.ofWhichHeat": "av dette varmepumpe",
   "energy.detail.today": "I dag",
-  "energy.detail.inverter": "Vekselrettar",
+  "energy.detail.inverter": "Forbruk målt av vekselrettar",
   "energy.detail.plusBkw": "+ Balkongkraftverk",
   "energy.detail.pvTotal": "Sol totalt",
   "energy.detail.deviation": "Avvik",
