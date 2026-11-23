@@ -1992,6 +1992,12 @@
   "energy.config.failed": "Abfrage fehlgeschlagen",
   "energy.advice.status.waiting": "Wartet auf {name}",
   "energy.advice.hint.waiting": "Kommt erst, wenn {name} heute oder gestern gelaufen und fertig ist.",
+  "energy.advice.status.alternative": "Oder statt {name}",
+  "energy.advice.hint.alternative": "Passt allein, aber nicht zusammen mit {name}.",
+  "energy.advice.pill.either": "{a} oder {b}",
+  "energy.advice.pill.eitherMany": "{a} oder {n} andere",
+  "energy.advice.pill.subEither": "{kw} Sonnenstrom übrig · eins von beiden",
+  "energy.advice.pill.subEitherMany": "{kw} Sonnenstrom übrig · eins davon",
   "energy.config.after": "Nur nach",
   "energy.config.always": "immer"
 }

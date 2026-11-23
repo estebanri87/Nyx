@@ -15,6 +15,9 @@ import { readNumber, readPowerW } from './energyModel';
 
 const DEMAND_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 const RETRY_MS = 30 * 1000;
+// The live value is smoothed over this window so single readings do not
+// switch a suggestion on and off.
+const SMOOTH_MS = 2 * 60 * 1000;
 
 // Shared between the energy page and the status pill, so both agree and the
 // history is only read once per session.
@@ -24,6 +27,8 @@ const learnedDemand = new Map();
 // entity id -> last time (ms) the appliance was seen running in this session;
 // the hourly statistics only cover finished hours.
 const seenRunning = new Map();
+// Appliances suggested on the last render; they keep it within HOLD_MARGIN.
+const heldSuggestions = new Set();
 
 const toPoints = (rows) =>
   (rows || [])
@@ -162,13 +167,16 @@ export function useEnergyAdvice(entities, conn, config) {
   };
   const nameOf = (d) => d.name || entities?.[d.entity]?.attributes?.friendly_name || d.entity;
 
-  const { average, coveredMs } = windowAverage(surplusSamples.get(key) || [], now, windowMs);
+  const samples = surplusSamples.get(key) || [];
+  const { average, coveredMs } = windowAverage(samples, now, windowMs);
   const stable = average !== null && coveredMs >= windowMs * 0.8;
-  const usableW = stable ? Math.min(current.surplusW, average) : current.surplusW;
+  const smoothed = windowAverage(samples, now, SMOOTH_MS).average ?? current.surplusW;
+  const usableW = Math.round(stable ? Math.min(smoothed, average) : smoothed);
 
   const items = recommendDevices({
     surplusW: usableW,
     runW: advice.runW,
+    held: heldSuggestions,
     devices: devices.map((d) => {
       const other = d.after ? devices.find((o) => o.entity === d.after) : null;
       const waiting =
@@ -191,6 +199,11 @@ export function useEnergyAdvice(entities, conn, config) {
     }),
   });
 
+  items.forEach((i) => {
+    if (i.status === 'fits' || i.status === 'alternative') heldSuggestions.add(i.id);
+    else heldSuggestions.delete(i.id);
+  });
+
   return {
     enabled,
     advice,
@@ -201,5 +214,6 @@ export function useEnergyAdvice(entities, conn, config) {
     usableW,
     items,
     fitting: items.filter((i) => i.status === 'fits'),
+    alternatives: items.filter((i) => i.status === 'alternative'),
   };
 }

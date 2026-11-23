@@ -96,6 +96,28 @@ describe('recommendDevices', () => {
     expect(items[3].missingW).toBe(3500 - (3356 - 2130 - 760));
   });
 
+  it('offers an appliance that only fits on its own as an alternative', () => {
+    const items = recommendDevices({
+      surplusW: 3000,
+      runW: 50,
+      devices: [
+        { id: 'sp', name: 'Spülmaschine', powerW: 0, demandW: 2150 },
+        { id: 'wm', name: 'Waschmaschine', powerW: 0, demandW: 2490 },
+        { id: 'kf', name: 'Kochfeld', powerW: 0, demandW: 3500 },
+      ],
+    });
+    expect(items.map((i) => i.status)).toEqual(['fits', 'alternative', 'short']);
+    expect(items[1].insteadOf).toEqual(['Spülmaschine']);
+  });
+
+  it('keeps a suggestion until the surplus drops clearly below the demand', () => {
+    const dryer = [{ id: 'tr', name: 'Trockner', powerW: 0, demandW: 1000 }];
+    expect(recommendDevices({ surplusW: 950, devices: dryer })[0].status).toBe('short');
+    const held = new Set(['tr']);
+    expect(recommendDevices({ surplusW: 950, devices: dryer, held })[0].status).toBe('fits');
+    expect(recommendDevices({ surplusW: 890, devices: dryer, held })[0].status).toBe('short');
+  });
+
   it('recommends nothing without surplus', () => {
     const items = recommendDevices({ surplusW: 0, devices, runW: 50 });
     expect(items.some((i) => i.status === 'fits')).toBe(false);

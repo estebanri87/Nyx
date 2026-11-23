@@ -1992,6 +1992,12 @@
   "energy.config.failed": "query failed",
   "energy.advice.status.waiting": "Waiting for {name}",
   "energy.advice.hint.waiting": "Only once {name} has run today or yesterday and has finished.",
+  "energy.advice.status.alternative": "Or instead of {name}",
+  "energy.advice.hint.alternative": "Fits on its own, but not together with {name}.",
+  "energy.advice.pill.either": "{a} or {b}",
+  "energy.advice.pill.eitherMany": "{a} or {n} others",
+  "energy.advice.pill.subEither": "{kw} solar power spare · one of them",
+  "energy.advice.pill.subEitherMany": "{kw} solar power spare · one of them",
   "energy.config.after": "Only after",
   "energy.config.always": "always"
 }

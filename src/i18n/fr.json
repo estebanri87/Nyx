@@ -1992,6 +1992,12 @@
   "energy.config.failed": "échec de la requête",
   "energy.advice.status.waiting": "Attend {name}",
   "energy.advice.hint.waiting": "Seulement quand {name} a tourné aujourd’hui ou hier et a terminé.",
+  "energy.advice.status.alternative": "Ou à la place de {name}",
+  "energy.advice.hint.alternative": "Passe seul, mais pas avec {name}.",
+  "energy.advice.pill.either": "{a} ou {b}",
+  "energy.advice.pill.eitherMany": "{a} ou {n} autres",
+  "energy.advice.pill.subEither": "{kw} de solaire disponible · l’un des deux",
+  "energy.advice.pill.subEitherMany": "{kw} de solaire disponible · l’un d’eux",
   "energy.config.after": "Seulement après",
   "energy.config.always": "toujours"
 }

@@ -24,14 +24,28 @@ export default function EnergyAdvicePill({ pill, t, isMobile, onOpenPage }) {
   const config = normalizeEnergyConfig(pageId ? pageSettings[pageId].energy : null);
   const advice = useEnergyAdvice(entities, conn, config);
 
-  if (!pageId || advice.fitting.length === 0) return null;
+  const { fitting, alternatives } = advice;
+  if (!pageId || fitting.length === 0) return null;
 
   const locale = getLocaleForLanguage(language);
-  const label =
-    advice.fitting.length === 1
-      ? t('energy.advice.pill.one').replace('{name}', advice.fitting[0].name)
-      : t('energy.advice.pill.many').replace('{n}', String(advice.fitting.length));
-  const sublabel = t('energy.advice.pill.sub').replace('{kw}', formatKw(advice.usableW, locale));
+  // One appliance with alternatives that only fit instead of it: "A or B".
+  const either = fitting.length === 1 && alternatives.length > 0;
+  let label = t('energy.advice.pill.many').replace('{n}', String(fitting.length));
+  let sub = 'energy.advice.pill.sub';
+  if (either && alternatives.length === 1) {
+    label = t('energy.advice.pill.either')
+      .replace('{a}', fitting[0].name)
+      .replace('{b}', alternatives[0].name);
+    sub = 'energy.advice.pill.subEither';
+  } else if (either) {
+    label = t('energy.advice.pill.eitherMany')
+      .replace('{a}', fitting[0].name)
+      .replace('{n}', String(alternatives.length));
+    sub = 'energy.advice.pill.subEitherMany';
+  } else if (fitting.length === 1) {
+    label = t('energy.advice.pill.one').replace('{name}', fitting[0].name);
+  }
+  const sublabel = t(sub).replace('{kw}', formatKw(advice.usableW, locale));
 
   return (
     <StatusPill

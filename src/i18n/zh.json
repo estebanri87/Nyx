@@ -1893,6 +1893,12 @@
   "energy.config.failed": "查询失败",
   "energy.advice.status.waiting": "等待{name}",
   "energy.advice.hint.waiting": "仅在{name}今天或昨天运行并完成后推荐。",
+  "energy.advice.status.alternative": "或代替 {name}",
+  "energy.advice.hint.alternative": "单独运行可以，但不能与 {name} 同时运行。",
+  "energy.advice.pill.either": "{a} 或 {b}",
+  "energy.advice.pill.eitherMany": "{a} 或其他 {n} 个",
+  "energy.advice.pill.subEither": "富余 {kw} 太阳能 · 二选一",
+  "energy.advice.pill.subEitherMany": "富余 {kw} 太阳能 · 任选其一",
   "energy.config.after": "仅在之后",
   "energy.config.always": "始终"
 }

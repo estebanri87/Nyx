@@ -20,10 +20,11 @@ vi.mock('../contexts', () => ({
 
 const t = (key) => de[key] ?? key;
 
-const energyPage = (devices) => ({
+// Each test uses its own grid sensor: the surplus history is shared per setup.
+const energyPage = (devices, gridPower = 'sensor.grid') => ({
   type: 'energy',
   energy: {
-    slots: { gridPower: 'sensor.grid', battPower: 'sensor.batt', battSoc: 'sensor.soc' },
+    slots: { gridPower, battPower: 'sensor.batt', battSoc: 'sensor.soc' },
     devices,
   },
 });
@@ -70,11 +71,44 @@ describe('EnergyAdvicePill', () => {
     expect(onOpenPage).toHaveBeenCalledWith('energie');
   });
 
+  it('offers either appliance when only one of them fits at a time', async () => {
+    ctx.conn = {
+      sendMessagePromise: vi.fn(async (msg) => {
+        if (msg.type !== 'recorder/statistics_during_period') return { [msg.entity_ids[0]]: [] };
+        const id = msg.statistic_ids[0];
+        const peak = id === 'sensor.dish_power' ? 2150 : 2490;
+        return { [id]: [peak, peak, peak, 0].map((max) => ({ max })) };
+      }),
+    };
+    ctx.entities = {
+      ...ctx.entities,
+      'sensor.grid_either': sensor(3000, 'W'),
+      'sensor.batt': sensor(0, 'W'),
+      'sensor.dish_power': sensor(0, 'W'),
+      'sensor.wash_power': sensor(0, 'W'),
+    };
+    ctx.pageSettings = {
+      energie: energyPage(
+        [
+          { entity: 'sensor.dish_power', name: 'Spülmaschine' },
+          { entity: 'sensor.wash_power', name: 'Waschmaschine' },
+        ],
+        'sensor.grid_either'
+      ),
+    };
+    render(<EnergyAdvicePill pill={{ id: 'p', type: 'energy_advice' }} t={t} />);
+    expect(await screen.findByText('Spülmaschine oder Waschmaschine')).toBeTruthy();
+    expect(screen.getByText(/^3(,0)? kW Sonnenstrom übrig · eins von beiden$/)).toBeTruthy();
+  });
+
   it('stays hidden without surplus', () => {
     ctx.entities = {
       ...ctx.entities,
-      'sensor.grid': sensor(-300, 'W'),
+      'sensor.grid_none': sensor(-300, 'W'),
       'sensor.batt': sensor(500, 'W'),
+    };
+    ctx.pageSettings = {
+      energie: energyPage([{ entity: 'sensor.dryer_power', name: 'Trockner' }], 'sensor.grid_none'),
     };
     const { container } = render(
       <EnergyAdvicePill pill={{ id: 'p', type: 'energy_advice' }} t={t} />

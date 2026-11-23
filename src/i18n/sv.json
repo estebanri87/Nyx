@@ -1992,6 +1992,12 @@
   "energy.config.failed": "frågan misslyckades",
   "energy.advice.status.waiting": "Väntar på {name}",
   "energy.advice.hint.waiting": "Först när {name} har gått i dag eller i går och är klar.",
+  "energy.advice.status.alternative": "Eller i stället för {name}",
+  "energy.advice.hint.alternative": "Får plats ensam, men inte tillsammans med {name}.",
+  "energy.advice.pill.either": "{a} eller {b}",
+  "energy.advice.pill.eitherMany": "{a} eller {n} andra",
+  "energy.advice.pill.subEither": "{kw} solel över · en av dem",
+  "energy.advice.pill.subEitherMany": "{kw} solel över · en av dem",
   "energy.config.after": "Bara efter",
   "energy.config.always": "alltid"
 }

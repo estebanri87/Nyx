@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Check, Clock, Play, Plug, WashingMachine } from '../../../icons';
+import { ArrowLeftRight, Check, Clock, Play, Plug, WashingMachine } from '../../../icons';
 import { formatNumber } from './energyModel';
 
 const CARD = 'rounded-3xl border border-[var(--glass-border)] bg-[var(--card-bg)]';
@@ -7,6 +7,12 @@ const LABEL = 'text-[11px] font-bold tracking-[0.14em] text-[var(--text-muted)] 
 
 const STATUS = {
   fits: { Icon: Check, color: '#34d399', tint: 'rgba(52,211,153,0.16)', text: '#6ee7b7' },
+  alternative: {
+    Icon: ArrowLeftRight,
+    color: '#34d399',
+    tint: 'rgba(52,211,153,0.1)',
+    text: '#a7f3d0',
+  },
   running: { Icon: Play, color: '#60a5fa', tint: 'rgba(96,165,250,0.16)', text: '#93c5fd' },
   short: { Icon: Clock, color: '#f59e0b', tint: 'rgba(245,158,11,0.14)', text: '#fcd34d' },
   learning: { Icon: Clock, color: '#94a3b8', tint: 'rgba(148,163,184,0.14)', text: '#cbd5e1' },
@@ -93,6 +99,8 @@ function EnergyAdviceCard({ advice, locale, t }) {
         {advice.items.map((item) => {
           const style = STATUS[item.status];
           const highlight = item.status === 'fits';
+          const soft = item.status === 'alternative';
+          const other = item.waitingFor || (item.insteadOf || []).join(' + ');
           const DeviceIcon = /wasch|wash/i.test(item.name) ? WashingMachine : Plug;
           const need =
             item.status === 'running'
@@ -106,7 +114,9 @@ function EnergyAdviceCard({ advice, locale, t }) {
               className="flex flex-col gap-3.5 rounded-2xl p-[18px]"
               style={{
                 background: highlight ? 'rgba(52,211,153,0.06)' : 'var(--glass-bg)',
-                border: `1px solid ${highlight ? 'rgba(52,211,153,0.3)' : 'var(--glass-border)'}`,
+                border: `1px ${soft ? 'dashed' : 'solid'} ${
+                  highlight || soft ? 'rgba(52,211,153,0.3)' : 'var(--glass-border)'
+                }`,
               }}
             >
               <div className="flex items-center gap-3">
@@ -128,12 +138,12 @@ function EnergyAdviceCard({ advice, locale, t }) {
                 style={{ background: style.tint, color: style.text }}
               >
                 <style.Icon className="h-3.5 w-3.5" />
-                {t(`energy.advice.status.${item.status}`).replace('{name}', item.waitingFor || '')}
+                {t(`energy.advice.status.${item.status}`).replace('{name}', other)}
               </span>
               <p className="text-[13px] text-[var(--text-secondary)]">
                 {t(`energy.advice.hint.${item.status}`)
                   .replace('{kw}', kw(item.missingW))
-                  .replace('{name}', item.waitingFor || '')}
+                  .replace('{name}', other)}
               </p>
             </div>
           );

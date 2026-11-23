@@ -114,19 +114,45 @@ export function windowAverage(samples, now, windowMs) {
   return { average: covered > 0 ? total / covered : null, coveredMs: covered };
 }
 
+/** Share of its demand the surplus may drop below before a suggestion is withdrawn. */
+export const HOLD_MARGIN = 0.1;
+
 /**
  * Hand out the surplus to the appliances in their order. Running appliances
- * are skipped; one that fits takes its demand from what is left.
+ * are skipped; one that fits takes its demand from what is left. One that
+ * no longer fits but would fit on its own is an alternative to the ones
+ * before it ("either … or"). Appliances in `held` were suggested a moment
+ * ago and keep that until the surplus is HOLD_MARGIN below their demand, so
+ * the suggestion does not flicker.
  */
-export function recommendDevices({ surplusW, devices, runW = ADVICE_DEFAULTS.runW }) {
-  let left = Math.max(0, surplusW || 0);
+export function recommendDevices({
+  surplusW,
+  devices,
+  runW = ADVICE_DEFAULTS.runW,
+  held = new Set(),
+}) {
+  const total = Math.max(0, surplusW || 0);
+  const need = (d) => (held.has(d.id) ? d.demandW * (1 - HOLD_MARGIN) : d.demandW);
+  let left = total;
+  const fitting = [];
   return (devices || []).map((d) => {
     if ((d.powerW || 0) >= runW) return { ...d, status: 'running' };
     if (d.waitingFor) return { ...d, status: 'waiting' };
     if (!d.demandW) return { ...d, status: 'learning' };
-    if (d.demandW <= left) {
-      left -= d.demandW;
+    if (need(d) <= left) {
+      left = Math.max(0, left - d.demandW);
+      fitting.push(d);
       return { ...d, status: 'fits' };
+    }
+    if (need(d) <= total) {
+      // Make room by dropping the lowest-priority suggestions first.
+      let freed = left;
+      const insteadOf = [];
+      for (let i = fitting.length - 1; i >= 0 && freed < need(d); i -= 1) {
+        freed += fitting[i].demandW;
+        insteadOf.unshift(fitting[i].name);
+      }
+      return { ...d, status: 'alternative', insteadOf };
     }
     return { ...d, status: 'short', missingW: d.demandW - left };
   });

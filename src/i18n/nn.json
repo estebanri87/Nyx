@@ -1992,6 +1992,12 @@
   "energy.config.failed": "spørjing feila",
   "energy.advice.status.waiting": "Ventar på {name}",
   "energy.advice.hint.waiting": "Først når {name} har gått i dag eller i går og er ferdig.",
+  "energy.advice.status.alternative": "Eller i staden for {name}",
+  "energy.advice.hint.alternative": "Passar åleine, men ikkje saman med {name}.",
+  "energy.advice.pill.either": "{a} eller {b}",
+  "energy.advice.pill.eitherMany": "{a} eller {n} andre",
+  "energy.advice.pill.subEither": "{kw} solstraum til overs · eitt av dei",
+  "energy.advice.pill.subEitherMany": "{kw} solstraum til overs · eitt av dei",
   "energy.config.after": "Berre etter",
   "energy.config.always": "alltid"
 }
