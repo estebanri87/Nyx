@@ -57,6 +57,23 @@ describe('computeEnergyFlow', () => {
   it('is idle when nothing flows', () => {
     expect(computeEnergyFlow({}).headline).toBe('idle');
   });
+
+  it('keeps the headline steady while the grid hovers around zero', () => {
+    // Night: the battery supplies the house, the meter wobbles by a few watts.
+    const night = { pv: 0, house: 1900, battery: 1936 };
+    const first = computeEnergyFlow({ ...night, grid: 0, shown: [] });
+    expect(first.headline).toBe('only_battery');
+    // 40 W import is not enough to add the grid as a source ...
+    const wobble = computeEnergyFlow({ ...night, grid: -40, shown: first.shown });
+    expect(wobble.headline).toBe('only_battery');
+    // ... 150 W is, and it then stays until it drops below 30 W.
+    const real = computeEnergyFlow({ ...night, grid: -150, shown: wobble.shown });
+    expect(real.headline).toBe('mixed');
+    expect(computeEnergyFlow({ ...night, grid: -40, shown: real.shown }).headline).toBe('mixed');
+    expect(computeEnergyFlow({ ...night, grid: -20, shown: real.shown }).headline).toBe(
+      'only_battery'
+    );
+  });
 });
 
 describe('energy helpers', () => {

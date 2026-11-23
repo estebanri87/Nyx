@@ -5,6 +5,14 @@
 export const FLOW_THRESHOLD_W = 10;
 
 /**
+ * Hysteresis for the "where does the power go" split: a source or use shows
+ * up from FLOW_ENTER_W and stays until it drops below FLOW_EXIT_W, so a grid
+ * reading hovering around zero does not flip the headline every second.
+ */
+export const FLOW_ENTER_W = 100;
+export const FLOW_EXIT_W = 30;
+
+/**
  * Entity slots a user can map in edit mode, grouped by the component they
  * belong to. `power` slots are read as watts for the flow calculation.
  */
@@ -166,6 +174,8 @@ export function formatEntityState(entity, locale, aliases) {
  * Split the current power into where it comes from and where it goes.
  * Sign conventions match the GoodWe integration: battery power > 0 is
  * discharging, grid power > 0 is export. `invert*` flips them for others.
+ * `shown` lists the keys of the last split ("source:grid", "use:heat", …);
+ * those keep their place down to FLOW_EXIT_W (see FLOW_ENTER_W).
  */
 export function computeEnergyFlow({
   pv = null,
@@ -177,6 +187,7 @@ export function computeEnergyFlow({
   bkwBehindMeter = true,
   invertBattery = false,
   invertGrid = false,
+  shown = null,
 }) {
   const pvTotal = Math.max(0, pv || 0) + Math.max(0, bkw || 0);
   const batt = battery === null ? 0 : invertBattery ? -battery : battery;
@@ -192,18 +203,21 @@ export function computeEnergyFlow({
     houseTotal === null ? Math.max(0, wp || 0) : Math.min(Math.max(0, wp || 0), houseTotal);
   const houseRest = houseTotal === null ? 0 : Math.max(0, houseTotal - heat);
 
-  const keep = (item) => item.w >= FLOW_THRESHOLD_W;
+  // Without a previous split, the plain threshold applies.
+  const keep = (kind) => (item) =>
+    item.w >=
+    (!shown ? FLOW_THRESHOLD_W : shown.includes(`${kind}:${item.key}`) ? FLOW_EXIT_W : FLOW_ENTER_W);
   const sources = [
     { key: 'sun', w: pvTotal },
     { key: 'battery', w: battDischarge },
     { key: 'grid', w: gridImport },
-  ].filter(keep);
+  ].filter(keep('source'));
   const uses = [
     { key: 'house', w: houseRest },
     { key: 'heat', w: heat },
     { key: 'battery', w: battCharge },
     { key: 'grid', w: gridExport },
-  ].filter(keep);
+  ].filter(keep('use'));
 
   const total = uses.reduce((sum, u) => sum + u.w, 0);
   const usesWithShare = uses.map((u) => ({
@@ -224,6 +238,7 @@ export function computeEnergyFlow({
     uses: usesWithShare,
     total,
     headline,
+    shown: [...sources.map((s) => `source:${s.key}`), ...uses.map((u) => `use:${u.key}`)],
   };
 }
 

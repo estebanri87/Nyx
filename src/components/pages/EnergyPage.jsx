@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { UtilityPole } from 'lucide-react';
 import { Battery, Flame, Home, Sun, Zap } from '../../icons';
 import { useConfig, usePages } from '../../contexts';
@@ -140,7 +140,10 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
   const [selected, setSelected] = useState(DEFAULT_SELECTION.gesamt);
   const activeView = views.includes(view) ? view : 'gesamt';
 
+  // The last split, so a reading hovering around the threshold does not flip it.
+  const shownFlow = useRef(null);
   const flow = computeEnergyFlow({
+    shown: shownFlow.current,
     pv: num('pvPower'),
     bkw: num('bkwPower'),
     house: num('houseConsumption'),
@@ -151,6 +154,7 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
     invertBattery: config.invertBattery,
     invertGrid: config.invertGrid,
   });
+  shownFlow.current = flow.shown;
   const soc = num('battSoc');
   const advice = useEnergyAdvice(entities, conn, config);
   const wpPower = num('wpPower');
