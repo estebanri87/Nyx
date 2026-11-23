@@ -57,7 +57,7 @@ describe('EnergyAdvicePill', () => {
     expect(findAdvicePageId({ energie: energyPage([]) })).toBeNull();
   });
 
-  it('names the appliance that fits and opens the energy page', async () => {
+  it('names the appliance that fits and opens its pop-up', async () => {
     const onOpenPage = vi.fn();
     render(
       <EnergyAdvicePill
@@ -66,8 +66,14 @@ describe('EnergyAdvicePill', () => {
         onOpenPage={onOpenPage}
       />
     );
-    fireEvent.click(await screen.findByText('Trockner jetzt starten'));
+    const pill = await screen.findByText('Trockner jetzt starten');
     expect(screen.getByText('3,4 kW Sonnenstrom übrig')).toBeTruthy();
+    fireEvent.click(pill);
+    // The pop-up opens instead of the energy page; from there one can go on.
+    expect(await screen.findByRole('dialog')).toBeTruthy();
+    expect(screen.getByText('Jetzt sinnvoll')).toBeTruthy();
+    expect(onOpenPage).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText('Zur Energieseite'));
     expect(onOpenPage).toHaveBeenCalledWith('energie');
   });
 

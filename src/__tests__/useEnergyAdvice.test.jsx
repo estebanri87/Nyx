@@ -117,4 +117,32 @@ describe('useEnergyAdvice', () => {
     expect(result.current.items[1].status).toBe('waiting');
     expect(result.current.items[1].waitingFor).toBe('Waschmaschine');
   });
+
+  it('keeps the washing machine running while it pauses', async () => {
+    const conn = {
+      sendMessagePromise: vi.fn(async (msg) =>
+        msg.type === 'recorder/statistics_during_period'
+          ? { [msg.statistic_ids[0]]: [2490, 2400, 2450, 0].map((max) => ({ max })) }
+          : { [msg.entity_ids[0]]: [] }
+      ),
+    };
+    const config = {
+      slots: { gridPower: 'sensor.grid_pause' },
+      devices: [{ entity: 'sensor.pause_power', name: 'Waschmaschine' }],
+    };
+    const running = {
+      'sensor.grid_pause': sensor(0, 'W'),
+      'sensor.pause_power': sensor(2100, 'W'),
+    };
+    const { result, rerender } = renderHook(
+      ({ entities }) => useEnergyAdvice(entities, conn, config),
+      {
+        initialProps: { entities: running },
+      }
+    );
+    expect(result.current.items[0].status).toBe('running');
+    // Soaking: almost no power for a moment, but the programme is not over.
+    rerender({ entities: { ...running, 'sensor.pause_power': sensor(2, 'W') } });
+    expect(result.current.items[0].status).toBe('running');
+  });
 });

@@ -6,6 +6,7 @@ import {
   learnDemand,
   prerequisiteMet,
   recommendDevices,
+  surplusSeries,
   windowAverage,
 } from '../components/pages/energy/energyAdvice';
 
@@ -160,5 +161,32 @@ describe('only after another appliance', () => {
       devices: [{ id: 'tr', powerW: 0, demandW: 870, waitingFor: 'Waschmaschine' }],
     });
     expect(items[0].status).toBe('waiting');
+  });
+
+  describe('surplusSeries', () => {
+    it('averages the surplus per bucket over time', () => {
+      const min = 60 * 1000;
+      const grid = [
+        { t: -5 * min, v: 1000 },
+        { t: 5 * min, v: 3000 },
+      ];
+      const series = surplusSeries(grid, [], {}, 0, 10 * min, 5 * min);
+      expect(series.map((s) => s.w)).toEqual([1000, 3000]);
+    });
+
+    it('leaves buckets without readings empty', () => {
+      expect(surplusSeries([], [], {}, 0, 1000, 500).map((s) => s.w)).toEqual([null, null]);
+    });
+  });
+
+  describe('running appliances', () => {
+    it('keeps an appliance running during a pause', () => {
+      const items = recommendDevices({
+        surplusW: 0,
+        runW: 50,
+        devices: [{ id: 'wm', powerW: 3, demandW: 2490, running: true }],
+      });
+      expect(items[0].status).toBe('running');
+    });
   });
 });

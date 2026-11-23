@@ -5,7 +5,7 @@ import { formatNumber } from './energyModel';
 const CARD = 'rounded-3xl border border-[var(--glass-border)] bg-[var(--card-bg)]';
 const LABEL = 'text-[11px] font-bold tracking-[0.14em] text-[var(--text-muted)] uppercase';
 
-const STATUS = {
+export const STATUS = {
   fits: { Icon: Check, color: '#34d399', tint: 'rgba(52,211,153,0.16)', text: '#6ee7b7' },
   alternative: {
     Icon: ArrowLeftRight,

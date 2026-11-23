@@ -3,6 +3,7 @@ import { getHistory, getStatistics } from '../../../services/haClient';
 import {
   ADVICE_DEFAULTS,
   DEMAND_LOOKBACK_DAYS,
+  RUN_HOLD_MS,
   buildSurplusSamples,
   computeSurplus,
   lastRunFrom,
@@ -29,8 +30,11 @@ const learnedDemand = new Map();
 const seenRunning = new Map();
 // Appliances suggested on the last render; they keep it within HOLD_MARGIN.
 const heldSuggestions = new Set();
+// entity id -> since when (ms) the appliance has been suggested without a break.
+const suggestedSince = new Map();
 
-const toPoints = (rows) =>
+/** History rows from Home Assistant as sorted {t, v} points. */
+export const toPoints = (rows) =>
   (rows || [])
     .map((row) => {
       const raw = row.state !== undefined ? row.state : row.s;
@@ -165,6 +169,10 @@ export function useEnergyAdvice(entities, conn, config) {
     const values = [learnedDemand.get(id)?.lastRun, seenRunning.get(id)].filter(Number.isFinite);
     return values.length ? Math.max(...values) : null;
   };
+  // Running, or paused for a moment within RUN_HOLD_MS of the last run.
+  const isRunning = (id) =>
+    (readPowerW(entities, id) || 0) >= advice.runW ||
+    now - (seenRunning.get(id) ?? -Infinity) < RUN_HOLD_MS;
   const nameOf = (d) => d.name || entities?.[d.entity]?.attributes?.friendly_name || d.entity;
 
   const samples = surplusSamples.get(key) || [];
@@ -183,7 +191,7 @@ export function useEnergyAdvice(entities, conn, config) {
         other &&
         !prerequisiteMet({
           otherLastRun: lastRun(other.entity),
-          otherRunning: (readPowerW(entities, other.entity) || 0) >= advice.runW,
+          otherRunning: isRunning(other.entity),
           ownLastRun: lastRun(d.entity),
           now,
         });
@@ -192,6 +200,7 @@ export function useEnergyAdvice(entities, conn, config) {
         name: nameOf(d),
         waitingFor: waiting ? nameOf(other) : null,
         powerW: readPowerW(entities, d.entity),
+        running: isRunning(d.entity),
         demandW: learnedDemand.get(d.entity)?.value ?? null,
         demandState: learnedDemand.get(d.entity)?.state ?? 'pending',
         demandError: learnedDemand.get(d.entity)?.error ?? null,
@@ -200,8 +209,14 @@ export function useEnergyAdvice(entities, conn, config) {
   });
 
   items.forEach((i) => {
-    if (i.status === 'fits' || i.status === 'alternative') heldSuggestions.add(i.id);
-    else heldSuggestions.delete(i.id);
+    if (i.status === 'fits' || i.status === 'alternative') {
+      heldSuggestions.add(i.id);
+      if (!suggestedSince.has(i.id)) suggestedSince.set(i.id, now);
+      i.suggestedSince = suggestedSince.get(i.id);
+    } else {
+      heldSuggestions.delete(i.id);
+      suggestedSince.delete(i.id);
+    }
   });
 
   return {

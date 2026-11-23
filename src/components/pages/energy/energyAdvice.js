@@ -4,6 +4,13 @@
 
 export const ADVICE_DEFAULTS = { battThreshold: 90, stableMinutes: 10, runW: 50 };
 
+/**
+ * How long an appliance counts as running after its power dropped below the
+ * run level. Washing machines pause while soaking, and the suggestion should
+ * not flip to "not enough" during such a pause.
+ */
+export const RUN_HOLD_MS = 15 * 60 * 1000;
+
 /** How far back an appliance's power statistics are read to learn its demand. */
 export const DEMAND_LOOKBACK_DAYS = 30;
 
@@ -118,6 +125,48 @@ export function windowAverage(samples, now, windowMs) {
 export const HOLD_MARGIN = 0.1;
 
 /**
+ * Surplus over time in equal buckets (time-weighted mean per bucket), for the
+ * history chart. Points are {t, v} in W, sorted by time.
+ */
+export function surplusSeries(gridPoints, battPoints, opts, start, end, bucketMs) {
+  const events = [
+    ...gridPoints.map((p) => ({ t: p.t, grid: p.v })),
+    ...battPoints.map((p) => ({ t: p.t, battery: p.v })),
+  ].sort((a, b) => a.t - b.t);
+  let grid = null;
+  let battery = null;
+  let i = 0;
+  // Values before the window set the starting state.
+  while (i < events.length && events[i].t <= start) {
+    if ('grid' in events[i]) grid = events[i].grid;
+    else battery = events[i].battery;
+    i += 1;
+  }
+  const series = [];
+  for (let from = start; from < end; from += bucketMs) {
+    const to = Math.min(end, from + bucketMs);
+    let t = from;
+    let total = 0;
+    let covered = 0;
+    const add = (until) => {
+      if (grid === null && battery === null) return;
+      total += computeSurplus({ ...opts, grid, battery }).surplusW * (until - t);
+      covered += until - t;
+    };
+    while (i < events.length && events[i].t < to) {
+      add(events[i].t);
+      t = events[i].t;
+      if ('grid' in events[i]) grid = events[i].grid;
+      else battery = events[i].battery;
+      i += 1;
+    }
+    add(to);
+    series.push({ t: from, w: covered > 0 ? total / covered : null });
+  }
+  return series;
+}
+
+/**
  * Hand out the surplus to the appliances in their order. Running appliances
  * are skipped; one that fits takes its demand from what is left. One that
  * no longer fits but would fit on its own is an alternative to the ones
@@ -136,7 +185,7 @@ export function recommendDevices({
   let left = total;
   const fitting = [];
   return (devices || []).map((d) => {
-    if ((d.powerW || 0) >= runW) return { ...d, status: 'running' };
+    if (d.running ?? (d.powerW || 0) >= runW) return { ...d, status: 'running' };
     if (d.waitingFor) return { ...d, status: 'waiting' };
     if (!d.demandW) return { ...d, status: 'learning' };
     if (need(d) <= left) {
