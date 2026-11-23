@@ -230,6 +230,8 @@ export function computeEnergyFlow({
   return {
     pvTotal,
     houseTotal,
+    // The house without the heat pump, when its power is known.
+    houseRest: houseTotal === null || wp === null ? null : houseRest,
     battCharge,
     battDischarge,
     gridExport,

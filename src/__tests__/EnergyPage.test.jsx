@@ -97,6 +97,14 @@ describe('EnergyPage', () => {
     expect(screen.queryByText('Nur Solar')).toBeNull();
   });
 
+  it('shows the house without the heat pump and the total below it', () => {
+    renderPage();
+    // 1094 W house + 200 W balcony plant = 1294 W, of which 622 W heat pump.
+    expect(screen.getAllByText('gesamt 1.294 W').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('672 W').length).toBeGreaterThan(0);
+    expect(screen.getByText('ohne Wärmepumpe')).toBeTruthy();
+  });
+
   it('shows the balcony plant badge in the overview', () => {
     renderPage();
     expect(screen.getAllByRole('button', { name: /Balkonkraftwerk/ }).length).toBeGreaterThan(0);

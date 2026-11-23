@@ -264,7 +264,9 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
             ? fmt('inverterTemp')
             : null;
       case 'haus':
-        return flow.houseTotal === null ? null : W(flow.houseTotal);
+        // Without the heat pump, which has its own badge; the total below.
+        if (flow.houseTotal === null) return null;
+        return W(flow.houseRest ?? flow.houseTotal);
       case 'batt': {
         if (!has.batt) return null;
         const state =
@@ -299,8 +301,12 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
       : id === 'vorlauf'
         ? t('energy.badge.flow')
         : t(`energy.component.${id}`);
+  const badgeSub = (id) =>
+    id === 'haus' && flow.houseRest !== null && flow.houseTotal !== null
+      ? t('energy.badge.houseTotal').replace('{w}', W(flow.houseTotal))
+      : null;
   const spots = SPOTS[activeView]
-    .map(([id, left, top]) => ({ id, left, top, value: badgeValue(id) }))
+    .map(([id, left, top]) => ({ id, left, top, value: badgeValue(id), sub: badgeSub(id) }))
     .filter((s) => s.value !== null);
   const selectedId = spots.some((s) => s.id === selected)
     ? selected
@@ -330,6 +336,8 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
         const pct = Math.round((Math.min(wpPower, flow.houseTotal) / flow.houseTotal) * 100);
         rows.push({ label: t('energy.detail.ofWhichHeat'), value: `${W(wpPower)} (${pct} %)` });
       }
+      if (flow.houseRest !== null && flow.houseTotal)
+        rows.push({ label: t('energy.detail.withoutHeat'), value: W(flow.houseRest) });
       if (houseToday !== null)
         rows.push({ label: t('energy.detail.today'), value: kwh(houseToday) });
       if (has.bkw && bkwBehind && has.haus) {
@@ -719,6 +727,11 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
                       <span className="text-[19px] leading-tight font-light whitespace-nowrap text-[var(--text-primary)] tabular-nums">
                         {s.value}
                       </span>
+                      {s.sub && (
+                        <span className="text-[11px] leading-tight whitespace-nowrap text-[var(--text-muted)] tabular-nums">
+                          {s.sub}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -744,6 +757,9 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
                     <span className="text-base font-light text-[var(--text-primary)] tabular-nums">
                       {s.value}
                     </span>
+                    {s.sub && (
+                      <span className="text-[11px] text-[var(--text-muted)] tabular-nums">{s.sub}</span>
+                    )}
                   </button>
                 ))}
               </div>
