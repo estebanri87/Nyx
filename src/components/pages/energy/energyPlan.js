@@ -1,0 +1,182 @@
+// Pure helpers for planning appliances with the solar forecast: the expected
+// surplus for today and tomorrow, how long an appliance runs, and the next
+// window in which it gets enough sun. Kept free of React so they can be tested.
+
+const HOUR = 60 * 60 * 1000;
+export const PLAN_STEP_MS = 15 * 60 * 1000;
+
+const median = (values) => {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
+
+const toMs = (value) => (typeof value === 'number' ? value : Date.parse(value));
+
+/**
+ * Average PV power over time from Home Assistant's `energy/solar_forecast`
+ * answer ({entryId: {wh_hours: {iso: Wh}}}), summed over all arrays. Each
+ * value is the energy of the period ending at its timestamp; the power is
+ * placed in the middle of that period. Returns sorted {t, w} points.
+ */
+export function forecastPower(forecasts) {
+  const total = new Map();
+  Object.values(forecasts || {}).forEach((entry) => {
+    Object.entries(entry?.wh_hours || {}).forEach(([iso, wh]) => {
+      const t = toMs(iso);
+      if (Number.isFinite(t) && Number.isFinite(wh)) total.set(t, (total.get(t) || 0) + wh);
+    });
+  });
+  const times = [...total.keys()].sort((a, b) => a - b);
+  return times.map((t, i) => {
+    const prev = times[i - 1];
+    // The first period of a day starts at sunrise and is shorter than an hour.
+    const length = prev !== undefined && t - prev <= HOUR ? t - prev : HOUR;
+    return { t: t - length / 2, w: (total.get(t) * HOUR) / length };
+  });
+}
+
+/** Forecast power at a moment, linear between the points, 0 outside them. */
+export function forecastAt(points, t) {
+  if (!points.length || t < points[0].t - HOUR / 2 || t > points[points.length - 1].t + HOUR / 2)
+    return 0;
+  for (let i = 0; i < points.length; i += 1) {
+    const p = points[i];
+    if (t <= p.t) {
+      const prev = points[i - 1];
+      if (!prev || p.t - prev.t > HOUR * 1.5) return p.w * Math.max(0, 1 - (p.t - t) / (HOUR / 2));
+      return prev.w + ((p.w - prev.w) * (t - prev.t)) / (p.t - prev.t);
+    }
+  }
+  const last = points[points.length - 1];
+  return last.w * Math.max(0, 1 - (t - last.t) / (HOUR / 2));
+}
+
+/**
+ * Typical house load per hour of the day (local time) from hourly mean
+ * statistics, e.g. the house sensor and the balcony plant behind the meter.
+ * The median over the days keeps single appliance runs out of it.
+ */
+export function houseProfile(...rowSets) {
+  const perHour = new Map();
+  rowSets.forEach((rows) =>
+    (rows || []).forEach((r) => {
+      const t = toMs(r.start);
+      if (!Number.isFinite(t) || !Number.isFinite(r.mean)) return;
+      perHour.set(t, (perHour.get(t) || 0) + Math.max(0, r.mean));
+    })
+  );
+  const byHour = Array.from({ length: 24 }, () => []);
+  perHour.forEach((w, t) => byHour[new Date(t).getHours()].push(w));
+  const profile = byHour.map(median);
+  const known = profile.filter((v) => v !== null);
+  if (!known.length) return null;
+  const fallback = median(known);
+  return profile.map((v) => (v === null ? fallback : v));
+}
+
+/**
+ * Typical run time of an appliance in minutes from 5-minute mean statistics:
+ * the median length of its runs, where pauses up to `gapMs` belong to the
+ * same run. Rounded to 15 minutes; null with fewer than two runs.
+ */
+export function runDuration(rows, runW, gapMs = 15 * 60 * 1000) {
+  const on = (rows || [])
+    .filter((r) => Number.isFinite(r.mean) && r.mean >= runW)
+    .map((r) => toMs(r.start))
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+  const runs = [];
+  let first = null;
+  let last = null;
+  on.forEach((t) => {
+    if (last !== null && t - last > gapMs + 5 * 60 * 1000) {
+      runs.push(last + 5 * 60 * 1000 - first);
+      first = null;
+    }
+    if (first === null) first = t;
+    last = t;
+  });
+  if (first !== null) runs.push(last + 5 * 60 * 1000 - first);
+  const real = runs.filter((ms) => ms >= 15 * 60 * 1000);
+  if (real.length < 2) return null;
+  return Math.max(15, Math.round(median(real) / 60000 / 15) * 15);
+}
+
+/** Midnight (local) of the day of `t`, plus `days`. */
+export const dayStart = (t, days = 0) => {
+  const d = new Date(t);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + days);
+  return d.getTime();
+};
+
+/**
+ * Expected surplus from now until the end of tomorrow in PLAN_STEP_MS steps:
+ * forecast PV minus the typical house load. Within the current hour the live
+ * surplus counts, as it already knows the clouds of the moment.
+ */
+export function expectedSurplus({ forecast, profile, now, liveW = null }) {
+  const series = [];
+  const start = Math.floor(now / PLAN_STEP_MS) * PLAN_STEP_MS;
+  for (let t = start; t < dayStart(now, 2); t += PLAN_STEP_MS) {
+    const pv = forecastAt(forecast, t);
+    const load = profile?.[new Date(t).getHours()] ?? 0;
+    const w = Number.isFinite(liveW) && t - start < HOUR ? liveW : Math.max(0, pv - load);
+    series.push({ t, w });
+  }
+  return series;
+}
+
+/**
+ * When an appliance should run: the first period from `earliest` on in which
+ * the expected surplus stays above its demand for its whole run time.
+ * kind: now | today | tomorrow | none. `todayMin` tells how long today has
+ * enough sun when that is too short.
+ */
+export function planDevice({ series, demandW, durationMin, now, earliest = now }) {
+  if (!demandW || !series?.length) return null;
+  const need = (durationMin || 60) * 60 * 1000;
+  const periods = [];
+  let open = null;
+  series.forEach((s, i) => {
+    const ok = s.t >= earliest - PLAN_STEP_MS && s.w >= demandW;
+    if (ok && open === null) open = s.t;
+    const end = s.t + PLAN_STEP_MS;
+    const next = series[i + 1];
+    const closes = !ok || !next || dayStart(next.t) !== dayStart(s.t);
+    if (open !== null && closes) {
+      periods.push({ start: Math.max(open, earliest), end: ok ? end : s.t });
+      open = null;
+    }
+  });
+  const tomorrow = dayStart(now, 1);
+  const fit = periods.find((p) => p.end - p.start >= need);
+  const todayLongest = periods
+    .filter((p) => p.start < tomorrow)
+    .reduce((max, p) => Math.max(max, p.end - p.start), 0);
+  if (!fit) return { kind: 'none', todayMin: Math.round(todayLongest / 60000) };
+  const kind =
+    fit.start >= tomorrow ? 'tomorrow' : fit.start <= now + PLAN_STEP_MS ? 'now' : 'today';
+  return {
+    kind,
+    start: fit.start,
+    end: fit.end,
+    todayMin: kind === 'tomorrow' ? Math.round(todayLongest / 60000) : null,
+  };
+}
+
+// Forecast.Solar creates one set of sensors per array, numbered _2, _3, …
+export const FORECAST_TODAY = /^sensor\.energy_production_today_remaining(_\d+)?$/;
+export const FORECAST_TODAY_TOTAL = /^sensor\.energy_production_today(_\d+)?$/;
+export const FORECAST_TOMORROW = /^sensor\.energy_production_tomorrow(_\d+)?$/;
+
+/** Sum of all Forecast.Solar arrays in kWh, or null without any. */
+export function forecastKwh(entities, pattern) {
+  const values = Object.entries(entities || {})
+    .filter(([id]) => pattern.test(id))
+    .map(([, e]) => Number(e?.state))
+    .filter(Number.isFinite);
+  return values.length ? values.reduce((a, b) => a + b, 0) : null;
+}

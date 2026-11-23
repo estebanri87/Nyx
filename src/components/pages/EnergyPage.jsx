@@ -856,7 +856,7 @@ function EnergyPage({ entities, conn, pageSettings, pageId, savePageSetting, edi
           )}
 
           {activeView === 'gesamt' && advice.enabled && (
-            <EnergyAdviceCard advice={advice} locale={locale} t={t} />
+            <EnergyAdviceCard advice={advice} entities={entities} locale={locale} t={t} />
           )}
 
           {activeView === 'pv' && generators.length > 0 && (

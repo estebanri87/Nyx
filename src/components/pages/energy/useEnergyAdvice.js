@@ -13,6 +13,8 @@ import {
   windowAverage,
 } from './energyAdvice';
 import { readNumber, readPowerW } from './energyModel';
+import { expectedSurplus, planDevice } from './energyPlan';
+import { useSolarPlan } from './useSolarPlan';
 
 const DEMAND_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 const RETRY_MS = 30 * 1000;
@@ -208,6 +210,51 @@ export function useEnergyAdvice(entities, conn, config) {
     }),
   });
 
+  // Planning with the solar forecast: when each appliance gets enough sun.
+  const solar = useSolarPlan(conn, {
+    houseId: slots.houseConsumption,
+    bkwId: config?.bkwBehindMeter !== false ? slots.bkwPower : null,
+    deviceIds: devices.map((d) => d.entity),
+    runW: advice.runW,
+  });
+  const forecastSeries =
+    solar.forecast && solar.forecast.length
+      ? expectedSurplus({ forecast: solar.forecast, profile: solar.profile, now, liveW: usableW })
+      : null;
+  const plans = new Map();
+  const planFor = (item) => {
+    if (plans.has(item.id)) return plans.get(item.id);
+    let plan = null;
+    const durationMin = solar.durationOf(item.id);
+    if (forecastSeries && item.status !== 'running' && item.status !== 'learning') {
+      const own = devices.find((d) => d.entity === item.id);
+      const other = item.waitingFor ? items.find((o) => o.id === own?.after) : null;
+      let earliest = now;
+      if (other) {
+        // Comes after the other appliance has finished.
+        const otherMin = solar.durationOf(other.id) || 60;
+        const otherPlan = other.status === 'running' ? { start: now } : planFor(other);
+        earliest = otherPlan?.start ? otherPlan.start + otherMin * 60 * 1000 : null;
+      }
+      if (earliest !== null) {
+        plan = planDevice({
+          series: forecastSeries,
+          demandW: item.demandW,
+          durationMin,
+          now,
+          earliest,
+        });
+        if (plan && other) plan = { ...plan, after: other.name };
+      }
+    }
+    plans.set(item.id, plan);
+    return plan;
+  };
+  items.forEach((i) => {
+    i.durationMin = solar.durationOf(i.id);
+    i.plan = planFor(i);
+  });
+
   items.forEach((i) => {
     if (i.status === 'fits' || i.status === 'alternative') {
       heldSuggestions.add(i.id);
@@ -230,5 +277,6 @@ export function useEnergyAdvice(entities, conn, config) {
     items,
     fitting: items.filter((i) => i.status === 'fits'),
     alternatives: items.filter((i) => i.status === 'alternative'),
+    forecastSeries,
   };
 }

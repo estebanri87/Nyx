@@ -1,6 +1,7 @@
 import { memo } from 'react';
-import { ArrowLeftRight, Check, Clock, Play, Plug, WashingMachine } from '../../../icons';
+import { ArrowLeftRight, Calendar, Check, Clock, Play, Plug, WashingMachine } from '../../../icons';
 import { formatNumber } from './energyModel';
+import { FORECAST_TODAY, FORECAST_TOMORROW, forecastKwh } from './energyPlan';
 
 const CARD = 'rounded-3xl border border-[var(--glass-border)] bg-[var(--card-bg)]';
 const LABEL = 'text-[11px] font-bold tracking-[0.14em] text-[var(--text-muted)] uppercase';
@@ -22,8 +23,53 @@ export const STATUS = {
 /** kW with one decimal, e.g. "2,1 kW". */
 export const formatKw = (w, locale) => `${formatNumber((w || 0) / 1000, locale)} kW`;
 
+/** Run time, e.g. "45 min", "2 h" or "1:30 h". */
+export const formatDuration = (min) => {
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m ? `${h}:${String(m).padStart(2, '0')} h` : `${h} h`;
+};
+
+/** Colour of a planning line by its kind. */
+export const PLAN_COLOR = { now: '#a7f3d0', today: '#93c5fd', tomorrow: '#93c5fd', none: null };
+
+/** Planning line of an appliance, e.g. "Besser morgen 10:30–12:30", or null. */
+export function formatPlan(plan, t, locale) {
+  if (!plan) return null;
+  const time = (ms) =>
+    new Date(ms).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+  let key = `energy.advice.plan.${plan.kind}`;
+  if (plan.after) {
+    key =
+      plan.kind === 'none'
+        ? 'energy.advice.plan.afterNone'
+        : plan.kind === 'tomorrow'
+          ? 'energy.advice.plan.afterTomorrow'
+          : 'energy.advice.plan.afterToday';
+  } else if (plan.kind === 'tomorrow' && plan.todayMin >= 15) {
+    key = 'energy.advice.plan.tomorrowShort';
+  }
+  return t(key)
+    .replace('{start}', plan.start ? time(plan.start) : '')
+    .replace('{end}', plan.end ? time(plan.end) : '')
+    .replace('{min}', String(plan.todayMin ?? ''))
+    .replace('{name}', plan.after || '');
+}
+
+/** "heute noch 4,3 kWh, morgen 17,6 kWh erwartet" from Forecast.Solar, or null. */
+export function forecastLine(entities, t, locale) {
+  const today = forecastKwh(entities, FORECAST_TODAY);
+  if (today === null) return null;
+  const tomorrow = forecastKwh(entities, FORECAST_TOMORROW);
+  const kwh = (v) => `${formatNumber(v, locale)} kWh`;
+  return t('energy.advice.forecastLine')
+    .replace('{today}', kwh(today))
+    .replace('{tomorrow}', tomorrow === null ? '–' : kwh(tomorrow));
+}
+
 /** "Jetzt sinnvoll": spare solar power and which appliances fit into it. */
-function EnergyAdviceCard({ advice, locale, t }) {
+function EnergyAdviceCard({ advice, entities, locale, t }) {
   const kw = (w) => formatKw(w, locale);
   const has = advice.usableW >= 100;
   const [before, after] = t('energy.advice.surplus').split('{kw}');
@@ -55,7 +101,9 @@ function EnergyAdviceCard({ advice, locale, t }) {
               t('energy.advice.none')
             )}
           </p>
-          <p className="text-sm text-[var(--text-secondary)]">{split}</p>
+          <p className="text-sm text-[var(--text-secondary)]">
+            {[split, forecastLine(entities, t, locale)].filter(Boolean).join(' · ')}
+          </p>
         </div>
         {barTotal > 0 && (
           <div className="flex min-w-[220px] flex-[0_1_320px] flex-col gap-1.5">
@@ -108,6 +156,7 @@ function EnergyAdviceCard({ advice, locale, t }) {
               : item.demandW
                 ? t('energy.advice.needs').replace('{kw}', kw(item.demandW))
                 : t('energy.advice.needsUnknown');
+          const plan = formatPlan(item.plan, t, locale);
           return (
             <div
               key={item.id}
@@ -145,6 +194,15 @@ function EnergyAdviceCard({ advice, locale, t }) {
                   .replace('{kw}', kw(item.missingW))
                   .replace('{name}', other)}
               </p>
+              {plan && (
+                <p
+                  className="mt-auto flex items-center gap-2 border-t border-[var(--glass-border)] pt-3 text-[13px]"
+                  style={{ color: PLAN_COLOR[item.plan.kind] || 'var(--text-secondary)' }}
+                >
+                  <Calendar className="h-4 w-4 flex-shrink-0" />
+                  {plan}
+                </p>
+              )}
             </div>
           );
         })}

@@ -21,7 +21,7 @@ describe('useEnergyAdvice', () => {
                   [id]: [peaks[id], peaks[id] - 20, peaks[id] - 40, 5].map((max) => ({ max })),
                 });
               } else {
-                resolve({ [msg.entity_ids[0]]: [] });
+                resolve(msg.entity_ids ? { [msg.entity_ids[0]]: [] } : {});
               }
             }, 20);
           })
@@ -144,5 +144,28 @@ describe('useEnergyAdvice', () => {
     // Soaking: almost no power for a moment, but the programme is not over.
     rerender({ entities: { ...running, 'sensor.pause_power': sensor(2, 'W') } });
     expect(result.current.items[0].status).toBe('running');
+  });
+  it('plans an appliance with the solar forecast from the energy dashboard', async () => {
+    const hour = 60 * 60 * 1000;
+    const start = Math.floor(Date.now() / hour) * hour;
+    const whHours = {};
+    for (let h = 1; h <= 4; h += 1) whHours[new Date(start + h * hour).toISOString()] = 4000;
+    const conn = {
+      sendMessagePromise: vi.fn(async (msg) => {
+        if (msg.type === 'energy/solar_forecast') return { entry: { wh_hours: whHours } };
+        if (msg.type === 'recorder/statistics_during_period')
+          return { [msg.statistic_ids[0]]: [1900, 1950, 2000, 0].map((max) => ({ max })) };
+        return { [msg.entity_ids[0]]: [] };
+      }),
+    };
+    const config = {
+      slots: { gridPower: 'sensor.grid_plan' },
+      devices: [{ entity: 'sensor.plan_power', name: 'Spülmaschine' }],
+    };
+    const entities = { 'sensor.grid_plan': sensor(0, 'W'), 'sensor.plan_power': sensor(0, 'W') };
+    const { result } = renderHook(() => useEnergyAdvice(entities, conn, config));
+    await waitFor(() => expect(result.current.items[0].plan).toBeTruthy());
+    expect(['today', 'tomorrow', 'now']).toContain(result.current.items[0].plan.kind);
+    expect(result.current.forecastSeries.length).toBeGreaterThan(0);
   });
 });
