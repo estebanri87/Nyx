@@ -140,7 +140,11 @@ function EnergyAdviceCard({ advice, locale, t }) {
         })}
       </div>
       <p className="mt-4 text-[13px] text-[var(--text-muted)]">
-        {t('energy.advice.footnote')
+        {t(
+          advice.advice.battThreshold > 0
+            ? 'energy.advice.footnote'
+            : 'energy.advice.footnoteAlways'
+        )
           .replace('{soc}', formatNumber(advice.advice.battThreshold, locale))
           .replace('{min}', formatNumber(advice.advice.stableMinutes, locale))}
       </p>

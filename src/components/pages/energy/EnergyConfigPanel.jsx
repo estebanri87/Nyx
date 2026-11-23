@@ -371,6 +371,11 @@ function EnergyConfigPanel({ config, onChange, entities, adviceItems = [], local
                 }}
                 className="bg-transparent text-lg text-[var(--text-primary)] outline-none"
               />
+              {key === 'battThreshold' && (
+                <span className="text-[11px] text-[var(--text-muted)]">
+                  {t('energy.config.battThresholdHint')}
+                </span>
+              )}
             </label>
           ))}
         </div>

@@ -23,6 +23,13 @@ describe('computeSurplus', () => {
     expect(result.battCounts).toBe(false);
   });
 
+  it('always counts battery charging with a threshold of 0 %', () => {
+    // Screenshot: 18 % full, 2327 W into the battery, 36 W export.
+    const result = computeSurplus({ grid: 36, battery: -2327, soc: 18, battThreshold: 0 });
+    expect(result.battCounts).toBe(true);
+    expect(result.surplusW).toBe(2363);
+  });
+
   it('has no surplus while drawing from the grid', () => {
     expect(computeSurplus({ grid: -400, battery: 300, soc: 95, battThreshold: 90 }).surplusW).toBe(
       0
