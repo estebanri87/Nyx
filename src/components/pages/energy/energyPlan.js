@@ -18,23 +18,33 @@ const toMs = (value) => (typeof value === 'number' ? value : Date.parse(value));
  * Average PV power over time from Home Assistant's `energy/solar_forecast`
  * answer ({entryId: {wh_hours: {iso: Wh}}}), summed over all arrays. Each
  * value is the energy of the period ending at its timestamp; the power is
- * placed in the middle of that period. Returns sorted {t, w} points.
+ * placed in the middle of that period. Each array has its own periods (its
+ * own sunrise), so they are converted one by one and then added up on a
+ * PLAN_STEP_MS grid. Returns sorted {t, w} points.
  */
 export function forecastPower(forecasts) {
-  const total = new Map();
-  Object.values(forecasts || {}).forEach((entry) => {
-    Object.entries(entry?.wh_hours || {}).forEach(([iso, wh]) => {
-      const t = toMs(iso);
-      if (Number.isFinite(t) && Number.isFinite(wh)) total.set(t, (total.get(t) || 0) + wh);
-    });
-  });
-  const times = [...total.keys()].sort((a, b) => a - b);
-  return times.map((t, i) => {
-    const prev = times[i - 1];
-    // The first period of a day starts at sunrise and is shorter than an hour.
-    const length = prev !== undefined && t - prev <= HOUR ? t - prev : HOUR;
-    return { t: t - length / 2, w: (total.get(t) * HOUR) / length };
-  });
+  const arrays = Object.values(forecasts || {})
+    .map((entry) => {
+      const values = Object.entries(entry?.wh_hours || {})
+        .map(([iso, wh]) => ({ t: toMs(iso), wh }))
+        .filter((p) => Number.isFinite(p.t) && Number.isFinite(p.wh))
+        .sort((a, b) => a.t - b.t);
+      return values.map((p, i) => {
+        const prev = values[i - 1];
+        // The first period of a day starts at sunrise and is shorter than an hour.
+        const length = prev && p.t - prev.t <= HOUR ? p.t - prev.t : HOUR;
+        return { t: p.t - length / 2, w: (p.wh * HOUR) / length };
+      });
+    })
+    .filter((points) => points.length);
+  if (!arrays.length) return [];
+  const first = Math.min(...arrays.map((points) => points[0].t)) - HOUR / 2;
+  const last = Math.max(...arrays.map((points) => points[points.length - 1].t)) + HOUR / 2;
+  const grid = [];
+  for (let t = Math.floor(first / PLAN_STEP_MS) * PLAN_STEP_MS; t <= last; t += PLAN_STEP_MS) {
+    grid.push({ t, w: arrays.reduce((sum, points) => sum + forecastAt(points, t), 0) });
+  }
+  return grid;
 }
 
 /** Forecast power at a moment, linear between the points, 0 outside them. */

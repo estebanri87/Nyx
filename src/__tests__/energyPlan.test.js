@@ -28,9 +28,27 @@ describe('forecastPower', () => {
     };
     const points = forecastPower(forecasts);
     // 12:00 covers 11:00–12:00 and sits at 11:30.
-    expect(points[points.length - 1]).toEqual({ t: at(0, 11, 30), w: 1500 });
     expect(forecastAt(points, at(0, 11, 30))).toBe(1500);
     expect(forecastAt(points, at(0, 20))).toBe(0);
+  });
+
+  it('keeps the short sunrise period of each array to itself', () => {
+    // Five arrays with sunrise a few minutes apart. Mixing their timestamps
+    // made the 08:00 values look like 5-minute periods: a false morning peak.
+    const iso = (h, m) => new Date(at(0, h, m)).toISOString();
+    const arrays = Object.fromEntries(
+      [44, 47, 50, 52, 55].map((minute, i) => [
+        `array${i}`,
+        { wh_hours: { [iso(7, minute)]: 0, [iso(8, 0)]: 15, [iso(9, 0)]: 150 } },
+      ])
+    );
+    const total = forecastPower(arrays);
+    const single = Object.entries(arrays).map(([id, entry]) => forecastPower({ [id]: entry }));
+    for (const t of [at(0, 7, 50), at(0, 7, 57), at(0, 8, 30)]) {
+      const sum = single.reduce((s, points) => s + forecastAt(points, t), 0);
+      expect(forecastAt(total, t)).toBeCloseTo(sum, 0);
+    }
+    expect(Math.max(...total.filter((p) => p.t < at(0, 8)).map((p) => p.w))).toBeLessThan(900);
   });
 });
 

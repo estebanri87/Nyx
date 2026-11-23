@@ -179,7 +179,16 @@ function EnergyAdviceCard({ advice, entities, locale, t }) {
                   <span className="truncate text-[17px] font-semibold text-[var(--text-primary)]">
                     {item.name}
                   </span>
-                  <span className="text-[13px] text-[var(--text-muted)]">{need}</span>
+                  <span className="text-[13px] text-[var(--text-muted)]">
+                    {[
+                      need,
+                      item.durationMin
+                        ? t('energy.advice.runs').replace('{d}', formatDuration(item.durationMin))
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
                 </div>
               </div>
               <span
