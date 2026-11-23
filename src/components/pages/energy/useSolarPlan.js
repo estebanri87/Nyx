@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getStatistics } from '../../../services/haClient';
-import { forecastPower, houseProfile, runDuration } from './energyPlan';
+import { forecastPower, houseProfile, runProfile } from './energyPlan';
 
 const FORECAST_MAX_AGE_MS = 30 * 60 * 1000;
 const PROFILE_MAX_AGE_MS = 6 * 60 * 60 * 1000;
@@ -30,7 +30,7 @@ function refresh(key, conn, maxAgeMs, load, onDone) {
 /**
  * Inputs for planning appliances with the solar forecast: the PV forecast of
  * all arrays in Home Assistant's energy dashboard, the typical house load per
- * hour, and each appliance's typical run time in minutes.
+ * hour, and each appliance's typical run time and average draw while running.
  */
 export function useSolarPlan(conn, { houseId, bkwId, deviceIds, runW }) {
   const [, setVersion] = useState(0);
@@ -71,7 +71,7 @@ export function useSolarPlan(conn, { houseId, bkwId, deviceIds, runW }) {
     }
     devicesKey.split(',').forEach((statisticId) =>
       refresh(
-        `duration|${statisticId}|${runW}`,
+        `run|${statisticId}|${runW}`,
         conn,
         PROFILE_MAX_AGE_MS,
         () =>
@@ -81,7 +81,7 @@ export function useSolarPlan(conn, { houseId, bkwId, deviceIds, runW }) {
             end: new Date(now),
             period: '5minute',
             types: ['mean'],
-          }).then((rows) => runDuration(rows, runW)),
+          }).then((rows) => runProfile(rows, runW)),
         done
       )
     );
@@ -93,6 +93,7 @@ export function useSolarPlan(conn, { houseId, bkwId, deviceIds, runW }) {
   return {
     forecast: cache.get('forecast')?.value || null,
     profile: houseId ? cache.get(`profile|${houseId}|${bkwId || ''}`)?.value || null : null,
-    durationOf: (id) => cache.get(`duration|${id}|${runW}`)?.value ?? null,
+    durationOf: (id) => cache.get(`run|${id}|${runW}`)?.value?.minutes ?? null,
+    averageOf: (id) => cache.get(`run|${id}|${runW}`)?.value?.averageW ?? null,
   };
 }

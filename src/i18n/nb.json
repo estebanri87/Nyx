@@ -2027,6 +2027,7 @@
   "energy.advice.plan.afterTomorrow": "Etter {name} i morgen {start}–{end}",
   "energy.advice.plan.afterNone": "Etter {name}: ingen solvindu før i morgen kveld",
   "energy.advice.runs": "går omtrent {d}",
+  "energy.advice.average": "i snitt {kw}",
   "energy.advice.forecastLine": "{today} igjen i dag, {tomorrow} ventet i morgen",
   "energy.advice.popup.historyForecast": "Overskudd · målt og prognose",
   "energy.advice.popup.bestWindow": "beste vindu",

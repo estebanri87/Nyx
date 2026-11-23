@@ -2027,6 +2027,7 @@
   "energy.advice.plan.afterTomorrow": "Après {name} demain {start}–{end}",
   "energy.advice.plan.afterNone": "Après {name} : pas de créneau ensoleillé avant demain soir",
   "energy.advice.runs": "dure environ {d}",
+  "energy.advice.average": "en moyenne {kw}",
   "energy.advice.forecastLine": "encore {today} aujourd’hui, {tomorrow} prévus demain",
   "energy.advice.popup.historyForecast": "Surplus · mesuré et prévision",
   "energy.advice.popup.bestWindow": "meilleur créneau",

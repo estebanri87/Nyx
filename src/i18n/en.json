@@ -2027,6 +2027,7 @@
   "energy.advice.plan.afterTomorrow": "After {name} tomorrow {start}–{end}",
   "energy.advice.plan.afterNone": "After {name}: no sunny window until tomorrow evening",
   "energy.advice.runs": "runs about {d}",
+  "energy.advice.average": "about {kw} on average",
   "energy.advice.forecastLine": "{today} left today, {tomorrow} expected tomorrow",
   "energy.advice.popup.historyForecast": "Surplus · measured and forecast",
   "energy.advice.popup.bestWindow": "best window",

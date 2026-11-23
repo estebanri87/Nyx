@@ -2027,6 +2027,7 @@
   "energy.advice.plan.afterTomorrow": "Etter {name} i morgon {start}–{end}",
   "energy.advice.plan.afterNone": "Etter {name}: ikkje noko solvindauge før i morgon kveld",
   "energy.advice.runs": "går om lag {d}",
+  "energy.advice.average": "i snitt {kw}",
   "energy.advice.forecastLine": "{today} att i dag, {tomorrow} venta i morgon",
   "energy.advice.popup.historyForecast": "Overskot · målt og prognose",
   "energy.advice.popup.bestWindow": "beste vindauge",

@@ -31,6 +31,15 @@ export const formatDuration = (min) => {
   return m ? `${h}:${String(m).padStart(2, '0')} h` : `${h} h`;
 };
 
+/** "läuft etwa 1:45 h · im Schnitt 0,5 kW" from the learned run, or null. */
+export function formatRun(item, t, locale) {
+  if (!item.durationMin) return null;
+  const runs = t('energy.advice.runs').replace('{d}', formatDuration(item.durationMin));
+  return item.averageW
+    ? `${runs} · ${t('energy.advice.average').replace('{kw}', formatKw(item.averageW, locale))}`
+    : runs;
+}
+
 /** Colour of a planning line by its kind. */
 export const PLAN_COLOR = { now: '#a7f3d0', today: '#93c5fd', tomorrow: '#93c5fd', none: null };
 
@@ -180,12 +189,7 @@ function EnergyAdviceCard({ advice, entities, locale, t }) {
                     {item.name}
                   </span>
                   <span className="text-[13px] text-[var(--text-muted)]">
-                    {[
-                      need,
-                      item.durationMin
-                        ? t('energy.advice.runs').replace('{d}', formatDuration(item.durationMin))
-                        : null,
-                    ]
+                    {[need, item.durationMin ? formatRun(item, t, locale) : null]
                       .filter(Boolean)
                       .join(' · ')}
                   </span>

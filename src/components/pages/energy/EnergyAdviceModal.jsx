@@ -3,7 +3,7 @@ import { ArrowRight, Calendar, Plug, Sun, WashingMachine, X } from '../../../ico
 import AccessibleModalShell from '../../ui/AccessibleModalShell';
 import { getHistory } from '../../../services/haClient';
 import { surplusSeries } from './energyAdvice';
-import { PLAN_COLOR, STATUS, formatDuration, formatKw, formatPlan } from './EnergyAdviceCard';
+import { PLAN_COLOR, STATUS, formatKw, formatPlan, formatRun } from './EnergyAdviceCard';
 import { computeEnergyFlow, formatNumber, readPowerW } from './energyModel';
 import {
   FORECAST_TODAY,
@@ -284,9 +284,12 @@ export default function EnergyAdviceModal({
     .filter((item) => item.demandW && item.status !== 'running')
     .map((item, i) => ({
       id: item.id,
-      w: item.demandW,
+      // The plan uses the average draw, so the chart shows that line too.
+      w: item.averageW || item.demandW,
       color: LINE_COLORS[i % LINE_COLORS.length],
-      label: `${item.name} ${kw(item.demandW)}`,
+      label: item.averageW
+        ? `${item.name} ${t('energy.advice.average').replace('{kw}', kw(item.averageW))}`
+        : `${item.name} ${kw(item.demandW)}`,
     }));
   // The first appliance with a window today marks the best time in the chart.
   const best = advice.items.find(
@@ -444,9 +447,7 @@ export default function EnergyAdviceModal({
                       : item.demandW
                         ? t('energy.advice.needs').replace('{kw}', kw(item.demandW))
                         : t('energy.advice.needsUnknown');
-                  const runs = item.durationMin
-                    ? t('energy.advice.runs').replace('{d}', formatDuration(item.durationMin))
-                    : null;
+                  const runs = item.durationMin ? formatRun(item, t, locale) : null;
                   const since = item.suggestedSince
                     ? t('energy.advice.popup.since').replace(
                         '{min}',

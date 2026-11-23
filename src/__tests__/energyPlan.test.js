@@ -6,7 +6,7 @@ import {
   forecastPower,
   houseProfile,
   planDevice,
-  runDuration,
+  runProfile,
 } from '../components/pages/energy/energyPlan';
 
 const HOUR = 60 * 60 * 1000;
@@ -64,7 +64,7 @@ describe('houseProfile', () => {
   });
 });
 
-describe('runDuration', () => {
+describe('runProfile', () => {
   it('measures the typical run, pauses included', () => {
     const run = (startH, minutes, pauseAt = null) =>
       Array.from({ length: minutes / 5 }, (_, i) => ({
@@ -72,11 +72,26 @@ describe('runDuration', () => {
         mean: pauseAt !== null && i === pauseAt ? 3 : 2000,
       }));
     const rows = [...run(8, 120, 10), ...run(14, 115), ...run(18, 130)];
-    expect(runDuration(rows, 50)).toBe(120);
+    const profile = runProfile(rows, 50);
+    expect(profile.minutes).toBe(120);
+    // The pause lowers the first run's average; the median of the runs does not care.
+    expect(profile.averageW).toBe(2000);
+  });
+
+  it('averages a washing machine far below its heating peak', () => {
+    // Real 5-minute means of a wash: heating briefly, then about 350 W.
+    const wash = [80, 348, 1627, 1697, 377, 372, 371, 391, 364, 389, 373, 360, 368, 299];
+    const rest = [363, 310, 354, 299, 355, 288, 208];
+    const day = (d) =>
+      [...wash, ...rest].map((mean, i) => ({ start: at(d, 9) + i * 5 * 60 * 1000, mean }));
+    const profile = runProfile([...day(-3), ...day(-1)], 50);
+    expect(profile.minutes).toBe(105);
+    expect(profile.averageW).toBeGreaterThan(400);
+    expect(profile.averageW).toBeLessThan(600);
   });
 
   it('needs at least two runs', () => {
-    expect(runDuration([{ start: at(0, 8), mean: 2000 }], 50)).toBeNull();
+    expect(runProfile([{ start: at(0, 8), mean: 2000 }], 50)).toBeNull();
   });
 });
 

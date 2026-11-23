@@ -2027,6 +2027,7 @@
   "energy.advice.plan.afterTomorrow": "Nach {name} morgen {start}–{end}",
   "energy.advice.plan.afterNone": "Nach {name}: kein Sonnenfenster bis morgen Abend",
   "energy.advice.runs": "läuft etwa {d}",
+  "energy.advice.average": "im Schnitt {kw}",
   "energy.advice.forecastLine": "heute noch {today}, morgen {tomorrow} erwartet",
   "energy.advice.popup.historyForecast": "Überschuss · gemessen und Prognose",
   "energy.advice.popup.bestWindow": "bestes Fenster",

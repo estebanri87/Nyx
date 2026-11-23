@@ -1928,6 +1928,7 @@
   "energy.advice.plan.afterTomorrow": "{name} 之后，明天 {start}–{end}",
   "energy.advice.plan.afterNone": "{name} 之后：明晚之前没有日照时段",
   "energy.advice.runs": "大约运行 {d}",
+  "energy.advice.average": "平均 {kw}",
   "energy.advice.forecastLine": "今天还剩 {today}，明天预计 {tomorrow}",
   "energy.advice.popup.historyForecast": "富余 · 实测与预测",
   "energy.advice.popup.bestWindow": "最佳时段",

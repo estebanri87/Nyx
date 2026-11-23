@@ -87,31 +87,44 @@ export function houseProfile(...rowSets) {
 }
 
 /**
- * Typical run time of an appliance in minutes from 5-minute mean statistics:
- * the median length of its runs, where pauses up to `gapMs` belong to the
- * same run. Rounded to 15 minutes; null with fewer than two runs.
+ * Typical run of an appliance from 5-minute mean statistics: how long it runs
+ * (median, rounded to 15 minutes) and how much it draws on average while
+ * running, pauses included. Pauses up to `gapMs` belong to the same run.
+ * The average matters for planning: a washing machine heats with 2.5 kW for
+ * a few minutes only, the battery covers such a peak. Null with fewer than
+ * two runs.
  */
-export function runDuration(rows, runW, gapMs = 15 * 60 * 1000) {
-  const on = (rows || [])
-    .filter((r) => Number.isFinite(r.mean) && r.mean >= runW)
-    .map((r) => toMs(r.start))
-    .filter(Number.isFinite)
-    .sort((a, b) => a - b);
+export function runProfile(rows, runW, gapMs = 15 * 60 * 1000) {
+  const FIVE_MIN = 5 * 60 * 1000;
+  const sorted = (rows || [])
+    .map((r) => ({ t: toMs(r.start), w: r.mean }))
+    .filter((r) => Number.isFinite(r.t) && Number.isFinite(r.w))
+    .sort((a, b) => a.t - b.t);
   const runs = [];
   let first = null;
   let last = null;
-  on.forEach((t) => {
-    if (last !== null && t - last > gapMs + 5 * 60 * 1000) {
-      runs.push(last + 5 * 60 * 1000 - first);
-      first = null;
-    }
-    if (first === null) first = t;
-    last = t;
-  });
-  if (first !== null) runs.push(last + 5 * 60 * 1000 - first);
-  const real = runs.filter((ms) => ms >= 15 * 60 * 1000);
+  const close = () => {
+    const inRun = sorted.filter((r) => r.t >= first && r.t <= last);
+    const ms = last + FIVE_MIN - first;
+    runs.push({ ms, averageW: inRun.reduce((sum, r) => sum + r.w, 0) / (ms / FIVE_MIN || 1) });
+  };
+  sorted
+    .filter((r) => r.w >= runW)
+    .forEach(({ t }) => {
+      if (last !== null && t - last > gapMs + FIVE_MIN) {
+        close();
+        first = null;
+      }
+      if (first === null) first = t;
+      last = t;
+    });
+  if (first !== null) close();
+  const real = runs.filter((run) => run.ms >= 15 * 60 * 1000);
   if (real.length < 2) return null;
-  return Math.max(15, Math.round(median(real) / 60000 / 15) * 15);
+  return {
+    minutes: Math.max(15, Math.round(median(real.map((run) => run.ms)) / 60000 / 15) * 15),
+    averageW: Math.round(median(real.map((run) => run.averageW)) / 10) * 10,
+  };
 }
 
 /** Midnight (local) of the day of `t`, plus `days`. */

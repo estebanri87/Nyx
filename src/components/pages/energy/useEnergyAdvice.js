@@ -237,9 +237,11 @@ export function useEnergyAdvice(entities, conn, config) {
         earliest = otherPlan?.start ? otherPlan.start + otherMin * 60 * 1000 : null;
       }
       if (earliest !== null) {
+        // Planned with the average draw while running; the battery covers
+        // short peaks such as heating water. Without it, the peak counts.
         plan = planDevice({
           series: forecastSeries,
-          demandW: item.demandW,
+          demandW: solar.averageOf(item.id) || item.demandW,
           durationMin,
           now,
           earliest,
@@ -252,6 +254,7 @@ export function useEnergyAdvice(entities, conn, config) {
   };
   items.forEach((i) => {
     i.durationMin = solar.durationOf(i.id);
+    i.averageW = solar.averageOf(i.id);
     i.plan = planFor(i);
   });
 
