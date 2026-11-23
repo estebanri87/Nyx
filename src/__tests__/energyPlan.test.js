@@ -27,9 +27,21 @@ describe('forecastPower', () => {
       },
     };
     const points = forecastPower(forecasts);
-    // 12:00 covers 11:00–12:00 and sits at 11:30.
-    expect(forecastAt(points, at(0, 11, 30))).toBe(1500);
+    // 12:00 covers 12:00–13:00 and sits at 12:30.
+    expect(forecastAt(points, at(0, 12, 30))).toBe(1500);
+    expect(forecastAt(points, at(0, 11, 30))).toBe(200);
     expect(forecastAt(points, at(0, 20))).toBe(0);
+  });
+
+  it('expects no sun before sunrise', () => {
+    // Sunrise 07:50: 3 Wh until 08:00, then 300 Wh from 08:00 to 09:00.
+    const iso = (h, m) => new Date(at(0, h, m)).toISOString();
+    const points = forecastPower({
+      a: { wh_hours: { [iso(7, 50)]: 3, [iso(8, 0)]: 300, [iso(9, 0)]: 900 } },
+    });
+    expect(forecastAt(points, at(0, 7, 30))).toBeLessThan(20);
+    expect(forecastAt(points, at(0, 7, 55))).toBeLessThan(50);
+    expect(forecastAt(points, at(0, 8, 30))).toBe(300);
   });
 
   it('keeps the short sunrise period of each array to itself', () => {
@@ -44,7 +56,7 @@ describe('forecastPower', () => {
     );
     const total = forecastPower(arrays);
     const single = Object.entries(arrays).map(([id, entry]) => forecastPower({ [id]: entry }));
-    for (const t of [at(0, 7, 50), at(0, 7, 57), at(0, 8, 30)]) {
+    for (const t of [at(0, 7, 50), at(0, 7, 57), at(0, 8, 30), at(0, 9, 30)]) {
       const sum = single.reduce((s, points) => s + forecastAt(points, t), 0);
       expect(forecastAt(total, t)).toBeCloseTo(sum, 0);
     }

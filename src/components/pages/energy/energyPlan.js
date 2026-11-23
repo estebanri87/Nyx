@@ -17,10 +17,12 @@ const toMs = (value) => (typeof value === 'number' ? value : Date.parse(value));
 /**
  * Average PV power over time from Home Assistant's `energy/solar_forecast`
  * answer ({entryId: {wh_hours: {iso: Wh}}}), summed over all arrays. Each
- * value is the energy of the period ending at its timestamp; the power is
- * placed in the middle of that period. Each array has its own periods (its
- * own sunrise), so they are converted one by one and then added up on a
- * PLAN_STEP_MS grid. Returns sorted {t, w} points.
+ * value is the energy of the period starting at its timestamp, as Home
+ * Assistant's energy dashboard reads it: the day begins with a short period
+ * from sunrise (e.g. 07:50) to the full hour, then whole hours. The power is
+ * placed in the middle of its period. Each array has its own sunrise, so
+ * they are converted one by one and then added up on a PLAN_STEP_MS grid.
+ * Returns sorted {t, w} points.
  */
 export function forecastPower(forecasts) {
   const arrays = Object.values(forecasts || {})
@@ -30,10 +32,9 @@ export function forecastPower(forecasts) {
         .filter((p) => Number.isFinite(p.t) && Number.isFinite(p.wh))
         .sort((a, b) => a.t - b.t);
       return values.map((p, i) => {
-        const prev = values[i - 1];
-        // The first period of a day starts at sunrise and is shorter than an hour.
-        const length = prev && p.t - prev.t <= HOUR ? p.t - prev.t : HOUR;
-        return { t: p.t - length / 2, w: (p.wh * HOUR) / length };
+        const next = values[i + 1];
+        const length = next && next.t - p.t <= HOUR ? next.t - p.t : HOUR;
+        return { t: p.t + length / 2, w: (p.wh * HOUR) / length };
       });
     })
     .filter((points) => points.length);
